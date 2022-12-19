@@ -1,0 +1,10 @@
+# device-specific
+.DS_Store
+Thumbs.db
+
+# Node-specific
+*.log
+node_modules/
+
+# config files
+hh-config.json
