@@ -6,5 +6,7 @@ Thumbs.db
 *.log
 node_modules/
 
-# config files
+# config/db files
 hh-config.json
+players.db
+players.db-journal
