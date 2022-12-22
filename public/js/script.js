@@ -153,9 +153,6 @@ const getLeaderboardBrackets = async(playerId, eventId) => {
 }
 
 const populateFieldsDivision = (data) => {
-  console.log(data)
-  console.log(data["player"]["globalPosition"])
-  console.log(data["global"]["count"])
   document.querySelector('#playerName').innerText = getPlayerNameFromOrdinal(data["player"]["playerOrdinal"])
   document.querySelector('#globalPosition').innerText = `${(data["player"]["globalPosition"]+1).toLocaleString()} / ${data["global"]["count"].toLocaleString()}`
   document.querySelector('#globalPositionPercentile').innerText = `Top ${(data["player"]["globalPosition"] / (data["global"]["count"]-1) * 100).toFixed(2)}%`
@@ -252,6 +249,10 @@ const populateFieldsGlobal = (data) => {
     tbody.append(globalBracketLine)
   }
 }
+
+document.querySelector('#playFabQuery').addEventListener('keyup', function() {
+  this.value = this.value.toUpperCase()
+})
 
 document.querySelector('#formSubmitPlayFab').addEventListener('click', function() {
   postFormPlayFab()
