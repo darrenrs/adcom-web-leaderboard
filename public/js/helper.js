@@ -1,4 +1,8 @@
 function getPlayerNameFromOrdinal(n) {
+  if (n < 0) {
+    return 'Can\'t determine name from archived leaderboard'
+  }
+
   const odict = {"Adjectives":["Supreme","Super","Glorious","Marvelous","Brilliant","Great","Prosperous","Red","Pink","Crimson","Scarlet","Patriotic","True","Model","Communistic","Iron"],"Nouns":["Chicken","Captain","Communist","Comrade","Leader","Guardian","Guard","Worker","Pioneer","Soldier","Proletariat","Revolutionist","Socialist"],"Generations":["I","V","X","L","C","D","M"],"IconColors":["Green", "Blue", "Pink", "Red", "Orange", "Yellow"],"IconTextures":["Bomb", "Boot", "Cactus", "Dino", "Chicken", "Fish", "Skull", "Sword"]}
   const baseCaseIndex = [0, 7, 4, 0, 0]
   const incrementValue = [1, 2, 3, 1, 1]

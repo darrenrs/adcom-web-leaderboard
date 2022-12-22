@@ -9,11 +9,9 @@
   "author": "Darren Skidmore",
   "license": "MIT",
   "dependencies": {
-    "@popperjs/core": "^2.11.6",
     "axios": "^1.2.1",
     "bootstrap": "^5.2.3",
     "express": "^4.18.2",
-    "got": "^12.5.3",
-    "request": "^2.88.2"
+    "sqlite3": "^5.1.4"
   }
 }
