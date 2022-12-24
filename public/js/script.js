@@ -1,4 +1,5 @@
 const postFormPlayFab = async() => {
+  document.querySelector('#mainContent').classList.add('d-none')
   const playerId = document.querySelector('#playFabQuery').value
   const saveCurrentId = document.querySelector('#playFabSetDefault')
   
@@ -52,7 +53,7 @@ const postFormEventList = async() => {
       if (i["status"]) {
         // the player participated in this event
         const newOption = document.createElement('option')
-        newOption.innerText = `${i["eventName"]} ${i["startDate"]}`
+        newOption.innerText = `${getEventDetails(i["eventName"])["short"]} (${new Date(i["startDate"]).toDateString().substring(4)} to ${new Date(i["endDate"]).toDateString().substring(4)})`
         newOption.value = i["eventId"]
         
         selectList.appendChild(newOption)
@@ -80,7 +81,8 @@ const postFormEvent = async() => {
   if (eventData) {
     // success
     document.querySelector('#noAccountFound').classList.add('d-none')
-    populateFieldsDivision(eventData)
+    document.querySelector('#mainContent').classList.remove('d-none')
+    populateFieldsGeneral(eventData)
   } else {
     // general failure
     document.querySelector('#noAccountFound').classList.remove('d-none')
@@ -92,7 +94,7 @@ const postFormEvent = async() => {
   if (eventBrackets) {
     // success
     document.querySelector('#eventLoadConnectionError').classList.add('d-none')
-    populateFieldsGlobal(eventBrackets)
+    populateFieldsGlobal(eventBrackets, eventData)
   } else {
     // general failure
     document.querySelector('#eventLoadConnectionError').classList.remove('d-none')
@@ -140,6 +142,17 @@ const getPlayerEventRecord = async(playerId, eventId) => {
     })
 }
 
+const getLeaderboardPosition = async(playerId, eventId) => {
+  return await fetch(`/api/event/${eventId}/${playerId}/position`)
+    .then((response) => {
+      return response.text()
+    })
+    .catch((error) => {
+      console.error(error)
+      return
+    })
+}
+
 const getLeaderboardBrackets = async(playerId, eventId) => {
   return await fetch(`/api/event/${eventId}/${playerId}/brackets`)
     .then((response) => {
@@ -152,10 +165,26 @@ const getLeaderboardBrackets = async(playerId, eventId) => {
     })
 }
 
-const populateFieldsDivision = (data) => {
+const populateFieldsGeneral = (data) => {
+  const eventDetails = getEventDetails(data["event"]["eventName"])
+  document.querySelector('#eventImage').classList.remove('d-none')
+  document.querySelector('#eventImage').setAttribute('src', `img/adcom/${data["event"]["eventName"]}.png`)
+  document.querySelector('#eventFullName').innerText = eventDetails["name"]
+  document.querySelector('#eventDescription').innerText = eventDetails["desc"]
+  document.querySelector('#eventStartDate').innerText = new Date(data["event"]["startDate"]).toLocaleString()
+  document.querySelector('#eventEndDate').innerText = new Date(data["event"]["endDate"]).toLocaleString()
+  document.querySelector('#eventDuration').innerText = `${(new Date(data["event"]["endDate"]) - new Date(data["event"]["startDate"])) / (60 * 60 * 1000)} hours`
+
+  if (data["status"] === 'archived') {
+    document.querySelector('#eventArchivedWarning').classList.remove('d-none')
+  } else {
+    document.querySelector('#eventArchivedWarning').classList.add('d-none')
+  }
+
   document.querySelector('#playerName').innerText = getPlayerNameFromOrdinal(data["player"]["playerOrdinal"])
   document.querySelector('#globalPosition').innerText = `${(data["player"]["globalPosition"]+1).toLocaleString()} / ${data["global"]["count"].toLocaleString()}`
   document.querySelector('#globalPositionPercentile').innerText = `Top ${(data["player"]["globalPosition"] / (data["global"]["count"]-1) * 100).toFixed(2)}%`
+  document.querySelector('#trophies').innerText = data["player"]["trophies"].toLocaleString()
   document.querySelector('#joinDate').innerText = new Date(data["player"]["dateJoined"]).toLocaleString()
   document.querySelector('#updateDate').innerText = new Date(data["player"]["dateUpdated"]).toLocaleString()
   document.querySelector('#divisionId').innerText = data["player"]["divisionId"]
@@ -175,8 +204,9 @@ const populateFieldsDivision = (data) => {
         let trophyDelta = data["division"]["top"][i-1]["trophies"] - data["division"]["top"][i]["trophies"] + 10
 
         let moveUp = document.createElement('tr')
+        moveUp.classList.add('fw-bold')
         let moveUpCell = document.createElement('td')
-        moveUpCell.setAttribute('colspan', 3)
+        moveUpCell.setAttribute('colspan', 4)
         moveUpCell.classList.add('text-center')
         moveUpCell.innerText = `▲ ${trophyDelta.toLocaleString()} trophies needed to move up ▲`
 
@@ -194,30 +224,46 @@ const populateFieldsDivision = (data) => {
     let trophyCell = document.createElement('td')
     trophyCell.innerText = data["division"]["top"][i]["trophies"].toLocaleString()
 
+    let globalPosCell = document.createElement('td')
+    globalPosCell.innerText = "Click to load"
+    globalPosCell.addEventListener('click', async (e) => {
+      if (e.target.innerText === "Click to load") {
+        let lbp = await getLeaderboardPosition(data["division"]["top"][i]["playerId"], data["event"]["eventGuid"])
+        lbp = parseInt(lbp) + 1
+        if (lbp) {
+          e.target.innerText = lbp.toLocaleString()
+        } else {
+          e.target.innerText = 'Error'
+        }
+      }
+    })
+
     divisionPlayer.appendChild(positionCell)
     divisionPlayer.appendChild(nameCell)
     divisionPlayer.appendChild(trophyCell)
+    divisionPlayer.appendChild(globalPosCell)
     
     tbody.appendChild(divisionPlayer)
   }
 }
 
-const populateFieldsGlobal = (data) => {
+const populateFieldsGlobal = (data, playerData) => {
   const bracketNames = [
     'Champion',
     'Top 5',
     'Top 25',
     'Top 100',
-    'Glorious',
-    'Elite',
-    'Prime',
-    'Grand',
-    'Advanced',
-    'Workforce'
+    'Top 1%',
+    'Top 5%',
+    'Top 10%',
+    'Top 25%',
+    'Top 50%',
+    'Top 75%'
   ]
   
   let tbody = document.querySelector('#globalPositions')
   tbody.innerHTML = ''
+  moveUpBracket = true
 
   for (let i = 0; i < Object.keys(data["brackets"]).length; i++) {
     let globalBracketLine = document.createElement('tr')
@@ -230,6 +276,39 @@ const populateFieldsGlobal = (data) => {
       actualPositionInt = (Object.keys(data["brackets"])[i])
     } else {
       actualPositionInt = Math.floor(data["totalPlayers"] * (Object.keys(data["brackets"])[i]))
+    }
+
+    if (actualPositionInt > playerData["player"]["globalPosition"] && moveUpBracket) {
+      moveUpBracket = false
+      let trophyDelta = Object.values(data["brackets"])[i-1] - playerData["player"]["trophies"] + 10
+
+      let moveUp = document.createElement('tr')
+      moveUp.classList.add('fw-bold')
+
+      let moveUpCell = document.createElement('td')
+      moveUpCell.setAttribute('colspan', 3)
+      moveUpCell.classList.add('text-center')
+      moveUpCell.innerText = `▲ ${trophyDelta.toLocaleString()} trophies needed to move up ▲`
+
+      moveUp.appendChild(moveUpCell)
+      tbody.appendChild(moveUp)
+
+      let playerSelfBracket = document.createElement('tr')
+      playerSelfBracket.classList.add('fw-bold')
+
+      let playerSelfBracketName = document.createElement('td')
+      playerSelfBracketName.innerText = 'You'
+
+      let playerSelfBracketPosition = document.createElement('td')
+      playerSelfBracketPosition.innerText = (playerData["player"]["globalPosition"] + 1).toLocaleString()
+
+      let playerSelfBracketTrophies = document.createElement('td')
+      playerSelfBracketTrophies.innerText = playerData["player"]["trophies"].toLocaleString()
+
+      playerSelfBracket.appendChild(playerSelfBracketName)
+      playerSelfBracket.appendChild(playerSelfBracketPosition)
+      playerSelfBracket.appendChild(playerSelfBracketTrophies)
+      tbody.appendChild(playerSelfBracket)
     }
 
     let actualPositionCell = document.createElement('td')

@@ -251,8 +251,8 @@ const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboa
   returnStruct["event"] = {}
   returnStruct["event"]["eventGuid"] = currentEventData["eventId"]
   returnStruct["event"]["eventName"] = currentEventData["eventName"]
-  returnStruct["event"]["dateCommence"] = currentEventData["startDate"]
-  returnStruct["event"]["dateConclude"] = currentEventData["endDate"]
+  returnStruct["event"]["startDate"] = currentEventData["startDate"]
+  returnStruct["event"]["endDate"] = currentEventData["endDate"]
 
   returnStruct["player"] = {}
   returnStruct["player"]["leaderboardGuid"] = playerEventInfo["leaderboardGuid"]
@@ -323,8 +323,8 @@ const archivedEntryData = async(currentEventData, playerEventInfo, playerLeaderb
   returnStruct["event"] = {}
   returnStruct["event"]["eventGuid"] = currentEventData["eventId"]
   returnStruct["event"]["eventName"] = currentEventData["eventName"]
-  returnStruct["event"]["dateCommence"] = currentEventData["startDate"]
-  returnStruct["event"]["dateConclude"] = currentEventData["endDate"]
+  returnStruct["event"]["startDate"] = currentEventData["startDate"]
+  returnStruct["event"]["endDate"] = currentEventData["endDate"]
 
   returnStruct["player"] = {}
   returnStruct["player"]["leaderboardGuid"] = playerEventInfo["leaderboardGuid"]
@@ -423,7 +423,33 @@ app.get('/api/event/:event/:id', async (req, res) => {
   res.status(200).json(returnStruct)
 })
 
-// brackets
+// individual position for a player
+app.get('/api/event/:event/:id/position', async (req, res) => {
+  const id = req.params.id
+  const eventId = req.params.event
+  console.log(`Querying player ${id} for event ${eventId} (position)`)
+
+  const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25)
+  if (!playerLeaderboard) {
+    // don't even bother continuing if we know the ID has no record
+    console.log(`Player ${id} not found`)
+    res.status(404).end()
+    return
+  }
+
+  if (playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]) {
+    for (let i of playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]) {
+      if (i["playerId"] === id) {
+        res.status(200).send(i["position"]["position"].toString())
+        return
+      }
+    }
+  } else {
+    res.status(200).send(playerLeaderboard["results"]["rootResults"]["offsetResults"]["archivedEntry"]["rootPosition"]["position"].toString())
+  }
+})
+
+// brackets for a leaderboard (requires PlayFab)
 app.get('/api/event/:event/:id/brackets', async (req, res) => {
   const id = req.params.id
   const eventId = req.params.event
