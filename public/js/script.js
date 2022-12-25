@@ -168,7 +168,7 @@ const getLeaderboardBrackets = async(playerId, eventId) => {
 const populateFieldsGeneral = (data) => {
   const eventDetails = getEventDetails(data["event"]["eventName"])
   document.querySelector('#eventImage').classList.remove('d-none')
-  document.querySelector('#eventImage').setAttribute('src', `img/adcom/${data["event"]["eventName"]}.png`)
+  document.querySelector('#eventImage').setAttribute('src', `/img/adcom/${data["event"]["eventName"]}.png`)
   document.querySelector('#eventFullName').innerText = eventDetails["name"]
   document.querySelector('#eventDescription').innerText = eventDetails["desc"]
   document.querySelector('#eventStartDate').innerText = new Date(data["event"]["startDate"]).toLocaleString()
@@ -225,19 +225,24 @@ const populateFieldsGeneral = (data) => {
     trophyCell.innerText = data["division"]["top"][i]["trophies"].toLocaleString()
 
     let globalPosCell = document.createElement('td')
-    globalPosCell.innerText = "Click to load"
-    globalPosCell.addEventListener('click', async (e) => {
-      if (e.target.innerText === "Click to load") {
-        let lbp = await getLeaderboardPosition(data["division"]["top"][i]["playerId"], data["event"]["eventGuid"])
-        lbp = parseInt(lbp) + 1
-        if (lbp) {
-          e.target.innerText = lbp.toLocaleString()
-        } else {
-          e.target.innerText = 'Error'
-        }
+    let globalPosBtn = document.createElement('button')
+    globalPosBtn.classList.add('btn')
+    globalPosBtn.classList.add('btn-primary')
+    globalPosBtn.classList.add('btn-sm')
+    globalPosBtn.innerText = "Click to load"
+    globalPosBtn.addEventListener('click', async (e) => {
+      let lbp = await getLeaderboardPosition(data["division"]["top"][i]["playerId"], data["event"]["eventGuid"])
+      let parent = e.target.parentNode
+      lbp = parseInt(lbp) + 1
+      e.target.remove()
+      if (lbp) {
+        parent.innerText = lbp.toLocaleString()
+      } else {
+        parent.innerText = 'Error'
       }
     })
 
+    globalPosCell.appendChild(globalPosBtn)
     divisionPlayer.appendChild(positionCell)
     divisionPlayer.appendChild(nameCell)
     divisionPlayer.appendChild(trophyCell)
