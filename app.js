@@ -41,11 +41,12 @@ const getAllEvents = async () => {
     if (i["instance"]["definition"]["requirements"].length === 0) {
       continue
     }
-
+    
     const eventId = i["instance"]["guid"]
     const eventName = i["instance"]["definition"]["name"]
     const startDate = new Date(i["instance"]["definition"]["requirements"][0]["dateFrom"])
     const endDate = new Date(i["instance"]["definition"]["requirements"][0]["dateTo"])
+    const status = (i["instance"]["status"]["currentStatus"] === "Enabled") ? "active" : "archived"
     const currentDate = new Date()
 
     if (i["instance"]["definition"]["project"] === 'adcom' && (endDate < currentDate || (endDate > currentDate && startDate < currentDate))) {
@@ -53,6 +54,7 @@ const getAllEvents = async () => {
       const eventStruct = {
         "eventId": eventId,
         "eventName": eventName,
+        "eventStatus": status,
         "startDate": startDate,
         "endDate": endDate
       }
@@ -155,6 +157,7 @@ const getKnownPlayerEvents = async(id) => {
     const eventStruct = {
       "eventId": i["eventId"],
       "eventName": i["eventName"],
+      "eventStatus": i["eventStatus"],
       "startDate": i["startDate"],
       "endDate": i["endDate"],
       "status": status
@@ -476,6 +479,55 @@ app.get('/api/event/:event/:id/brackets', async (req, res) => {
   const returnStruct = {
     "totalPlayers": totalPlayers,
     "brackets": bracketData
+  }
+
+  res.status(200).json(returnStruct)
+})
+
+// top players for a leaderboard (requires PlayFab)
+app.get('/api/event/:event/:id/top/:count', async (req, res) => {
+  const id = req.params.id
+  const eventId = req.params.event
+  const topPlayers = parseInt(req.params.count)
+  console.log(`Querying player ${id} for event ${eventId} (top ${topPlayers})`)
+
+  if (isNaN(topPlayers)) {
+    console.error('Must be an int')
+    res.status(400).end()
+    return
+  } else if (topPlayers < 1 || topPlayers > 1000) {
+    console.error('Out of bounds')
+    res.status(403).end()
+    return
+  }
+
+  const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 1, topPlayers)
+  if (!playerLeaderboard["results"]["rootResults"]["topResults"]) {
+    // don't even bother continuing if we know the ID has no record
+    console.log(`Player ${id} not registered with ${eventId}`)
+    res.status(404).end()
+    return
+  }
+
+  let proximalPlayerHashMap = {}
+  for (let i of playerLeaderboard["resolvedPlayers"]["objectArray"]) {
+    // generate a list of players from the "resolvedPlayers" key, so we can obtain metadata such as ordinal ID (yields nickname) and custom name/icon (planned implementation in 2023)
+    proximalPlayerHashMap[i["playerId"]] = i["sequence"]
+  }
+
+  const returnStruct = {}
+  returnStruct["count"] = playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"][0]["position"]["count"]
+
+  returnStruct["top"] = {}
+  returnStruct["top"]["count"] = topPlayers
+  returnStruct["top"]["list"] = []
+  for (let i of playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"]) {
+    returnStruct["top"]["list"].push({
+      "playerId": i["playerId"],
+      "ordinal": proximalPlayerHashMap[i["playerId"]],
+      "position": i["position"]["position"],
+      "trophies": i["score"],
+    })
   }
 
   res.status(200).json(returnStruct)
