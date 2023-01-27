@@ -147,7 +147,6 @@ const getKnownPlayerEvents = async(id) => {
   const allEvents = await getAllEvents()
   const currentKnownEvents = await dbHandler.getPlayerEvents(id)
   const newKnownEvents = []
-  console.log(allEvents)
 
   // inefficient O(mn) loop but luckily this isn't a lot of data
   for (let i of allEvents) {
