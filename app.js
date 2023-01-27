@@ -25,8 +25,8 @@ fs.readFile(__dirname + '/hh-config.json', 'utf8', (err, data) => {
 app.use(express.static('public'))
 app.use(express.static(__dirname + '/node_modules/bootstrap/dist/'))
 
-// returns a list of every event since the inception of v3 leaderboard service up until now
-const getAllEvents = async () => {
+// returns a list of every event since the inception of v3 leaderboard service up until either now or all scheduled
+const getAllEvents = async (future=false) => {
   const eventList = []
   const eventListReq = await axios.get(`${hhcfg["fullBaseLeaderboard"]}/leaderboards`, config={
     "headers": {
@@ -47,16 +47,22 @@ const getAllEvents = async () => {
     const startDate = new Date(i["instance"]["definition"]["requirements"][0]["dateFrom"])
     const endDate = new Date(i["instance"]["definition"]["requirements"][0]["dateTo"])
     const status = (i["instance"]["status"]["currentStatus"] === "Enabled") ? "active" : "archived"
+    let playerCount = i["instance"]["statistics"]["rootCounts"]["global"] + i["instance"]["statistics"]["rootCounts"]["sandbox"]
     const currentDate = new Date()
 
-    if (i["instance"]["definition"]["project"] === 'adcom' && (endDate < currentDate || (endDate > currentDate && startDate < currentDate))) {
+    if (!isNaN(i["instance"]["statistics"]["rootCounts"]["archive"])) {
+      playerCount += i["instance"]["statistics"]["rootCounts"]["archive"]
+    }
+    
+    if (i["instance"]["definition"]["project"] === 'adcom' && !(startDate < currentDate && playerCount === 0) && !(!future && startDate > currentDate)) {
       // found a valid event
       const eventStruct = {
         "eventId": eventId,
         "eventName": eventName,
         "eventStatus": status,
         "startDate": startDate,
-        "endDate": endDate
+        "endDate": endDate,
+        "players": playerCount
       }
       eventList.push(eventStruct)
     }
@@ -141,6 +147,7 @@ const getKnownPlayerEvents = async(id) => {
   const allEvents = await getAllEvents()
   const currentKnownEvents = await dbHandler.getPlayerEvents(id)
   const newKnownEvents = []
+  console.log(allEvents)
 
   // inefficient O(mn) loop but luckily this isn't a lot of data
   for (let i of allEvents) {
@@ -352,6 +359,11 @@ const archivedEntryData = async(currentEventData, playerEventInfo, playerLeaderb
 // get event list
 app.get('/api/list', async (req, res) => {
   const allEvents = await getAllEvents()
+  res.send(allEvents)
+})
+
+app.get('/api/list/all', async (req, res) => {
+  const allEvents = await getAllEvents(true)
   res.send(allEvents)
 })
 
