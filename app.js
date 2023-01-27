@@ -188,8 +188,8 @@ const getPlayerEventInfo = async(id, eventId) => {
     
     return playerEventReq["data"]["data"]
   } catch (e) {
-    console.error(e.response.status)
-    return
+    console.error(e)
+    return Promise.reject(e)
   }
 }
 
@@ -207,7 +207,7 @@ const getPlayerLeaderboard = async(id, eventId, adjacentCount, topCount) => {
     return playerLeaderboardReq["data"]["resultMap"]
   } catch (e) {
     console.error(e.response.status)
-    return
+    return Promise.reject(e)
   }
 }
 
@@ -224,7 +224,7 @@ const getPosition = async(id, eventId, n) => {
     return positionReq["data"]["resultMap"]["rootResult"]["score"]
   } catch (e) {
     console.error(e.response.status)
-    return
+    return Promise.reject(e)
   }
 }
 
