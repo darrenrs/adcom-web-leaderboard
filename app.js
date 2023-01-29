@@ -452,9 +452,8 @@ app.get('/api/discord/:event', async(req, res) => {
             let individualPlayerFinalRecord = {
               "name": k["nameWebsite"],
               "discordName": k["nameDiscord"],
-              "playFabId": j["player"]["playerId"],
               "primaryKeySeq": j["player"]["ordinal"],
-              "position": j["player"]["globalPosition"],
+              "position": j["player"]["globalPosition"] + 1,
               "positionOf": playerEventRecords[playerEventRecords.length-1]["global"]["count"],
               "trophies": j["player"]["trophies"],
               "divisionId": j["player"]["divisionId"],
