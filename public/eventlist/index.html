@@ -27,19 +27,21 @@
       <p><strong>Note:</strong> Only events after August 25, 2022 can be displayed.<br>*Player counts may fluctuate for the current event due to an unknown bug on Hyper Hippo's API. Events will not have the player number match up with the leaderboard viewer because this page includes cheaters in the total sum as well.</p>
       <div class="container pt-2">
         <div class="row pt-3">
-          <table class="table table-striped table-hover">
-            <thead>
-              <tr>
-                <th>PK</th>
-                <th>Name</th>
-                <th colspan=2>Dates (local timezone)</th>
-                <th>Duration</th>
-                <th>Player Count*</th>
-              </tr>
-            </thead>
-            <tbody id="eventSchedule" class="table-group-divider"></tbody>
-          </table>
-          <span id="eventListLoadError" class="text-danger d-none">Please check your internet connection.</span>
+          <div class="overflow-auto">
+            <table class="table table-striped table-hover">
+              <thead>
+                <tr>
+                  <th>PK</th>
+                  <th>Name</th>
+                  <th colspan=2>Dates (local timezone)</th>
+                  <th>Duration</th>
+                  <th>Player Count*</th>
+                </tr>
+              </thead>
+              <tbody id="eventSchedule" class="table-group-divider"></tbody>
+            </table>
+            <span id="eventListLoadError" class="text-danger d-none">Please check your internet connection.</span>  
+          </div>
         </div>
       </div>
     </div>
