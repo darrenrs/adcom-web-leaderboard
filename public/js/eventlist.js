@@ -21,7 +21,6 @@ const populateScheduleTable = (eventSchedule) => {
   for (let i in eventSchedule) {
     let eventRow = document.createElement('tr')
     const eventRecord = getEventDetails(eventSchedule[i]['eventName'])
-    console.log(eventSchedule[i])
 
     let idCell = document.createElement('td')
     idCell.innerText = eventSchedule.length - i

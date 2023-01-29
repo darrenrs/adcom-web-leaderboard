@@ -3,6 +3,8 @@ const fs = require('fs')
 const axios = require('axios')
 const db = require('./db')
 const { cached } = require('sqlite3')
+const parse = require('csv-parse')
+const { send, json } = require('express/lib/response')
 
 const app = express()
 const port = 3000
@@ -361,9 +363,112 @@ app.get('/api/list', async (req, res) => {
   res.send(allEvents)
 })
 
+// get event list including future events
 app.get('/api/list/all', async (req, res) => {
   const allEvents = await getAllEvents(true)
   res.send(allEvents)
+})
+
+// query all players who are participants in the Discord leaderboard
+app.get('/api/discord/:event', async(req, res) => {
+  const eventId = req.params.event
+
+  const allEventData = await getAllEvents()
+  let currentEventData
+
+  for (let i of allEventData) {
+    if (i["eventId"] == eventId) {
+      currentEventData = i
+      break
+    }
+  }
+
+  if (!currentEventData) {
+    res.sendStatus(404)
+    return
+  }
+
+  let playerRecords = []
+  let playerEventRecords = []
+
+  // get player records in a list format
+  fs.createReadStream('discord.csv')
+    .pipe(parse.parse({delimiter: ','}))
+    .on('data', (row) => {
+      let jsonRow = {
+        "nameDiscord": null,
+        "nameWebsite": null,
+        "playFabId": null
+      }
+
+      jsonRow["nameDiscord"] = row[0]
+      jsonRow["nameWebsite"] = row[1]
+      jsonRow["playFabId"] = row[2]
+      playerRecords.push(jsonRow)
+    })
+    .on('end', async () => {
+      console.log("Successfully parsed discord.csv")
+      // get results for each player
+      for (let i in playerRecords) {
+        const id = playerRecords[i]["playFabId"]
+        console.log(`Querying player ${id} for event ${eventId} (Discord leaderboard)`)
+
+        const playerEventInfo = await getPlayerEventInfo(id, eventId)
+        if (!playerEventInfo) {
+          // don't even bother continuing if we know the ID has no record
+          console.log(`Player ${id} not found (Discord leaderboard)`)
+          continue
+        }
+
+        const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25)
+        if (!playerLeaderboard) {
+          // don't even bother continuing if we know the ID has no record
+          console.log(`Player ${id} not registered with ${eventId} (Discord ledaerboard)`)
+          continue
+        }
+
+        // differentiate between archived and active leaderboard
+        let returnStruct
+        if (playerLeaderboard["results"]["rootResults"]["topResults"]) {
+          // active
+          returnStruct = await rankedEntryData(currentEventData, playerEventInfo, playerLeaderboard, id)
+        } else {
+          // archive
+          returnStruct = await archivedEntryData(currentEventData, playerEventInfo, playerLeaderboard)
+        }
+        
+        playerEventRecords.push(returnStruct)
+      }
+      
+      playerEventRecords.sort((a, b) => a["player"]["globalPosition"] - b["player"]["globalPosition"])
+      
+      let playerFinalRecords = []
+
+      // transform data to correct format
+      // a non-efficient O(n^2) loop, but there are few records so performance implications are negligible
+      for (let j of playerEventRecords) {
+        for (let k of playerRecords) {
+          if (j["player"]["playerId"] === k["playFabId"]) {
+            let individualPlayerFinalRecord = {
+              "name": k["nameWebsite"],
+              "discordName": k["nameDiscord"],
+              "playFabId": j["player"]["playerId"],
+              "primaryKeySeq": j["player"]["ordinal"],
+              "position": j["player"]["globalPosition"],
+              "positionOf": playerEventRecords[playerEventRecords.length-1]["global"]["count"],
+              "trophies": j["player"]["trophies"],
+              "divisionId": j["player"]["divisionId"],
+              "isMainBoard": j["player"]["divisionRoot"] === 'global' ? true : false,
+              "lastUpdated": j["player"]["dateUpdated"]
+            }
+
+            playerFinalRecords.push(individualPlayerFinalRecord)
+          }
+        }
+      }
+
+      res.status(200).send(playerFinalRecords)
+    })
 })
 
 // check if player exists
