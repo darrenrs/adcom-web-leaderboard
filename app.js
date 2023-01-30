@@ -29,13 +29,24 @@ app.use(express.static(__dirname + '/node_modules/bootstrap/dist/'))
 
 // returns a list of every event since the inception of v3 leaderboard service up until either now or all scheduled
 const getAllEvents = async (future=false) => {
+  try {
+    const eventListReq = await axios.get(`${hhcfg["fullBaseLeaderboard"]}/leaderboards`, config={
+      "headers": {
+        "_token": hhcfg["token"],
+        "User-agent": "Axios"
+      }
+    })
+
+    const eventList = parseAllEvents(eventListReq, future)
+    return eventList
+  } catch (e) {
+    console.error(e)
+    return Promise.reject(e)
+  }
+}
+
+const parseAllEvents = async (eventListReq, future) => {
   const eventList = []
-  const eventListReq = await axios.get(`${hhcfg["fullBaseLeaderboard"]}/leaderboards`, config={
-    "headers": {
-      "_token": hhcfg["token"],
-      "User-agent": "Axios"
-    }
-  })
 
   // iterate through all leaderboards exposed by the API
   for (let i of eventListReq["data"]["data"]) {
@@ -78,14 +89,14 @@ const getAllEvents = async (future=false) => {
 // returns a bool indicating if the PlayFab ID exists
 const getPlayerState = async(id) => {
   const dbHandler = new db()
-  const cachedPlayerState = await dbHandler.getPlayer(id)
-
-  if (cachedPlayerState) {
-    // check cache first
-    return true
-  }
-
   try {
+    const cachedPlayerState = await dbHandler.getPlayer(id)
+
+    if (cachedPlayerState) {
+      // check cache first
+      return true
+    }
+
     await axios.get(`${hhcfg["fullBasePlayerMeta"]}/players/${id}`, config={
       "headers": {
         "_token": hhcfg["token"],
@@ -97,7 +108,12 @@ const getPlayerState = async(id) => {
     dbHandler.addPlayer(id)
     return true
   } catch (e) {
-    return false
+    if (e.response && e.reponse.status === 404) {
+      return false
+    } else {
+      console.error(e)
+      return Promise.reject(e)
+    }
   } finally {
     // close db connection
     dbHandler.close()
@@ -107,47 +123,69 @@ const getPlayerState = async(id) => {
 // returns a bool indicating if the PlayFab ID participated in the event
 const getPlayerEventState = async(id, eventId, isCurrent) => {
   const dbHandler = new db()
-  const cachedPlayerEventState = await dbHandler.getPlayerEvents(id)
+  try {
+    const cachedPlayerEventState = await dbHandler.getPlayerEvents(id)
 
-  // check cache first
-  for (let i of cachedPlayerEventState) {
-    if (i["eventId"] == eventId) {
-      return Boolean(i["exists"])
+    // check cache first
+    for (let i of cachedPlayerEventState) {
+      if (i["eventId"] == eventId) {
+        return Boolean(i["exists"])
+      }
     }
-  }
 
-  const playerEventRecord = await axios.get(`${hhcfg["fullBaseLeaderboard"]}/leaderboards/${eventId}/players/${id}`, config={
-    "headers": {
-      "_token": hhcfg["token"],
-      "User-agent": "Axios"
+    const playerEventRecord = await axios.get(`${hhcfg["fullBaseLeaderboard"]}/leaderboards/${eventId}/players/${id}`, config={
+      "headers": {
+        "_token": hhcfg["token"],
+        "User-agent": "Axios"
+      }
+    })
+
+    if (playerEventRecord["data"]["data"]) {
+      // player has participated in event
+
+      dbHandler.addPlayerEvent(id, eventId, true)
+
+      return true
+    } else {
+      // player has NOT participated in event
+
+      if (!isCurrent) {
+        // they could join later if it's the current event, so only flag if it's passed
+        dbHandler.addPlayerEvent(id, eventId, false)
+      }
+
+      return false
     }
-  })
-
-  if (playerEventRecord["data"]["data"]) {
-    // player has participated in event
-
-    dbHandler.addPlayerEvent(id, eventId, true)
+  } catch (e) {
+    if (e.response && e.reponse.status === 404) {
+      return false
+    } else {
+      console.error(e)
+      return Promise.reject(e)
+    }
+  } finally {
+    // close db connection
     dbHandler.close()
-
-    return true
-  } else {
-    // player has NOT participated in event
-
-    if (!isCurrent) {
-      // they could join later if it's the current event, so only flag if it's passed
-      dbHandler.addPlayerEvent(id, eventId, false)
-      dbHandler.close()
-    }
-
-    return false
   }
 }
 
 // returns a fully updated synopsis of player participation
 const getKnownPlayerEvents = async(id) => {
   const dbHandler = new db()
-  const allEvents = await getAllEvents()
-  const currentKnownEvents = await dbHandler.getPlayerEvents(id)
+
+  try {
+    const allEvents = await getAllEvents()
+    const currentKnownEvents = await dbHandler.getPlayerEvents(id)
+
+    const newKnownEvents = parseKnownPlayerEvents(id, allEvents, currentKnownEvents)
+    return newKnownEvents
+  } catch (e) {
+    console.error(e)
+    return Promise.reject(e)
+  }
+}
+
+const parseKnownPlayerEvents = async(id, allEvents, currentKnownEvents) => {
   const newKnownEvents = []
 
   // inefficient O(mn) loop but luckily this isn't a lot of data
@@ -208,7 +246,7 @@ const getPlayerLeaderboard = async(id, eventId, adjacentCount, topCount) => {
     
     return playerLeaderboardReq["data"]["resultMap"]
   } catch (e) {
-    //console.error(e.response.status)
+    console.error(e)
     return Promise.reject(e)
   }
 }
@@ -222,29 +260,33 @@ const getPosition = async(id, eventId, n) => {
         "User-agent": "Axios"
       }
     })
-
     return positionReq["data"]["resultMap"]["rootResult"]["score"]
   } catch (e) {
-    //console.error(e.response.status)
+    console.error(`Note: this may simply be an archived event\n${e}`)
     return Promise.reject(e)
   }
 }
 
 // returns the brackets for a leaderboard
 const getBrackets = async(id, eventId, brackets, totalPlayers) => {
-  const trophies = {}
+  try {
+    const trophies = {}
 
-  for (let i of brackets) {
-    let n = i - 1
-    if (i < 1) {
-      n = Math.floor(totalPlayers * i) - 1
+    for (let i of brackets) {
+      let n = i - 1
+      if (i < 1) {
+        n = Math.floor(totalPlayers * i) - 1
+      }
+      const position = await getPosition(id, eventId, n)
+
+      trophies[i.toString()] = Math.floor(position)
     }
-    const position = await getPosition(id, eventId, n)
 
-    trophies[i.toString()] = Math.floor(position)
+    return trophies
+  } catch (e) {
+    console.error(e)
+    return
   }
-
-  return trophies
 }
 
 // returns the data for an active event
@@ -359,293 +401,332 @@ const archivedEntryData = async(currentEventData, playerEventInfo, playerLeaderb
 
 // get event list
 app.get('/api/list', async (req, res) => {
-  const allEvents = await getAllEvents()
-  res.send(allEvents)
+  try {
+    const allEvents = await getAllEvents()
+    res.send(allEvents)
+  } catch (e) {
+    res.sendStatus(502)
+  }
 })
 
 // get event list including future events
 app.get('/api/list/all', async (req, res) => {
-  const allEvents = await getAllEvents(true)
-  res.send(allEvents)
+  try {
+    const allEvents = await getAllEvents(true)
+    res.send(allEvents)
+  } catch (e) {
+    res.sendStatus(502)
+  }
 })
 
 // query all players who are participants in the Discord leaderboard
 app.get('/api/discord/:event', async(req, res) => {
-  const eventId = req.params.event
+  try {
+    const eventId = req.params.event
 
-  const allEventData = await getAllEvents()
-  let currentEventData
+    const allEventData = await getAllEvents()
+    let currentEventData
 
-  for (let i of allEventData) {
-    if (i["eventId"] == eventId) {
-      currentEventData = i
-      break
-    }
-  }
-
-  if (!currentEventData) {
-    res.sendStatus(404)
-    return
-  }
-
-  let playerRecords = []
-  let playerEventRecords = []
-
-  // get player records in a list format
-  fs.createReadStream('discord.csv')
-    .pipe(parse.parse({delimiter: ','}))
-    .on('data', (row) => {
-      let jsonRow = {
-        "nameDiscord": null,
-        "nameWebsite": null,
-        "playFabId": null
+    for (let i of allEventData) {
+      if (i["eventId"] == eventId) {
+        currentEventData = i
+        break
       }
+    }
 
-      jsonRow["nameDiscord"] = row[0]
-      jsonRow["nameWebsite"] = row[1]
-      jsonRow["playFabId"] = row[2]
-      playerRecords.push(jsonRow)
-    })
-    .on('end', async () => {
-      console.log("Successfully parsed discord.csv")
-      // get results for each player
-      for (let i in playerRecords) {
-        const id = playerRecords[i]["playFabId"]
-        console.log(`Querying player ${id} for event ${eventId} (Discord leaderboard)`)
+    if (!currentEventData) {
+      res.sendStatus(404)
+      return
+    }
 
-        const playerEventInfo = await getPlayerEventInfo(id, eventId)
-        if (!playerEventInfo) {
-          // don't even bother continuing if we know the ID has no record
-          console.log(`Player ${id} not found (Discord leaderboard)`)
-          continue
+    let playerRecords = []
+    let playerEventRecords = []
+
+    // get player records in a list format
+    fs.createReadStream('discord.csv')
+      .pipe(parse.parse({delimiter: ','}))
+      .on('data', (row) => {
+        let jsonRow = {
+          "nameDiscord": null,
+          "nameWebsite": null,
+          "playFabId": null
         }
 
-        const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25)
-        if (!playerLeaderboard) {
-          // don't even bother continuing if we know the ID has no record
-          console.log(`Player ${id} not registered with ${eventId} (Discord ledaerboard)`)
-          continue
-        }
+        jsonRow["nameDiscord"] = row[0]
+        jsonRow["nameWebsite"] = row[1]
+        jsonRow["playFabId"] = row[2]
+        playerRecords.push(jsonRow)
+      })
+      .on('end', async () => {
+        console.log("Successfully parsed discord.csv")
+        // get results for each player
+        for (let i in playerRecords) {
+          const id = playerRecords[i]["playFabId"]
+          console.log(`Querying player ${id} for event ${eventId} (Discord leaderboard)`)
 
-        // differentiate between archived and active leaderboard
-        let returnStruct
-        if (playerLeaderboard["results"]["rootResults"]["topResults"]) {
-          // active
-          returnStruct = await rankedEntryData(currentEventData, playerEventInfo, playerLeaderboard, id)
-        } else {
-          // archive
-          returnStruct = await archivedEntryData(currentEventData, playerEventInfo, playerLeaderboard)
+          const playerEventInfo = await getPlayerEventInfo(id, eventId)
+          if (!playerEventInfo) {
+            // don't even bother continuing if we know the ID has no record
+            console.log(`Player ${id} not found (Discord leaderboard)`)
+            continue
+          }
+
+          const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25)
+          if (!playerLeaderboard) {
+            // don't even bother continuing if we know the ID has no record
+            console.log(`Player ${id} not registered with ${eventId} (Discord ledaerboard)`)
+            continue
+          }
+
+          // differentiate between archived and active leaderboard
+          let returnStruct
+          if (playerLeaderboard["results"]["rootResults"]["topResults"]) {
+            // active
+            returnStruct = await rankedEntryData(currentEventData, playerEventInfo, playerLeaderboard, id)
+          } else {
+            // archive
+            returnStruct = await archivedEntryData(currentEventData, playerEventInfo, playerLeaderboard)
+          }
+          
+          playerEventRecords.push(returnStruct)
         }
         
-        playerEventRecords.push(returnStruct)
-      }
-      
-      playerEventRecords.sort((a, b) => a["player"]["globalPosition"] - b["player"]["globalPosition"])
-      
-      let playerFinalRecords = []
+        playerEventRecords.sort((a, b) => a["player"]["globalPosition"] - b["player"]["globalPosition"])
+        
+        let playerFinalRecords = []
 
-      // transform data to correct format
-      // a non-efficient O(n^2) loop, but there are few records so performance implications are negligible
-      for (let j of playerEventRecords) {
-        for (let k of playerRecords) {
-          if (j["player"]["playerId"] === k["playFabId"]) {
-            let individualPlayerFinalRecord = {
-              "name": k["nameWebsite"],
-              "discordName": k["nameDiscord"],
-              "primaryKeySeq": j["player"]["ordinal"],
-              "position": j["player"]["globalPosition"] + 1,
-              "positionOf": playerEventRecords[playerEventRecords.length-1]["global"]["count"],
-              "trophies": j["player"]["trophies"],
-              "divisionId": j["player"]["divisionId"],
-              "isMainBoard": j["player"]["divisionRoot"] === 'global' ? true : false,
-              "lastUpdated": j["player"]["dateUpdated"]
+        // transform data to correct format
+        // a non-efficient O(n^2) loop, but there are few records so performance implications are negligible
+        for (let j of playerEventRecords) {
+          for (let k of playerRecords) {
+            if (j["player"]["playerId"] === k["playFabId"]) {
+              let individualPlayerFinalRecord = {
+                "name": k["nameWebsite"],
+                "discordName": k["nameDiscord"],
+                "primaryKeySeq": j["player"]["ordinal"],
+                "position": j["player"]["globalPosition"] + 1,
+                "positionOf": playerEventRecords[playerEventRecords.length-1]["global"]["count"],
+                "trophies": j["player"]["trophies"],
+                "divisionId": j["player"]["divisionId"],
+                "isMainBoard": j["player"]["divisionRoot"] === 'global' ? true : false,
+                "lastUpdated": j["player"]["dateUpdated"]
+              }
+
+              playerFinalRecords.push(individualPlayerFinalRecord)
             }
-
-            playerFinalRecords.push(individualPlayerFinalRecord)
           }
         }
-      }
 
-      res.status(200).send(playerFinalRecords)
-    })
+        res.status(200).send(playerFinalRecords)
+      })
+  } catch (e) {
+    res.sendStatus(502)
+  }
 })
 
 // check if player exists
 app.get('/api/player/:id', async (req, res) => {
-  const id = req.params.id
-  console.log(`Testing player ${id}`)
+  try {
+    const id = req.params.id
+    console.log(`Testing player ${id}`)
 
-  const playerState = await getPlayerState(id)
-  if (playerState) {
-    res.status(200).end()
-  } else {
-    res.status(404).end()
+    const playerState = await getPlayerState(id)
+    if (playerState) {
+      res.status(200).end()
+    } else {
+      res.status(404).end()
+    }
+  } catch (e) {
+    res.sendStatus(502)
   }
 })
 
 // get list of all registered events for a player
 app.get('/api/list/:id', async (req, res) => {
-  const id = req.params.id
-  console.log(`Checking all events for ${id}`)
+  try {
+    const id = req.params.id
+    console.log(`Checking all events for ${id}`)
 
-  const allKnownPlayerEvents = await getKnownPlayerEvents(id)
-  if (allKnownPlayerEvents) {
-    res.status(200).json(allKnownPlayerEvents)
-  } else {
-    res.status(404).end()
+    const allKnownPlayerEvents = await getKnownPlayerEvents(id)
+    if (allKnownPlayerEvents) {
+      res.status(200).json(allKnownPlayerEvents)
+    } else {
+      res.status(404).end()
+    }
+  } catch (e) {
+    res.sendStatus(502)
   }
 })
 
 // master player API
 app.get('/api/event/:event/:id', async (req, res) => {
-  const id = req.params.id
-  const eventId = req.params.event
-  console.log(`Querying player ${id} for event ${eventId}`)
+  try {
+    const id = req.params.id
+    const eventId = req.params.event
+    console.log(`Querying player ${id} for event ${eventId}`)
 
-  const allEventData = await getAllEvents()
-  let currentEventData
+    const allEventData = await getAllEvents()
+    let currentEventData
 
-  for (let i of allEventData) {
-    if (i["eventId"] == eventId) {
-      currentEventData = i
-      break
+    for (let i of allEventData) {
+      if (i["eventId"] == eventId) {
+        currentEventData = i
+        break
+      }
     }
-  }
 
-  const playerEventInfo = await getPlayerEventInfo(id, eventId)
-  if (!playerEventInfo) {
-    // don't even bother continuing if we know the ID has no record
-    console.log(`Player ${id} not found`)
-    res.status(404).end()
-    return
-  }
+    const playerEventInfo = await getPlayerEventInfo(id, eventId)
+    if (!playerEventInfo) {
+      // don't even bother continuing if we know the ID has no record
+      console.log(`Player ${id} not found`)
+      res.status(404).end()
+      return
+    }
 
-  const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25)
-  if (!playerLeaderboard) {
-    // don't even bother continuing if we know the ID has no record
-    console.log(`Player ${id} not registered with ${eventId}`)
-    res.status(404).end()
-    return
-  }
+    const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25)
+    if (!playerLeaderboard) {
+      // don't even bother continuing if we know the ID has no record
+      console.log(`Player ${id} not registered with ${eventId}`)
+      res.status(404).end()
+      return
+    }
 
-  // differentiate between archived and active leaderboard
-  let returnStruct
-  if (playerLeaderboard["results"]["rootResults"]["topResults"]) {
-    // active
-    returnStruct = await rankedEntryData(currentEventData, playerEventInfo, playerLeaderboard, id)
-  } else {
-    // archive
-    returnStruct = await archivedEntryData(currentEventData, playerEventInfo, playerLeaderboard)
+    // differentiate between archived and active leaderboard
+    let returnStruct
+    if (playerLeaderboard["results"]["rootResults"]["topResults"]) {
+      // active
+      returnStruct = await rankedEntryData(currentEventData, playerEventInfo, playerLeaderboard, id)
+    } else {
+      // archive
+      returnStruct = await archivedEntryData(currentEventData, playerEventInfo, playerLeaderboard)
+    }
+    
+    res.status(200).json(returnStruct)
+  } catch (e) {
+    res.sendStatus(502)
   }
-  
-  res.status(200).json(returnStruct)
 })
 
 // individual position for a player
 app.get('/api/event/:event/:id/position', async (req, res) => {
-  const id = req.params.id
-  const eventId = req.params.event
-  console.log(`Querying player ${id} for event ${eventId} (position)`)
+  try {
+    const id = req.params.id
+    const eventId = req.params.event
+    console.log(`Querying player ${id} for event ${eventId} (position)`)
 
-  const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25)
-  if (!playerLeaderboard) {
-    // don't even bother continuing if we know the ID has no record
-    console.log(`Player ${id} not found`)
-    res.status(404).end()
-    return
-  }
-
-  if (playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]) {
-    for (let i of playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]) {
-      if (i["playerId"] === id) {
-        res.status(200).send(i["position"]["position"].toString())
-        return
-      }
+    const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25)
+    if (!playerLeaderboard) {
+      // don't even bother continuing if we know the ID has no record
+      console.log(`Player ${id} not found`)
+      res.status(404).end()
+      return
     }
-  } else {
-    res.status(200).send(playerLeaderboard["results"]["rootResults"]["offsetResults"]["archivedEntry"]["rootPosition"]["position"].toString())
+
+    if (playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]) {
+      for (let i of playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]) {
+        if (i["playerId"] === id) {
+          res.status(200).send(i["position"]["position"].toString())
+          return
+        }
+      }
+    } else {
+      res.status(200).send(playerLeaderboard["results"]["rootResults"]["offsetResults"]["archivedEntry"]["rootPosition"]["position"].toString())
+    }
+  } catch (e) {
+    res.sendStatus(502)
   }
 })
 
 // brackets for a leaderboard (requires PlayFab)
 app.get('/api/event/:event/:id/brackets', async (req, res) => {
-  const id = req.params.id
-  const eventId = req.params.event
-  const brackets = [1, 5, 25, 100, 0.01, 0.05, 0.10, 0.25, 0.50, 0.75]
-  console.log(`Querying player ${id} for event ${eventId} (lb brackets)`)
+  try {
+    const id = req.params.id
+    const eventId = req.params.event
+    const brackets = [1, 5, 25, 100, 0.01, 0.05, 0.10, 0.25, 0.50, 0.75]
+    console.log(`Querying player ${id} for event ${eventId} (lb brackets)`)
 
-  const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25)
-  if (!playerLeaderboard) {
-    // don't even bother continuing if we know the ID has no record
-    console.log(`Player ${id} not registered with ${eventId}`)
-    res.status(404).end()
-    return
+    const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25)
+    if (!playerLeaderboard) {
+      // don't even bother continuing if we know the ID has no record
+      console.log(`Player ${id} not registered with ${eventId}`)
+      res.status(404).end()
+      return
+    }
+
+    // hacky way to determine number of players
+    let totalPlayers
+    if (playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]) {
+      totalPlayers = playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"][0]["position"]["count"]
+    } else {
+      res.sendStatus(404) // can't currently retrieve brackets from archived leaderboards
+      return
+      totalPlayers = playerLeaderboard["results"]["rootResults"]["offsetResults"]["archivedEntry"]["rootPosition"]["count"]
+    }
+
+    const bracketData = await getBrackets(id, eventId, brackets, totalPlayers)
+
+    const returnStruct = {
+      "totalPlayers": totalPlayers,
+      "brackets": bracketData
+    }
+
+    res.status(200).json(returnStruct)
+  } catch (e) {
+    res.sendStatus(502)
   }
-
-  // hacky way to determine number of players
-  let totalPlayers
-  if (playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]) {
-    totalPlayers = playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"][0]["position"]["count"]
-  } else {
-    totalPlayers = playerLeaderboard["results"]["rootResults"]["offsetResults"]["archivedEntry"]["rootPosition"]["count"]
-  }
-
-  const bracketData = await getBrackets(id, eventId, brackets, totalPlayers)
-  const returnStruct = {
-    "totalPlayers": totalPlayers,
-    "brackets": bracketData
-  }
-
-  res.status(200).json(returnStruct)
 })
 
 // top players for a leaderboard (requires PlayFab)
 app.get('/api/event/:event/:id/top/:count', async (req, res) => {
-  const id = req.params.id
-  const eventId = req.params.event
-  const topPlayers = parseInt(req.params.count)
-  console.log(`Querying player ${id} for event ${eventId} (top ${topPlayers})`)
+  try {
+    const id = req.params.id
+    const eventId = req.params.event
+    const topPlayers = parseInt(req.params.count)
+    console.log(`Querying player ${id} for event ${eventId} (top ${topPlayers})`)
 
-  if (isNaN(topPlayers)) {
-    console.error('Must be an int')
-    res.status(400).end()
-    return
-  } else if (topPlayers < 1 || topPlayers > 1000) {
-    console.error('Out of bounds')
-    res.status(403).end()
-    return
+    if (isNaN(topPlayers)) {
+      console.error('Must be an int')
+      res.status(400).end()
+      return
+    } else if (topPlayers < 1 || topPlayers > 1000) {
+      console.error('Out of bounds')
+      res.status(403).end()
+      return
+    }
+
+    const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 1, topPlayers)
+    if (!playerLeaderboard["results"]["rootResults"]["topResults"]) {
+      // don't even bother continuing if we know the ID has no record
+      console.log(`Player ${id} not registered with ${eventId}`)
+      res.status(404).end()
+      return
+    }
+
+    let proximalPlayerHashMap = {}
+    for (let i of playerLeaderboard["resolvedPlayers"]["objectArray"]) {
+      // generate a list of players from the "resolvedPlayers" key, so we can obtain metadata such as ordinal ID (yields nickname) and custom name/icon (planned implementation in 2023)
+      proximalPlayerHashMap[i["playerId"]] = i["sequence"]
+    }
+
+    const returnStruct = {}
+    returnStruct["count"] = playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"][0]["position"]["count"]
+
+    returnStruct["top"] = {}
+    returnStruct["top"]["count"] = topPlayers
+    returnStruct["top"]["list"] = []
+    for (let i of playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"]) {
+      returnStruct["top"]["list"].push({
+        "playerId": i["playerId"],
+        "ordinal": proximalPlayerHashMap[i["playerId"]],
+        "position": i["position"]["position"],
+        "trophies": i["score"],
+      })
+    }
+
+    res.status(200).json(returnStruct)
+  } catch (e) {
+    res.sendStatus(502)
   }
-
-  const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 1, topPlayers)
-  if (!playerLeaderboard["results"]["rootResults"]["topResults"]) {
-    // don't even bother continuing if we know the ID has no record
-    console.log(`Player ${id} not registered with ${eventId}`)
-    res.status(404).end()
-    return
-  }
-
-  let proximalPlayerHashMap = {}
-  for (let i of playerLeaderboard["resolvedPlayers"]["objectArray"]) {
-    // generate a list of players from the "resolvedPlayers" key, so we can obtain metadata such as ordinal ID (yields nickname) and custom name/icon (planned implementation in 2023)
-    proximalPlayerHashMap[i["playerId"]] = i["sequence"]
-  }
-
-  const returnStruct = {}
-  returnStruct["count"] = playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"][0]["position"]["count"]
-
-  returnStruct["top"] = {}
-  returnStruct["top"]["count"] = topPlayers
-  returnStruct["top"]["list"] = []
-  for (let i of playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"]) {
-    returnStruct["top"]["list"].push({
-      "playerId": i["playerId"],
-      "ordinal": proximalPlayerHashMap[i["playerId"]],
-      "position": i["position"]["position"],
-      "trophies": i["score"],
-    })
-  }
-
-  res.status(200).json(returnStruct)
 })
 
 app.listen(port, () => {

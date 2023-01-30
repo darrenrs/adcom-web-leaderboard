@@ -94,10 +94,12 @@ const postFormEvent = async() => {
   if (eventBrackets) {
     // success
     document.querySelector('#eventLoadConnectionError').classList.add('d-none')
+    document.querySelector('#globalPositions').classList.remove('d-none')
     populateFieldsGlobal(eventBrackets, eventData)
   } else {
     // general failure
     document.querySelector('#eventLoadConnectionError').classList.remove('d-none')
+    document.querySelector('#globalPositions').classList.add('d-none')
   }
 }
 
