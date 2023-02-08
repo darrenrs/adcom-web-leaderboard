@@ -139,24 +139,6 @@ const getTopPlayers = async(playerId, eventId, count) => {
 }
 
 const populateFieldsTop = (data) => {
-  // implement in the future?
-  /*
-  const eventDetails = getEventDetails(currentEventId)
-  document.querySelector('#eventImage').classList.remove('d-none')
-  document.querySelector('#eventImage').setAttribute('src', `/img/adcom/${currentEventId}.png`)
-  document.querySelector('#eventFullName').innerText = eventDetails["name"]
-  document.querySelector('#eventDescription').innerText = eventDetails["desc"]
-  document.querySelector('#eventStartDate').innerText = new Date(data["event"]["startDate"]).toLocaleString()
-  document.querySelector('#eventEndDate').innerText = new Date(data["event"]["endDate"]).toLocaleString()
-  document.querySelector('#eventDuration').innerText = `${(new Date(data["event"]["endDate"]) - new Date(data["event"]["startDate"])) / (60 * 60 * 1000)} hours`
-
-  if (data["status"] === 'archived') {
-    document.querySelector('#eventArchivedWarning').classList.remove('d-none')
-  } else {
-    document.querySelector('#eventArchivedWarning').classList.add('d-none')
-  }
-  */
-
   let tbody = document.querySelector('#topGlobalPlayers')
   tbody.innerHTML = ''
   for (let i in data["top"]["list"]) {
