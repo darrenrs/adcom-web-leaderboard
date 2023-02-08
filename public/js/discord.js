@@ -1,3 +1,13 @@
+const postFormDiscordLeaderboard = async() => {
+  const selectedEventId = document.querySelector('option:checked').value
+
+  document.querySelector('table').classList.add('d-none')
+  document.querySelector('#discordLeaderboardLoadError').classList.remove('d-none')
+
+  const playerData = await getDiscordLeaderboard(selectedEventId)
+  populateDiscordLeaderboardTable(playerData)
+}
+
 const getEventSchedule = async() => {
   return await fetch('/api/list')
   .then((response) => {
@@ -34,6 +44,11 @@ const getDiscordLeaderboard = async(eventId) => {
 
 const populateDiscordLeaderboardTable = (discordLb) => {
   let tbody = document.querySelector('#discordLeaderboard')
+  const allExistingRows = document.querySelectorAll('tbody tr')
+  
+  for (let i of allExistingRows) {
+    i.remove()
+  }
 
   for (let i in discordLb) {
     let discordLbRow = document.createElement('tr')
@@ -50,6 +65,9 @@ const populateDiscordLeaderboardTable = (discordLb) => {
     let positionCell = document.createElement('td')
     positionCell.innerText = `${discordLb[i]["position"].toLocaleString()} / ${discordLb[i]["positionOf"].toLocaleString()}`
 
+    let percentileCell = document.createElement('td')
+    percentileCell.innerText = `${(discordLb[i]["position"]/discordLb[i]["positionOf"] * 100).toFixed(2)}%`
+
     let trophiesCell = document.createElement('td')
     trophiesCell.innerText = discordLb[i]["trophies"].toLocaleString()
 
@@ -60,25 +78,46 @@ const populateDiscordLeaderboardTable = (discordLb) => {
     discordLbRow.append(nameCell)
     discordLbRow.append(discordNameCell)
     discordLbRow.append(positionCell)
+    discordLbRow.append(percentileCell)
     discordLbRow.append(trophiesCell)
     discordLbRow.append(lastUpdatedCell)
     
     tbody.appendChild(discordLbRow)
   }
 
+  document.querySelector('table').classList.remove('d-none')
   document.querySelector('#discordLeaderboardLoadError').classList.add('d-none')
+}
+
+const populateEventScheduleList = (data) => {
+  const selectList = document.querySelector('#eventSelect')
+  const selectButton = document.querySelector('#formSubmitEvent')
+
+  while (selectList.childElementCount > 0) {
+    selectList.remove(selectList.lastChild)
+  }
+
+  selectList.removeAttribute('disabled')
+  selectButton.removeAttribute('disabled')
+
+  for (let i of data) {
+    const newOption = document.createElement('option')
+    newOption.innerText = `${getEventDetails(i["eventName"])["short"]} (${new Date(i["startDate"]).toDateString().substring(4)} to ${new Date(i["endDate"]).toDateString().substring(4)})`
+    newOption.value = i["eventId"]
+    
+    selectList.appendChild(newOption)
+  }
 }
 
 const init = async() => {
   const eventSchedule = await getEventSchedule()
-
-  console.log(`Current event ID: ${eventSchedule[0]["eventId"]}`)
-
-  const playerData = await getDiscordLeaderboard(eventSchedule[0]["eventId"])
-
-  populateDiscordLeaderboardTable(playerData)
+  populateEventScheduleList(eventSchedule)
 }
 
 document.addEventListener('DOMContentLoaded', function() {
   init()
+})
+
+document.querySelector('#formSubmitEvent').addEventListener('click', function() {
+  postFormDiscordLeaderboard()
 })
