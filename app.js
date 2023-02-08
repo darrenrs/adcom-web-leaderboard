@@ -519,6 +519,10 @@ app.get('/api/discord/:event', async(req, res) => {
 
         res.status(200).send(playerFinalRecords)
       })
+      .on('error', async(err) => {
+        // fs emitted error
+        res.sendStatus(502)
+      })
   } catch (e) {
     res.sendStatus(502)
   }
