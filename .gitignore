@@ -1,6 +1,7 @@
 # device-specific
 .DS_Store
 Thumbs.db
+nohup.out
 
 # Node-specific
 *.log
