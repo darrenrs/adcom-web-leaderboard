@@ -2,9 +2,11 @@ const express = require('express')
 const fs = require('fs')
 const axios = require('axios')
 const db = require('./db')
+const balance = require('./balance')
 const { cached } = require('sqlite3')
 const parse = require('csv-parse')
 const { send, json } = require('express/lib/response')
+const { start } = require('repl')
 
 const app = express()
 const port = 3000
@@ -729,6 +731,88 @@ app.get('/api/event/:event/:id/top/:count', async (req, res) => {
 
     res.status(200).json(returnStruct)
   } catch (e) {
+    res.sendStatus(502)
+  }
+})
+
+// how many players have finished the event? (estimate)
+app.get('/api/event/:event/:id/finished', async(req, res) => {
+  try {
+    // todo add back Try/catch
+    const id = req.params.id
+    const eventId = req.params.event
+
+    const stepCount = 100
+    let lastPlayerId = undefined
+    let currentPlayerId = `${id}`
+
+    console.log(`Querying player ${id} for event ${eventId} (number of event finishers)`)
+
+    const allEventData = await getAllEvents()
+    let eventName
+    let startTime
+    let endTime
+
+    for (let i of allEventData) {
+      if (i["eventId"] == eventId) {
+        eventName = i["eventName"]
+        startTime = new Date(i["startDate"])
+        endTime = new Date(i["endDate"])
+        break
+      }
+    }
+
+    let playerLeaderboard = await getPlayerLeaderboard(id, eventId, 1, 1)
+    if (!playerLeaderboard["results"]["rootResults"]["topResults"]) {
+      // don't even bother continuing if we know the ID has no record
+      console.log(`Player ${id} not registered with ${eventId}`)
+      res.status(404).end()
+      return
+    }
+
+    const balanceHandler = new balance(eventName, startTime, endTime)
+    await balanceHandler.loadBalanceData()
+    
+    const requiredTrophies = await balanceHandler.getThreshold()
+    let finalPlayersFinished = -1
+
+    currentPlayerId = playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"][0]["playerId"]
+    if (playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"][0]["score"] < requiredTrophies) {
+      finalPlayersFinished = 0
+    }
+
+    while (finalPlayersFinished === -1) {
+      playerLeaderboard = await getPlayerLeaderboard(currentPlayerId, eventId, stepCount, 1)
+      
+      for (let i of playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]) {
+        lastPlayerId = `${currentPlayerId}`
+        currentPlayerId = i["playerId"]
+        if (i["score"] < requiredTrophies) {
+          finalPlayersFinished = i["position"]["position"]
+          break
+        }
+      }
+
+      if (lastPlayerId === currentPlayerId) {
+        break
+      }
+    }
+    
+    if (finalPlayersFinished === -1) {
+      res.status(500)
+      return
+    } else {
+      const struct = {
+        "finishers": finalPlayersFinished,
+        "spendingCurve": await balanceHandler.getBalanceSpendingCurve(),
+        "chrono": await balanceHandler.getChrono()
+      }
+      res.status(200).json(struct)
+      return
+    }
+
+  } catch(e) {
+    console.log(e)
     res.sendStatus(502)
   }
 })

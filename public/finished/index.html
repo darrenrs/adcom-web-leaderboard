@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="/img/icon.png">
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css">
+    <script src="/js/finished.js" defer></script>
+    <script src="/js/helper.js" defer></script>
+    <script src="/js/bootstrap.min.js" defer></script>
+    <title>AdVenture Communist Event Finishers</title>
+  </head>
+  <body>
+    <nav class="navbar navbar-dark bg-dark sticky-top">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="/">
+          <img src="/img/icon.png" width="30" height="40" class="d-inline-block align-self-center" alt="AdCom icon">
+          AdCom Event Finishers
+        </a>
+        <a class="navbar-brand" href="https://github.com/darrenrs/adcom-web-leaderboard">
+          <img src="/img/github.png" width="40" height="40" class="d-inline-block align-text-top" alt="GitHub">
+        </a>
+      </div>
+    </nav>
+    <div class="container pt-2">
+      <span id="eventFinisherLoadError" class="text-danger">Please wait ... this process should take no longer than 2 seconds</span>
+      <h3 id="heartbeatClock" class="text-end text-danger d-none">...</h3>
+      <div id="eventFinisherMaster" class="text-center d-none">
+        <h1 id="giantPlayersFinished" class="display-1"></h1>
+        <h2>players have finished this event</h2>
+        <p>
+          <div style="margin-top: 50px;">To finish this event by now, you would have needed to spend <span id="amountSpentUSD"></span> or <span id="amountSpentGold"></span> gold.</div>
+          <div class="fw-light fst-italic">these numbers are ONLY estimates, but are very close to accurate</div>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
