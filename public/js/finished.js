@@ -69,6 +69,16 @@ const getAmountSpentGold = (func, timeElapsedSec) => {
 }
 
 const heartbeatCentral = async(playFab, eventSchedule) => {
+  document.querySelector('#heartbeatClock').addEventListener('click', async() => {
+    if (document.querySelector('#heartbeatClock').innerText !== '...') {
+      document.querySelector('#heartbeatClock').innerText = '...'
+
+      const finishedData = await getEventFinishers(eventSchedule[0]["eventId"], playFab)
+      document.querySelector('#heartbeatClock').innerText = ':60'
+
+      populateFinishers(finishedData)
+    }
+  })
   setInterval(() => {
     updateClock(playFab, eventSchedule)
   }, 1000)
@@ -93,7 +103,11 @@ const updateClock = async (playFab, eventSchedule) => {
 
     populateFinishers(finishedData)
   } else {
-    document.querySelector('#heartbeatClock').innerText = `:${timeInt}`
+    if (timeInt < 10) {
+      document.querySelector('#heartbeatClock').innerText = `:0${timeInt}`
+    } else {
+      document.querySelector('#heartbeatClock').innerText = `:${timeInt}`
+    }
   }
 
 }
