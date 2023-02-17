@@ -449,14 +449,16 @@ app.get('/api/discord/:event', async(req, res) => {
       .pipe(parse.parse({delimiter: ','}))
       .on('data', (row) => {
         let jsonRow = {
+          "discordId": null,
           "nameDiscord": null,
           "nameWebsite": null,
           "playFabId": null
         }
 
-        jsonRow["nameDiscord"] = row[0]
-        jsonRow["nameWebsite"] = row[1]
-        jsonRow["playFabId"] = row[2]
+        jsonRow["discordId"] = row[0]
+        jsonRow["nameDiscord"] = row[1]
+        jsonRow["nameWebsite"] = row[2]
+        jsonRow["playFabId"] = row[3]
         playerRecords.push(jsonRow)
       })
       .on('end', async () => {
@@ -504,8 +506,9 @@ app.get('/api/discord/:event', async(req, res) => {
             if (j["player"]["playerId"] === k["playFabId"]) {
               let individualPlayerFinalRecord = {
                 "name": k["nameWebsite"],
+                "discordId": k["discordId"],
                 "discordName": k["nameDiscord"],
-                "primaryKeySeq": j["player"]["ordinal"],
+                "primaryKeySeq": j["player"]["playerOrdinal"],
                 "position": j["player"]["globalPosition"] + 1,
                 "positionOf": playerEventRecords[playerEventRecords.length-1]["global"]["count"],
                 "trophies": j["player"]["trophies"],
