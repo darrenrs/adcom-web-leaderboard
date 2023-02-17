@@ -56,6 +56,15 @@ const populateDiscordLeaderboardTable = (discordLb) => {
     let idCell = document.createElement('td')
     idCell.innerText = parseInt(i) + 1
 
+    let imageCell = document.createElement('td')
+    imageCell.style = 'padding-top: 0 !important; padding-bottom: 0 !important'
+
+    let image = document.createElement('img')
+    image.src = `/img/users/${discordLb[i]["discordId"]}.png`
+    image.style = 'width: 40px;'
+    image.alt = ''
+    imageCell.appendChild(image)
+
     let nameCell = document.createElement('td')
     nameCell.innerText = discordLb[i]["name"]
 
@@ -75,6 +84,7 @@ const populateDiscordLeaderboardTable = (discordLb) => {
     lastUpdatedCell.innerText = new Date(discordLb[i]["lastUpdated"]).toLocaleString()
 
     discordLbRow.append(idCell)
+    discordLbRow.append(imageCell)
     discordLbRow.append(nameCell)
     discordLbRow.append(discordNameCell)
     discordLbRow.append(positionCell)
