@@ -187,6 +187,7 @@ const populateFieldsGeneral = (data) => {
   document.querySelector('#globalPosition').innerText = `${(data["player"]["globalPosition"]+1).toLocaleString()} / ${data["global"]["count"].toLocaleString()}`
   document.querySelector('#globalPositionPercentile').innerText = `Top ${(data["player"]["globalPosition"] / (data["global"]["count"]-1) * 100).toFixed(2)}%`
   document.querySelector('#trophies').innerText = data["player"]["trophies"].toLocaleString()
+  document.querySelector('#rank').innerText = `${data["rankString"]["rank"]}/${data["rankString"]["mission"]}`
   document.querySelector('#joinDate').innerText = new Date(data["player"]["dateJoined"]).toLocaleString()
   document.querySelector('#updateDate').innerText = new Date(data["player"]["dateUpdated"]).toLocaleString()
   document.querySelector('#divisionId').innerText = data["player"]["divisionId"]
