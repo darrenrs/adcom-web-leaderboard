@@ -463,6 +463,10 @@ app.get('/api/discord/:event', async(req, res) => {
       })
       .on('end', async () => {
         console.log("Successfully parsed discord.csv")
+
+        const balanceHandler = new balance(currentEventData["eventName"], currentEventData["startDate"], currentEventData["endDate"])
+        await balanceHandler.loadBalanceData()
+
         // get results for each player
         for (let i in playerRecords) {
           const id = playerRecords[i]["playFabId"]
@@ -492,9 +496,13 @@ app.get('/api/discord/:event', async(req, res) => {
             returnStruct = await archivedEntryData(currentEventData, playerEventInfo, playerLeaderboard)
           }
           
+          // get estimated rank
+          const rankString = await balanceHandler.getRankFromTrophies(returnStruct["player"]["trophies"], returnStruct["player"]["dateCreated"], returnStruct["player"]["dateUpdated"])
+          returnStruct["rankString"] = rankString
+
           playerEventRecords.push(returnStruct)
         }
-        
+
         playerEventRecords.sort((a, b) => a["player"]["globalPosition"] - b["player"]["globalPosition"])
         
         let playerFinalRecords = []
@@ -514,7 +522,8 @@ app.get('/api/discord/:event', async(req, res) => {
                 "trophies": j["player"]["trophies"],
                 "divisionId": j["player"]["divisionId"],
                 "isMainBoard": j["player"]["divisionRoot"] === 'global' ? true : false,
-                "lastUpdated": j["player"]["dateUpdated"]
+                "lastUpdated": j["player"]["dateUpdated"],
+                "rankString": j["rankString"]
               }
 
               playerFinalRecords.push(individualPlayerFinalRecord)
@@ -584,6 +593,9 @@ app.get('/api/event/:event/:id', async (req, res) => {
       }
     }
 
+    const balanceHandler = new balance(currentEventData["eventName"], currentEventData["startDate"], currentEventData["endDate"])
+    await balanceHandler.loadBalanceData()
+
     const playerEventInfo = await getPlayerEventInfo(id, eventId)
     if (!playerEventInfo) {
       // don't even bother continuing if we know the ID has no record
@@ -609,6 +621,9 @@ app.get('/api/event/:event/:id', async (req, res) => {
       // archive
       returnStruct = await archivedEntryData(currentEventData, playerEventInfo, playerLeaderboard)
     }
+
+    const rankString = await balanceHandler.getRankFromTrophies(returnStruct["player"]["trophies"], returnStruct["player"]["dateCreated"], returnStruct["player"]["dateUpdated"])
+    returnStruct["rankString"] = rankString
     
     res.status(200).json(returnStruct)
   } catch (e) {

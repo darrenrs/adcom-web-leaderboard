@@ -78,9 +78,25 @@ module.exports = class BalanceParser {
     }
   }
 
-  async getRankFromTrophies(trophies) {
+  async getRankFromTrophies(trophies, startTime=undefined, endTime=undefined) {
+    let realStartTime
+    let realEndTime
+
+    if (startTime) {
+      realStartTime = startTime
+    } else {
+      realStartTime = this.startTime
+    }
+
+    if (endTime) {
+      realEndTime = endTime
+    } else {
+      realEndTime = this.endTime
+    }
+
     let curr = new Date()
     let duration = 0
+
     if (curr > this.endTime) {
       duration = this.endTime - this.startTime
     } else {
@@ -97,8 +113,8 @@ module.exports = class BalanceParser {
 
     for (i = 1; i < this.balanceData["Missions"].length; i++) {
       let mission = this.missionsToTrophies(this.balanceData, rankTrophies, i)
-      let free = this.freeCapsuleEstimate(this.balanceData, rankTrophies, CRITERION_TIME_ELAPSED, i, (this.endTime - this.startTime) / 1000)
-      
+      let free = this.freeCapsuleEstimate(this.balanceData, rankTrophies, CRITERION_TIME_ELAPSED, i, (realEndTime - realStartTime))
+
       if (mission + free >= CRITERION_TROPHY_THRESHOLD) {
         break
       }
@@ -240,7 +256,7 @@ module.exports = class BalanceParser {
     return trophies
   }
 
-  freeCapsuleEstimate(data, rankStructure, totalSeconds, currentMission, eventLengthSeconds) {
+  freeCapsuleEstimate(data, rankStructure, totalSeconds, currentMission) {
     const MISSION_EXP = 1.05
     const AVG_SEC_BETWEEN_FREE = 7200
 

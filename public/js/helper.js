@@ -57,3 +57,20 @@ function getLeaderboardType(t) {
       return 'Unknown'
   }
 }
+
+function getTimedeltaFormat(timestamp) {
+  let current = new Date()
+  let timeSeconds = Math.abs((timestamp - current) / 1000)
+
+  let days = Math.floor(timeSeconds / (60 * 60 * 24)) % 365
+  let hours = Math.floor(timeSeconds / (60 * 60)) % 24
+  let minutes = Math.floor(timeSeconds / 60) % 60
+  
+  if (timeSeconds < 3600) {
+    return `${minutes}m`
+  } else if (timeSeconds < 24 * 3600) {
+    return `${hours}h ${minutes}m`
+  } else {
+    return `${days}d ${hours}h`
+  }
+}

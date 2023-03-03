@@ -47,6 +47,8 @@ const populateFinishers = (data) => {
   document.querySelector("#giantPlayersFinished").innerText = data["finishers"].toLocaleString()
   document.querySelector("#amountSpentUSD").innerText = getAmountSpentUSD(data["spendingCurve"], timeElapsed)
   document.querySelector("#amountSpentGold").innerText = getAmountSpentGold(data["spendingCurve"], timeElapsed)
+  document.querySelector("#timeDeltaElapsed").innerText = getTimedeltaFormat(startTimeDate)
+  document.querySelector("#timeDeltaRemaining").innerText = getTimedeltaFormat(endTimeDate)
 }
 
 const getAmountSpentUSD = (func, timeElapsedSec) => {

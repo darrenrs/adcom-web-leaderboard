@@ -80,6 +80,9 @@ const populateDiscordLeaderboardTable = (discordLb) => {
     let trophiesCell = document.createElement('td')
     trophiesCell.innerText = discordLb[i]["trophies"].toLocaleString()
 
+    let rankCell = document.createElement('td')
+    rankCell.innerText = `${discordLb[i]["rankString"]["rank"]}/${discordLb[i]["rankString"]["mission"]}`
+
     let lastUpdatedCell = document.createElement('td')
     lastUpdatedCell.innerText = new Date(discordLb[i]["lastUpdated"]).toLocaleString()
 
@@ -90,6 +93,7 @@ const populateDiscordLeaderboardTable = (discordLb) => {
     discordLbRow.append(positionCell)
     discordLbRow.append(percentileCell)
     discordLbRow.append(trophiesCell)
+    discordLbRow.append(rankCell)
     discordLbRow.append(lastUpdatedCell)
     
     tbody.appendChild(discordLbRow)
