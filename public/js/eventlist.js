@@ -31,6 +31,18 @@ const populateScheduleTable = (eventSchedule) => {
     } else {
       nameCell.innerText = `NEW EVENT "${i["eventName"]}"`
     }
+    nameCell.addEventListener('click', () => {
+      let archiveString = ''
+      const createDate = new Date(eventSchedule[i]["createdAt"])
+      const archiveDate = new Date(eventSchedule[i]["archivedAt"])
+
+      if (archiveDate.getFullYear() >= 1970) {
+        archiveString = `\nAPI archived: ${archiveDate}`
+      }
+
+      const s = `Debug Information\nAPI created: ${createDate}${archiveString}\nEvent ID below`
+      prompt(s, eventSchedule[i]["eventId"])
+    })
 
     let dateFromCell = document.createElement('td')
     dateFromCell.innerText = new Date(eventSchedule[i]["startDate"]).toLocaleString()
@@ -42,7 +54,11 @@ const populateScheduleTable = (eventSchedule) => {
     durationCell.innerText = `${(new Date(eventSchedule[i]["endDate"]) - new Date(eventSchedule[i]["startDate"])) / 3600000} hours`
 
     let playerCountCell = document.createElement('td')
-    playerCountCell.innerText = eventSchedule[i]["players"].toLocaleString()
+    if (new Date(eventSchedule[i]["startDate"]) < new Date()) {
+      playerCountCell.innerText = eventSchedule[i]["players"].toLocaleString()
+    } else {
+      playerCountCell.innerText = ''
+    }
 
     eventRow.append(idCell)
     eventRow.append(nameCell)
