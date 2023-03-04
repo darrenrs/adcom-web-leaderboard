@@ -94,14 +94,7 @@ module.exports = class BalanceParser {
       realEndTime = this.endTime
     }
 
-    let curr = new Date()
-    let duration = 0
-
-    if (curr > this.endTime) {
-      duration = this.endTime - this.startTime
-    } else {
-      duration = curr - this.startTime
-    }
+    let duration = new Date(realEndTime) - new Date(realStartTime)
 
     duration /= 1000
     const rankTrophies = this.getRankStructure(this.balanceData)
@@ -113,7 +106,7 @@ module.exports = class BalanceParser {
 
     for (i = 1; i < this.balanceData["Missions"].length; i++) {
       let mission = this.missionsToTrophies(this.balanceData, rankTrophies, i)
-      let free = this.freeCapsuleEstimate(this.balanceData, rankTrophies, CRITERION_TIME_ELAPSED, i, (realEndTime - realStartTime))
+      let free = this.freeCapsuleEstimate(this.balanceData, rankTrophies, CRITERION_TIME_ELAPSED, i)
 
       if (mission + free >= CRITERION_TROPHY_THRESHOLD) {
         break

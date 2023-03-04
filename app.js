@@ -501,7 +501,7 @@ app.get('/api/discord/:event', async(req, res) => {
           }
           
           // get estimated rank
-          const rankString = await balanceHandler.getRankFromTrophies(returnStruct["player"]["trophies"], returnStruct["player"]["dateCreated"], returnStruct["player"]["dateUpdated"])
+          const rankString = await balanceHandler.getRankFromTrophies(returnStruct["player"]["trophies"], returnStruct["player"]["dateJoined"], returnStruct["player"]["dateUpdated"])
           returnStruct["rankString"] = rankString
 
           playerEventRecords.push(returnStruct)
@@ -626,7 +626,7 @@ app.get('/api/event/:event/:id', async (req, res) => {
       returnStruct = await archivedEntryData(currentEventData, playerEventInfo, playerLeaderboard)
     }
 
-    const rankString = await balanceHandler.getRankFromTrophies(returnStruct["player"]["trophies"], returnStruct["player"]["dateCreated"], returnStruct["player"]["dateUpdated"])
+    const rankString = await balanceHandler.getRankFromTrophies(returnStruct["player"]["trophies"], returnStruct["player"]["dateJoined"], returnStruct["player"]["dateUpdated"])
     returnStruct["rankString"] = rankString
     
     res.status(200).json(returnStruct)
