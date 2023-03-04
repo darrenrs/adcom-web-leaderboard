@@ -56,11 +56,13 @@ const parseAllEvents = async (eventListReq, future) => {
     if (i["instance"]["definition"]["requirements"].length === 0) {
       continue
     }
-    
+
     const eventId = i["instance"]["guid"]
     const eventName = i["instance"]["definition"]["name"]
     const startDate = new Date(i["instance"]["definition"]["requirements"][0]["dateFrom"])
     const endDate = new Date(i["instance"]["definition"]["requirements"][0]["dateTo"])
+    const createdAt = new Date(i["instance"]["status"]["created"])
+    const archivedAt = new Date(i["instance"]["status"]["archived"])
     const status = (i["instance"]["status"]["currentStatus"] === "Enabled") ? "active" : "archived"
     let playerCount = i["instance"]["statistics"]["rootCounts"]["global"] + i["instance"]["statistics"]["rootCounts"]["sandbox"]
     const currentDate = new Date()
@@ -77,6 +79,8 @@ const parseAllEvents = async (eventListReq, future) => {
         "eventStatus": status,
         "startDate": startDate,
         "endDate": endDate,
+        "createdAt": createdAt,
+        "archivedAt": archivedAt,
         "players": playerCount
       }
       eventList.push(eventStruct)
