@@ -32,15 +32,15 @@ const populateScheduleTable = (eventSchedule) => {
       nameCell.innerText = `NEW EVENT "${i["eventName"]}"`
     }
     nameCell.addEventListener('click', () => {
-      let archiveString = ''
+      let archiveString = 'active event'
       const createDate = new Date(eventSchedule[i]["createdAt"])
       const archiveDate = new Date(eventSchedule[i]["archivedAt"])
 
       if (archiveDate.getFullYear() >= 1970) {
-        archiveString = `\nAPI archived: ${archiveDate}`
+        archiveString = `${archiveDate}`
       }
 
-      const s = `Debug Information\nAPI created: ${createDate}${archiveString}\nEvent ID below`
+      const s = `Debug Information\nAPI created: ${createDate}\nAPI archived: ${archiveString}\nEvent ID below`
       prompt(s, eventSchedule[i]["eventId"])
     })
 
