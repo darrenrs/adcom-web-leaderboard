@@ -81,6 +81,7 @@ module.exports = class BalanceParser {
   async getRankFromTrophies(trophies, startTime=undefined, endTime=undefined) {
     let realStartTime
     let realEndTime
+    let duration
 
     if (startTime) {
       realStartTime = startTime
@@ -94,7 +95,18 @@ module.exports = class BalanceParser {
       realEndTime = this.endTime
     }
 
-    let duration = new Date(realEndTime) - new Date(realStartTime)
+    if (startTime && endTime) {
+      duration = new Date(realEndTime) - new Date(realStartTime)
+    } else {
+      let curr = new Date()
+  
+      if (curr > this.endTime) {
+        duration = this.endTime - this.startTime
+      } else {
+        duration = curr - this.startTime
+      }
+      console.log(duration)
+    }
 
     duration /= 1000
     const rankTrophies = this.getRankStructure(this.balanceData)
