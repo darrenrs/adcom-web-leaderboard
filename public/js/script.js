@@ -75,6 +75,8 @@ const postFormEventList = async() => {
 const postFormEvent = async() => {
   const playerId = document.querySelector('#activePlayFabId').innerText
   const selectedEventId = document.querySelector('option:checked').value
+  document.querySelector('#leaderboardTickerContainer').style = `margin-top: 0px !important;`
+  document.querySelector('#leaderboardTicker').innerText = '...'
 
   const eventData = await getPlayerEventRecord(playerId, selectedEventId)
   
@@ -162,7 +164,6 @@ const getLeaderboardBrackets = async(playerId, eventId) => {
     })
     .catch((error) => {
       console.error(error)
-      document.querySelector('#eventLoadConnectionError').innerText = 'Please check your internet connection'
       return
     })
 }
@@ -239,7 +240,10 @@ const populateFieldsGeneral = (data) => {
       lbp = parseInt(lbp) + 1
       e.target.remove()
       if (lbp) {
-        parent.innerText = lbp.toLocaleString()
+        parent.innerText = getOrdinalFormat(lbp)
+        if (lbp > 100) {
+          parent.innerText = `${parent.innerText} (${(lbp / (data["global"]["count"]-1) * 100).toFixed(1)}%)`
+        }
       } else {
         parent.innerText = 'Error'
       }
@@ -266,64 +270,67 @@ const populateFieldsGlobal = (data, playerData) => {
     'Top 10%',
     'Top 25%',
     'Top 50%',
-    'Top 75%'
+    'Top 75%',
+    'Top 100%'
   ]
+
+  let bracketValues = []
   
   let tbody = document.querySelector('#globalPositions')
   tbody.innerHTML = ''
   moveUpBracket = true
+  currentBracket = false
 
   for (let i = 0; i < Object.keys(data["brackets"]).length; i++) {
     let globalBracketLine = document.createElement('tr')
+    globalBracketLine.classList.add('bracketLine')
 
     let bracketNameCell = document.createElement('td')
     bracketNameCell.innerText = bracketNames[i]
 
     let actualPositionInt
+
     if (Object.keys(data["brackets"])[i] >= 1) {
-      actualPositionInt = (Object.keys(data["brackets"])[i])
+      actualPositionInt = parseInt(Object.keys(data["brackets"])[i])
+    } else if (i === Object.keys(data["brackets"]).length - 1) {
+      // correct misaligned player count
+      actualPositionInt = data["totalPlayers"]
     } else {
       actualPositionInt = Math.floor(data["totalPlayers"] * (Object.keys(data["brackets"])[i]))
     }
 
+    bracketValues.push(actualPositionInt)
+
     if (actualPositionInt > playerData["player"]["globalPosition"] && moveUpBracket) {
       moveUpBracket = false
-      let trophyDelta = Object.values(data["brackets"])[i-1] - playerData["player"]["trophies"] + 10
+      currentBracket = true
 
-      let moveUp = document.createElement('tr')
-      moveUp.classList.add('fw-bold')
+      if (currentBracket) {
+        globalBracketLine.classList.add('fw-bold')
+        currentBracket = false
+      }
 
-      let moveUpCell = document.createElement('td')
-      moveUpCell.setAttribute('colspan', 3)
-      moveUpCell.classList.add('text-center')
-      moveUpCell.innerText = `▲ ${trophyDelta.toLocaleString()} trophies needed to move up ▲`
+      if (playerData["player"]["globalPosition"] !== 0) {
+        let trophyDelta = Object.values(data["brackets"])[i-1] - playerData["player"]["trophies"] + 10
 
-      moveUp.appendChild(moveUpCell)
-      tbody.appendChild(moveUp)
+        let moveUp = document.createElement('tr')
+        moveUp.classList.add('fw-bold')
 
-      let playerSelfBracket = document.createElement('tr')
-      playerSelfBracket.classList.add('fw-bold')
+        let moveUpCell = document.createElement('td')
+        moveUpCell.setAttribute('colspan', 3)
+        moveUpCell.classList.add('text-center')
+        moveUpCell.innerText = `▲ ${trophyDelta.toLocaleString()} trophies needed to move up ▲`
 
-      let playerSelfBracketName = document.createElement('td')
-      playerSelfBracketName.innerText = 'You'
-
-      let playerSelfBracketPosition = document.createElement('td')
-      playerSelfBracketPosition.innerText = (playerData["player"]["globalPosition"] + 1).toLocaleString()
-
-      let playerSelfBracketTrophies = document.createElement('td')
-      playerSelfBracketTrophies.innerText = playerData["player"]["trophies"].toLocaleString()
-
-      playerSelfBracket.appendChild(playerSelfBracketName)
-      playerSelfBracket.appendChild(playerSelfBracketPosition)
-      playerSelfBracket.appendChild(playerSelfBracketTrophies)
-      tbody.appendChild(playerSelfBracket)
+        moveUp.appendChild(moveUpCell)
+        tbody.appendChild(moveUp)
+      }
     }
 
     let actualPositionCell = document.createElement('td')
     actualPositionCell.innerText = actualPositionInt.toLocaleString()
 
     let thresholdCell = document.createElement('td')
-    if (!Object.values(data["brackets"])[i]) {
+    if (!Object.values(data["brackets"])[i] && Object.values(data["brackets"])[i] !== 0) {
       // broken archived leaderboard
       return
     }
@@ -335,6 +342,27 @@ const populateFieldsGlobal = (data, playerData) => {
     
     tbody.append(globalBracketLine)
   }
+
+  let margin
+  for (let i = 0; i < bracketValues.length; i++) {
+    if (playerData["player"]["globalPosition"] < bracketValues[i]) {
+      let percentageFromTop = (playerData["player"]["globalPosition"] - bracketValues[i-1]) / (bracketValues[i] - bracketValues[i-1])
+      margin = 41 + 80 * i + 80 * percentageFromTop
+      break
+    }
+  }
+
+  if (playerData["player"]["globalPosition"] <= 100) {
+    document.querySelector('#leaderboardTicker').innerText = getOrdinalFormat(playerData["player"]["globalPosition"] + 1)
+  } else {
+    document.querySelector('#leaderboardTicker').innerText = `${((playerData["player"]["globalPosition"] + 1) / data["totalPlayers"] * 100).toFixed(1)}%`
+  }
+
+  if (document.querySelector('#leaderboardTicker').innerText.slice(-3) === ".0%") {
+    document.querySelector('#leaderboardTicker').innerText = document.querySelector('#leaderboardTicker').innerText.slice(0, -3) + "%"
+  }
+
+  document.querySelector('#leaderboardTickerContainer').style = `margin-top: ${margin}px !important;`
 }
 
 document.querySelector('#playFabQuery').addEventListener('keyup', function() {

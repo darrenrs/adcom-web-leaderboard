@@ -10,8 +10,6 @@ function getPlayerNameFromOrdinal(n) {
   let n0 = odict["Adjectives"][((n * incrementValue[0]) + baseCaseIndex[0]) % odict["Adjectives"].length]
   let n1 = odict["Nouns"][((n * incrementValue[1]) + baseCaseIndex[1]) % odict["Nouns"].length]
   let n2 = odict["Generations"][((n * incrementValue[2]) + baseCaseIndex[2]) % odict["Generations"].length]
-  let ic = odict["IconColors"][((n * incrementValue[3]) + baseCaseIndex[3]) % odict["IconColors"].length]
-  let ip = odict["IconTextures"][((n * incrementValue[4]) + baseCaseIndex[4]) % odict["IconTextures"].length]
   
   fullName = `${n0} ${n1} ${n2}`
 
@@ -72,5 +70,21 @@ function getTimedeltaFormat(timestamp) {
     return `${hours}h ${minutes}m`
   } else {
     return `${days}d ${hours}h`
+  }
+}
+
+function getOrdinalFormat(n) {
+  n = Math.abs(n)
+  ns = n.toLocaleString()
+  if (n % 100 >= 11 && n % 100 <= 13) {
+    return `${ns}th`
+  } else if (n % 10 === 1) {
+    return `${ns}st`
+  } else if (n % 10 === 2) {
+    return `${ns}nd`
+  } else if (n % 10 === 3) {
+    return `${ns}rd`
+  } else {
+    return `${ns}th`
   }
 }

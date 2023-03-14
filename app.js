@@ -288,6 +288,8 @@ const getBrackets = async(id, eventId, brackets, totalPlayers) => {
       trophies[i.toString()] = Math.floor(position)
     }
 
+    trophies["0.999999"] = 0
+
     return trophies
   } catch (e) {
     console.error(e)
