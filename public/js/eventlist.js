@@ -40,8 +40,10 @@ const populateScheduleTable = (eventSchedule) => {
         archiveString = `${archiveDate}`
       }
 
-      const s = `Debug Information\nAPI created: ${createDate}\nAPI archived: ${archiveString}\nEvent ID below`
-      prompt(s, eventSchedule[i]["eventId"])
+      const s = `<li>API created: ${createDate}</li><li>API archived: ${archiveString}</li><li>Event ID <span class="font-monospace">${eventSchedule[i]["eventId"]}</span</li>`
+      document.querySelector('#eventDebugInfo').innerHTML = s
+
+      $('#modal').modal('toggle')
     })
 
     let dateFromCell = document.createElement('td')
