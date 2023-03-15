@@ -1,5 +1,6 @@
 #leaderboardMarkerContainer {
   padding: 0;
+  transition: margin 2s ease-in-out;
 }
 
 #leaderboardMarker {
