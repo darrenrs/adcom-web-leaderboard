@@ -75,9 +75,6 @@ const postFormEventList = async() => {
 const postFormEvent = async() => {
   const playerId = document.querySelector('#activePlayFabId').innerText
   const selectedEventId = document.querySelector('option:checked').value
-  document.querySelector('#leaderboardMarkerContainer').style = `margin-top: 0px !important;`
-  document.querySelector('#leaderboardMarker').innerText = '...'
-
   const eventData = await getPlayerEventRecord(playerId, selectedEventId)
   
   if (eventData) {
@@ -102,6 +99,8 @@ const postFormEvent = async() => {
     // general failure
     document.querySelector('#eventLoadConnectionError').classList.remove('d-none')
     document.querySelector('#globalPositions').classList.add('d-none')
+    document.querySelector('#leaderboardMarkerContainer').style = `margin-top: 0px !important;`
+    document.querySelector('#leaderboardMarker').innerText = 'N/A'
   }
 }
 
