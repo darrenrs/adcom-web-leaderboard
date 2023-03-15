@@ -320,6 +320,7 @@ const populateFieldsGlobal = (data, playerData) => {
         moveUpCell.setAttribute('colspan', 3)
         moveUpCell.classList.add('text-center')
         moveUpCell.innerText = `▲ ${trophyDelta.toLocaleString()} trophies needed to move up ▲`
+        moveUpCell.id = 'moveUpTrophies'
 
         moveUp.appendChild(moveUpCell)
         tbody.appendChild(moveUp)
@@ -350,6 +351,10 @@ const populateFieldsGlobal = (data, playerData) => {
       margin = 41 + 80 * i + 80 * percentageFromTop
       break
     }
+  }
+
+  if (window.getComputedStyle(document.querySelector('#moveUpTrophies')).getPropertyValue('height') === '65px') {
+    margin += 24
   }
 
   if (playerData["player"]["globalPosition"] < 100) {
