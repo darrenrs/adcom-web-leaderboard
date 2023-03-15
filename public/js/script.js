@@ -75,8 +75,8 @@ const postFormEventList = async() => {
 const postFormEvent = async() => {
   const playerId = document.querySelector('#activePlayFabId').innerText
   const selectedEventId = document.querySelector('option:checked').value
-  document.querySelector('#leaderboardTickerContainer').style = `margin-top: 0px !important;`
-  document.querySelector('#leaderboardTicker').innerText = '...'
+  document.querySelector('#leaderboardMarkerContainer').style = `margin-top: 0px !important;`
+  document.querySelector('#leaderboardMarker').innerText = '...'
 
   const eventData = await getPlayerEventRecord(playerId, selectedEventId)
   
@@ -353,16 +353,16 @@ const populateFieldsGlobal = (data, playerData) => {
   }
 
   if (playerData["player"]["globalPosition"] < 100) {
-    document.querySelector('#leaderboardTicker').innerText = getOrdinalFormat(playerData["player"]["globalPosition"] + 1)
+    document.querySelector('#leaderboardMarker').innerText = getOrdinalFormat(playerData["player"]["globalPosition"] + 1)
   } else {
-    document.querySelector('#leaderboardTicker').innerText = `${((playerData["player"]["globalPosition"] + 1) / data["totalPlayers"] * 100).toFixed(1)}%`
+    document.querySelector('#leaderboardMarker').innerText = `${((playerData["player"]["globalPosition"] + 1) / data["totalPlayers"] * 100).toFixed(1)}%`
   }
 
-  if (document.querySelector('#leaderboardTicker').innerText.slice(-3) === ".0%") {
-    document.querySelector('#leaderboardTicker').innerText = document.querySelector('#leaderboardTicker').innerText.slice(0, -3) + "%"
+  if (document.querySelector('#leaderboardMarker').innerText.slice(-3) === ".0%") {
+    document.querySelector('#leaderboardMarker').innerText = document.querySelector('#leaderboardMarker').innerText.slice(0, -3) + "%"
   }
 
-  document.querySelector('#leaderboardTickerContainer').style = `margin-top: ${margin}px !important;`
+  document.querySelector('#leaderboardMarkerContainer').style = `margin-top: ${margin}px !important;`
 }
 
 document.querySelector('#playFabQuery').addEventListener('keyup', function() {
