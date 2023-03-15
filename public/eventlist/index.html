@@ -8,6 +8,7 @@
     <script src="/js/eventlist.js" defer></script>
     <script src="/js/helper.js" defer></script>
     <script src="/js/bootstrap.min.js" defer></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <title>AdVenture Communist Event Schedule</title>
   </head>
   <body>
@@ -41,6 +42,22 @@
               <tbody id="eventSchedule" class="table-group-divider"></tbody>
             </table>
             <span id="eventListLoadError" class="text-danger d-none">Please check your internet connection.</span>  
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="modal" class="modal fade" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Event Debug Information</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <ul id="eventDebugInfo"></ul>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
           </div>
         </div>
       </div>

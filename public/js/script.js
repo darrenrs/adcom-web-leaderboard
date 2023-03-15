@@ -327,7 +327,7 @@ const populateFieldsGlobal = (data, playerData) => {
     }
 
     let actualPositionCell = document.createElement('td')
-    actualPositionCell.innerText = actualPositionInt.toLocaleString()
+    actualPositionCell.innerText = getOrdinalFormat(actualPositionInt)
 
     let thresholdCell = document.createElement('td')
     if (!Object.values(data["brackets"])[i] && Object.values(data["brackets"])[i] !== 0) {
@@ -352,7 +352,7 @@ const populateFieldsGlobal = (data, playerData) => {
     }
   }
 
-  if (playerData["player"]["globalPosition"] <= 100) {
+  if (playerData["player"]["globalPosition"] < 100) {
     document.querySelector('#leaderboardTicker').innerText = getOrdinalFormat(playerData["player"]["globalPosition"] + 1)
   } else {
     document.querySelector('#leaderboardTicker').innerText = `${((playerData["player"]["globalPosition"] + 1) / data["totalPlayers"] * 100).toFixed(1)}%`
