@@ -346,13 +346,16 @@ const populateFieldsGlobal = (data, playerData) => {
   let margin
   for (let i = 0; i < bracketValues.length; i++) {
     if (playerData["player"]["globalPosition"] < bracketValues[i]) {
-      let percentageFromTop = (playerData["player"]["globalPosition"] - bracketValues[i-1]) / (bracketValues[i] - bracketValues[i-1])
+      let percentageFromTop = (playerData["player"]["globalPosition"] - bracketValues[i-1]) / (bracketValues[i] - 1 - bracketValues[i-1])
       margin = 41 + 80 * i + 80 * percentageFromTop
       break
     }
   }
 
-  if (window.getComputedStyle(document.querySelector('#moveUpTrophies')).getPropertyValue('height') === '65px') {
+  if (isNaN(margin)) {
+    // 1st place
+    margin = 40
+  } else if (window.getComputedStyle(document.querySelector('#moveUpTrophies')).getPropertyValue('height') === '65px') {
     margin += 24
   }
 
