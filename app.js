@@ -512,8 +512,8 @@ app.get('/api/discord/:event', async(req, res) => {
           // get estimated rank
           const rankString = await balanceHandler.getRankFromTrophies(returnStruct["player"]["trophies"], returnStruct["player"]["dateJoined"], returnStruct["player"]["dateUpdated"])
           returnStruct["rankString"] = rankString
-          if (returnStruct["player"]["globalPosition"] > currentKnownMaxPlayers) {
-            currentKnownMaxPlayers = returnStruct["player"]["globalPosition"]
+          if (returnStruct["global"]["count"] > currentKnownMaxPlayers) {
+            currentKnownMaxPlayers = returnStruct["global"]["count"]
           }
 
           playerEventRecords.push(returnStruct)
