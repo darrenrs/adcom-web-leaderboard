@@ -283,13 +283,19 @@ const getBrackets = async(id, eventId, brackets, totalPlayers) => {
       if (i < 1) {
         n = Math.floor(totalPlayers * i) - 1
       }
+
+      // don't display bracket if it does not exist yet
+      // (i.e., insufficient number of players or cheater leaderboard)
+      if (n <= 99 && i < 1) {
+        continue
+      }
+
       const position = await getPosition(id, eventId, n)
 
       trophies[i.toString()] = Math.floor(position)
     }
 
-    trophies["0.999999"] = 0
-
+    trophies["0.999999"] = 0  // hacky thing
     return trophies
   } catch (e) {
     console.error(e)
@@ -471,6 +477,7 @@ app.get('/api/discord/:event', async(req, res) => {
         console.log("Successfully parsed discord.csv")
 
         const balanceHandler = new balance(currentEventData["eventName"], currentEventData["startDate"], currentEventData["endDate"])
+        let currentKnownMaxPlayers = 0
         await balanceHandler.loadBalanceData()
 
         // get results for each player
@@ -505,11 +512,14 @@ app.get('/api/discord/:event', async(req, res) => {
           // get estimated rank
           const rankString = await balanceHandler.getRankFromTrophies(returnStruct["player"]["trophies"], returnStruct["player"]["dateJoined"], returnStruct["player"]["dateUpdated"])
           returnStruct["rankString"] = rankString
+          if (returnStruct["player"]["globalPosition"] > currentKnownMaxPlayers) {
+            currentKnownMaxPlayers = returnStruct["player"]["globalPosition"]
+          }
 
           playerEventRecords.push(returnStruct)
         }
 
-        playerEventRecords.sort((a, b) => a["player"]["globalPosition"] - b["player"]["globalPosition"])
+        playerEventRecords.sort((a, b) => b["player"]["trophies"] - a["player"]["trophies"] || a["player"]["globalPosition"] - b["player"]["globalPosition"])
         
         let playerFinalRecords = []
 
@@ -524,7 +534,7 @@ app.get('/api/discord/:event', async(req, res) => {
                 "discordName": k["nameDiscord"],
                 "primaryKeySeq": j["player"]["playerOrdinal"],
                 "position": j["player"]["globalPosition"] + 1,
-                "positionOf": playerEventRecords[playerEventRecords.length-1]["global"]["count"],
+                "positionOf": currentKnownMaxPlayers,
                 "trophies": j["player"]["trophies"],
                 "divisionId": j["player"]["divisionId"],
                 "isMainBoard": j["player"]["divisionRoot"] === 'global' ? true : false,

@@ -72,10 +72,18 @@ const populateDiscordLeaderboardTable = (discordLb) => {
     discordNameCell.innerText = discordLb[i]["discordName"]
 
     let positionCell = document.createElement('td')
-    positionCell.innerText = `${discordLb[i]["position"].toLocaleString()} / ${discordLb[i]["positionOf"].toLocaleString()}`
+    if (discordLb[i]["isMainBoard"]) {
+      positionCell.innerText = `${discordLb[i]["position"].toLocaleString()} / ${discordLb[i]["positionOf"].toLocaleString()}`
+    } else {
+      positionCell.innerText = '*'
+    }
 
     let percentileCell = document.createElement('td')
-    percentileCell.innerText = `${(discordLb[i]["position"]/discordLb[i]["positionOf"] * 100).toFixed(2)}%`
+    if (discordLb[i]["isMainBoard"]) {
+      percentileCell.innerText = `${(discordLb[i]["position"]/discordLb[i]["positionOf"] * 100).toFixed(2)}%`
+    } else {
+      percentileCell.innerText = '*'
+    }
 
     let trophiesCell = document.createElement('td')
     trophiesCell.innerText = discordLb[i]["trophies"].toLocaleString()

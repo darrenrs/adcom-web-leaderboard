@@ -273,6 +273,11 @@ const populateFieldsGlobal = (data, playerData) => {
     'Top 100%'
   ]
 
+  // remove missing brackets (i.e., lack of players)
+  if (Object.keys(data["brackets"]).length < bracketNames.length) {
+    bracketNames.splice(4, bracketNames.length - Object.keys(data["brackets"]).length)
+  }
+
   let bracketValues = []
   
   let tbody = document.querySelector('#globalPositions')
@@ -347,7 +352,7 @@ const populateFieldsGlobal = (data, playerData) => {
   for (let i = 0; i < bracketValues.length; i++) {
     if (playerData["player"]["globalPosition"] < bracketValues[i]) {
       let percentageFromTop = (playerData["player"]["globalPosition"] - bracketValues[i-1]) / (bracketValues[i] - 1 - bracketValues[i-1])
-      margin = 41 + 80 * i + 80 * percentageFromTop
+      margin = 41 + 80 * (i + percentageFromTop)
       break
     }
   }
