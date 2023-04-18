@@ -190,71 +190,73 @@ const populateFieldsGeneral = (data) => {
   document.querySelector('#rank').innerText = `${data["rankString"]["rank"]}/${data["rankString"]["mission"]}`
   document.querySelector('#joinDate').innerText = new Date(data["player"]["dateJoined"]).toLocaleString()
   document.querySelector('#updateDate').innerText = new Date(data["player"]["dateUpdated"]).toLocaleString()
-  document.querySelector('#divisionId').innerText = data["player"]["divisionId"]
+  document.querySelector('#divisionId').innerText = data["player"]["divisionId"] ? data["player"]["divisionId"] : "No division (ultra rare bug)"
   document.querySelector('#divisionType').innerText = getSpendingCategory(data["player"]["divisionId"])
   document.querySelector('#leaderboardType').innerText = getLeaderboardType(data["player"]["divisionRoot"])
   document.querySelector('#leaderboardId').innerText = data["event"]["eventGuid"]
   
   let tbody = document.querySelector('#divisionPlayers')
   tbody.innerHTML = ''
-  for (let i in data["division"]["top"]) {
-    let divisionPlayer = document.createElement('tr')
-    if (data["division"]["top"][i]["ordinal"] === data["player"]["playerOrdinal"]) {
-      // bold the current player's line and add a trophy delta to the player above
-      divisionPlayer.classList.add('fw-bold')
+  if (data["player"]["divisionId"]) {
+    for (let i in data["division"]["top"]) {
+      let divisionPlayer = document.createElement('tr')
+      if (data["division"]["top"][i]["ordinal"] === data["player"]["playerOrdinal"]) {
+        // bold the current player's line and add a trophy delta to the player above
+        divisionPlayer.classList.add('fw-bold')
 
-      if (i !== "0") {
-        let trophyDelta = data["division"]["top"][i-1]["trophies"] - data["division"]["top"][i]["trophies"] + 10
+        if (i !== "0") {
+          let trophyDelta = data["division"]["top"][i-1]["trophies"] - data["division"]["top"][i]["trophies"] + 10
 
-        let moveUp = document.createElement('tr')
-        moveUp.classList.add('fw-bold')
-        let moveUpCell = document.createElement('td')
-        moveUpCell.setAttribute('colspan', 4)
-        moveUpCell.classList.add('text-center')
-        moveUpCell.innerText = `▲ ${trophyDelta.toLocaleString()} trophies needed to move up ▲`
+          let moveUp = document.createElement('tr')
+          moveUp.classList.add('fw-bold')
+          let moveUpCell = document.createElement('td')
+          moveUpCell.setAttribute('colspan', 4)
+          moveUpCell.classList.add('text-center')
+          moveUpCell.innerText = `▲ ${trophyDelta.toLocaleString()} trophies needed to move up ▲`
 
-        moveUp.appendChild(moveUpCell)
-        tbody.appendChild(moveUp)
-      }
-    }
-
-    let positionCell = document.createElement('td')
-    positionCell.innerText = parseInt(i) + 1
-
-    let nameCell = document.createElement('td')
-    nameCell.innerText = getPlayerNameFromOrdinal(data["division"]["top"][i]["ordinal"])
-
-    let trophyCell = document.createElement('td')
-    trophyCell.innerText = data["division"]["top"][i]["trophies"].toLocaleString()
-
-    let globalPosCell = document.createElement('td')
-    let globalPosBtn = document.createElement('button')
-    globalPosBtn.classList.add('btn')
-    globalPosBtn.classList.add('btn-primary')
-    globalPosBtn.classList.add('btn-sm')
-    globalPosBtn.innerText = "Click to load"
-    globalPosBtn.addEventListener('click', async (e) => {
-      let lbp = await getLeaderboardPosition(data["division"]["top"][i]["playerId"], data["event"]["eventGuid"])
-      let parent = e.target.parentNode
-      lbp = parseInt(lbp) + 1
-      e.target.remove()
-      if (lbp) {
-        parent.innerText = getOrdinalFormat(lbp)
-        if (lbp > 100) {
-          parent.innerText = `${parent.innerText} (${(lbp / (data["global"]["count"]-1) * 100).toFixed(1)}%)`
+          moveUp.appendChild(moveUpCell)
+          tbody.appendChild(moveUp)
         }
-      } else {
-        parent.innerText = 'Error'
       }
-    })
 
-    globalPosCell.appendChild(globalPosBtn)
-    divisionPlayer.appendChild(positionCell)
-    divisionPlayer.appendChild(nameCell)
-    divisionPlayer.appendChild(trophyCell)
-    divisionPlayer.appendChild(globalPosCell)
-    
-    tbody.appendChild(divisionPlayer)
+      let positionCell = document.createElement('td')
+      positionCell.innerText = parseInt(i) + 1
+
+      let nameCell = document.createElement('td')
+      nameCell.innerText = getPlayerNameFromOrdinal(data["division"]["top"][i]["ordinal"])
+
+      let trophyCell = document.createElement('td')
+      trophyCell.innerText = data["division"]["top"][i]["trophies"].toLocaleString()
+
+      let globalPosCell = document.createElement('td')
+      let globalPosBtn = document.createElement('button')
+      globalPosBtn.classList.add('btn')
+      globalPosBtn.classList.add('btn-primary')
+      globalPosBtn.classList.add('btn-sm')
+      globalPosBtn.innerText = "Click to load"
+      globalPosBtn.addEventListener('click', async (e) => {
+        let lbp = await getLeaderboardPosition(data["division"]["top"][i]["playerId"], data["event"]["eventGuid"])
+        let parent = e.target.parentNode
+        lbp = parseInt(lbp) + 1
+        e.target.remove()
+        if (lbp) {
+          parent.innerText = getOrdinalFormat(lbp)
+          if (lbp > 100) {
+            parent.innerText = `${parent.innerText} (${(lbp / (data["global"]["count"]-1) * 100).toFixed(1)}%)`
+          }
+        } else {
+          parent.innerText = 'Error'
+        }
+      })
+
+      globalPosCell.appendChild(globalPosBtn)
+      divisionPlayer.appendChild(positionCell)
+      divisionPlayer.appendChild(nameCell)
+      divisionPlayer.appendChild(trophyCell)
+      divisionPlayer.appendChild(globalPosCell)
+      
+      tbody.appendChild(divisionPlayer)
+    }
   }
 }
 

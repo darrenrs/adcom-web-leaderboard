@@ -22,6 +22,11 @@ function getEventDetails(eventId) {
 }
 
 function getSpendingCategory(b) {
+  if (!b) {
+    console.warn("The requested player has no division. If this is you, please let Enigma#2989 know on Discord.")
+    return 'No division (ultra rare bug)'
+  }
+
   const re = /[A-Z_\d]+/g
   
   switch (re.exec(b)[0]) {
