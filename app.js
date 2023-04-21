@@ -558,6 +558,41 @@ app.get('/api/discord/:event', async(req, res) => {
   }
 })
 
+// convert PlayFab ID to Discord ID
+app.get('/api/player/:id/get-discord', async (req, res) => {
+  let playerRecords = []
+
+  fs.createReadStream('discord.csv')
+      .pipe(parse.parse({delimiter: ','}))
+      .on('data', (row) => {
+        let jsonRow = {
+          "discordId": null,
+          "nameDiscord": null,
+          "nameWebsite": null,
+          "playFabId": null
+        }
+
+        jsonRow["discordId"] = row[0]
+        jsonRow["nameDiscord"] = row[1]
+        jsonRow["nameWebsite"] = row[2]
+        jsonRow["playFabId"] = row[3]
+        playerRecords.push(jsonRow)
+      })
+      .on('end', async () => {
+        console.log("Successfully parsed discord.csv")
+        for (i of playerRecords) {
+          if (i["playFabId"] === req.params.id) {
+            res.send(i["discordId"])
+            return
+          }
+        }
+
+        // if we got here, no record found
+        res.sendStatus(404)
+        return
+      })
+})
+
 // check if player exists
 app.get('/api/player/:id', async (req, res) => {
   try {
