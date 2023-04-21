@@ -5,7 +5,8 @@ const postFormDiscordLeaderboard = async() => {
   document.querySelector('#discordLeaderboardLoadError').classList.remove('d-none')
 
   const playerData = await getDiscordLeaderboard(selectedEventId)
-  populateDiscordLeaderboardTable(playerData)
+  const discordId = await getDiscordId()
+  populateDiscordLeaderboardTable(playerData, discordId)
 }
 
 const getEventSchedule = async() => {
@@ -22,6 +23,26 @@ const getEventSchedule = async() => {
     console.error(error)
     document.querySelector('#discordLeaderboardLoadError').innerText = 'Please check your internet connection.'
     return false
+  })
+}
+
+const getDiscordId = async() => {
+  const cachedPlayFab = localStorage.getItem('playerId')
+
+  if (!cachedPlayFab) {
+    return
+  }
+
+  return await fetch(`/api/player/${cachedPlayFab}/get-discord`)
+  .then((response) => {
+    if (response.status === 200) {
+      return response.text()
+    } else {
+      return
+    }
+  })
+  .catch((error) => {
+    return
   })
 }
 
@@ -42,7 +63,7 @@ const getDiscordLeaderboard = async(eventId) => {
   })
 }
 
-const populateDiscordLeaderboardTable = (discordLb) => {
+const populateDiscordLeaderboardTable = (discordLb, discordId) => {
   let tbody = document.querySelector('#discordLeaderboard')
   const allExistingRows = document.querySelectorAll('tbody tr')
   
@@ -52,6 +73,23 @@ const populateDiscordLeaderboardTable = (discordLb) => {
 
   for (let i in discordLb) {
     let discordLbRow = document.createElement('tr')
+    if (discordId === discordLb[i]["discordId"]) {
+      discordLbRow.classList.add('fw-bold')
+      
+      if (i !== "0") {
+        let trophyDelta = discordLb[i-1]["trophies"] - discordLb[i]["trophies"] + 10
+
+        let moveUp = document.createElement('tr')
+        moveUp.classList.add('fw-bold')
+        let moveUpCell = document.createElement('td')
+        moveUpCell.setAttribute('colspan', 9)
+        moveUpCell.classList.add('text-center')
+        moveUpCell.innerText = `▲ ${trophyDelta.toLocaleString()} trophies needed to move up ▲`
+
+        moveUp.appendChild(moveUpCell)
+        tbody.appendChild(moveUp)
+      }
+    }
 
     let idCell = document.createElement('td')
     idCell.innerText = parseInt(i) + 1
