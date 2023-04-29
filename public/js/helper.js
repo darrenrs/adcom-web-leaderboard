@@ -93,3 +93,32 @@ function getOrdinalFormat(n) {
     return `${ns}th`
   }
 }
+
+function getPositionHTMLFormat(n) {
+  const numString = n.toString()
+  const lastDigit = numString.charAt(numString.length - 1)
+  let ordinal = ""
+
+  if (numString.length >= 2 && numString.charAt(numString.length - 2) === "1") {
+    ordinal = "th"
+  } else {
+    switch (lastDigit) {
+      case "1":
+        ordinal = "st"
+        break
+      case "2":
+        ordinal = "nd"
+        break
+      case "3":
+        ordinal = "rd"
+        break
+      default:
+        ordinal = "th"
+        break
+    }
+  }
+
+  const formattedNum = n.toLocaleString()
+
+  return `${formattedNum}<sup>${ordinal}</sup>`
+}

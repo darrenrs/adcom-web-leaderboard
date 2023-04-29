@@ -516,6 +516,19 @@ app.get('/api/discord/:event', async(req, res) => {
             currentKnownMaxPlayers = returnStruct["global"]["count"]
           }
 
+          let divisionPosition = null
+
+          if (returnStruct["division"]["top"]) {
+            for (let j in returnStruct["division"]["top"]) {
+              if (returnStruct["division"]["top"][j]["playerId"] === returnStruct["player"]["playerId"]) {
+                divisionPosition = parseInt(j) + 1
+                break
+              }
+            }
+          }
+
+          returnStruct["player"]["divisionPosition"] = divisionPosition
+
           playerEventRecords.push(returnStruct)
         }
 
@@ -537,6 +550,7 @@ app.get('/api/discord/:event', async(req, res) => {
                 "positionOf": currentKnownMaxPlayers,
                 "trophies": j["player"]["trophies"],
                 "divisionId": j["player"]["divisionId"],
+                "divisionPosition": j["player"]["divisionPosition"],
                 "isMainBoard": j["player"]["divisionRoot"] === 'global' ? true : false,
                 "lastUpdated": j["player"]["dateUpdated"],
                 "rankString": j["rankString"]

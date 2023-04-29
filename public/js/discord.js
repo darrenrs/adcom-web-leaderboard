@@ -82,7 +82,7 @@ const populateDiscordLeaderboardTable = (discordLb, discordId) => {
         let moveUp = document.createElement('tr')
         moveUp.classList.add('fw-bold')
         let moveUpCell = document.createElement('td')
-        moveUpCell.setAttribute('colspan', 9)
+        moveUpCell.setAttribute('colspan', 10)
         moveUpCell.classList.add('text-center')
         moveUpCell.innerText = `▲ ${trophyDelta.toLocaleString()} trophies needed to move up ▲`
 
@@ -111,7 +111,7 @@ const populateDiscordLeaderboardTable = (discordLb, discordId) => {
 
     let positionCell = document.createElement('td')
     if (discordLb[i]["isMainBoard"]) {
-      positionCell.innerText = `${discordLb[i]["position"].toLocaleString()} / ${discordLb[i]["positionOf"].toLocaleString()}`
+      positionCell.innerText = `${discordLb[i]["position"]} / ${discordLb[i]["positionOf"].toLocaleString()}`
     } else {
       positionCell.innerText = '*'
     }
@@ -122,6 +122,9 @@ const populateDiscordLeaderboardTable = (discordLb, discordId) => {
     } else {
       percentileCell.innerText = '*'
     }
+
+    let divRankCell = document.createElement('td')
+    divRankCell.innerHTML = getPositionHTMLFormat(discordLb[i]["divisionPosition"])
 
     let trophiesCell = document.createElement('td')
     trophiesCell.innerText = discordLb[i]["trophies"].toLocaleString()
@@ -138,6 +141,7 @@ const populateDiscordLeaderboardTable = (discordLb, discordId) => {
     discordLbRow.append(discordNameCell)
     discordLbRow.append(positionCell)
     discordLbRow.append(percentileCell)
+    discordLbRow.append(divRankCell)
     discordLbRow.append(trophiesCell)
     discordLbRow.append(rankCell)
     discordLbRow.append(lastUpdatedCell)
