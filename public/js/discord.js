@@ -111,7 +111,7 @@ const populateDiscordLeaderboardTable = (discordLb, discordId) => {
 
     let positionCell = document.createElement('td')
     if (discordLb[i]["isMainBoard"]) {
-      positionCell.innerText = `${discordLb[i]["position"]} / ${discordLb[i]["positionOf"].toLocaleString()}`
+      positionCell.innerText = `${discordLb[i]["position"].toLocaleString()} / ${discordLb[i]["positionOf"].toLocaleString()}`
     } else {
       positionCell.innerText = '*'
     }
