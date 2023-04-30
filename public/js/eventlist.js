@@ -4,12 +4,15 @@ const getEventSchedule = async() => {
     if (response.status === 200) {
       return response.json()
     } else {
+      console.error(`Server error (${response.status})`)
+      document.querySelector('#eventListLoadError').innerText = `Server error (${response.status}).`
       document.querySelector('#eventListLoadError').classList.remove('d-none')
       return false
     }
   })
   .catch((error) => {
     console.error(error)
+    document.querySelector('#eventListLoadError').innerText = 'Please check your internet connection.'
     document.querySelector('#eventListLoadError').classList.remove('d-none')
     return false
   })
@@ -71,12 +74,16 @@ const populateScheduleTable = (eventSchedule) => {
     
     tbody.appendChild(eventRow)
   }
+
+  document.querySelector('table').classList.remove('d-none')
 }
 
 const init = async() => {
   const eventSchedule = await getEventSchedule()
 
-  populateScheduleTable(eventSchedule)
+  if (eventSchedule) {
+    populateScheduleTable(eventSchedule)
+  }
 }
 
 document.addEventListener('DOMContentLoaded', function() {

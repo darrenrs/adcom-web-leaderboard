@@ -4,13 +4,14 @@ const getEventSchedule = async() => {
     if (response.status === 200) {
       return response.json()
     } else {
-      document.querySelector('#eventListLoadError').classList.remove('d-none')
+      console.error(`Server error (${response.status})`)
+      document.querySelector('#eventFinisherLoadError').innerText = `Server error (${response.status}).`
       return false
     }
   })
   .catch((error) => {
     console.error(error)
-    document.querySelector('#eventListLoadError').classList.remove('d-none')
+    document.querySelector('#eventFinisherLoadError').innerText = `Please check your internet connection.`
     return false
   })
 }
@@ -20,17 +21,23 @@ const getEventFinishers = async(eventId, playerId) => {
   .then((response) => {
     if (response.status === 200) {
       return response.json()
+    } else if (response.status === 404) {
+      return 404
     } else {
+      console.error(`Server error (${response.status})`)
+      document.querySelector('#eventFinisherLoadError').innerText = `Server error (${response.status}).`
       return false
     }
   })
   .catch((error) => {
     console.error(error)
+    document.querySelector('#eventFinisherLoadError').innerText = `Please check your internet connection.`
     return false
   })
 }
 
 const populateFinishers = (data) => {
+  // todo: fix time continuing to advance after event finish
   const endTimeDate = new Date(data["chrono"]["end"])
   const startTimeDate = new Date(data["chrono"]["start"])
   const currentDate = new Date()
@@ -78,6 +85,12 @@ const heartbeatCentral = async(playFab, eventSchedule) => {
       const finishedData = await getEventFinishers(eventSchedule[0]["eventId"], playFab)
       document.querySelector('#heartbeatClock').innerText = ':60'
 
+      if (!finishedData || finishedData == 404) {
+        document.querySelector('#eventFinisherLoadError').classList.remove('d-none')
+      } else {
+        document.querySelector('#eventFinisherLoadError').classList.add('d-none')
+      }
+
       populateFinishers(finishedData)
     }
   })
@@ -103,6 +116,12 @@ const updateClock = async (playFab, eventSchedule) => {
     const finishedData = await getEventFinishers(eventSchedule[0]["eventId"], playFab)
     document.querySelector('#heartbeatClock').innerText = ':60'
 
+    if (!finishedData || finishedData == 404) {
+      document.querySelector('#eventFinisherLoadError').classList.remove('d-none')
+    } else {
+      document.querySelector('#eventFinisherLoadError').classList.add('d-none')
+    }
+
     populateFinishers(finishedData)
   } else {
     if (timeInt < 10) {
@@ -118,15 +137,25 @@ const init = async() => {
   const cachedPlayFab = localStorage.getItem('playerId')
 
   if (!cachedPlayFab) {
-    document.querySelector('#eventFinisherLoadError').innerText = 'You need to have a valid PlayFab ID to continue'
+    document.querySelector('#eventFinisherLoadError').innerText = 'You need to have a valid PlayFab ID to continue. Please make sure that you have entered in your ID on the main page and have checked "Set as default".'
     return
   }
 
   const eventSchedule = await getEventSchedule()
+
+  if (!eventSchedule) {
+    document.querySelector('#eventFinisherLoadError').classList.remove('d-none')
+    return
+  }
+
   const finishedData = await getEventFinishers(eventSchedule[0]["eventId"], cachedPlayFab)
 
-  if (!finishedData) {
+  if (finishedData === 400) {
     document.querySelector('#eventFinisherLoadError').innerText = 'You need to join the current event to continue'
+    document.querySelector('#eventFinisherLoadError').classList.remove('d-none')
+    return
+  } else if (!finishedData) {
+    document.querySelector('#eventFinisherLoadError').classList.remove('d-none')
     return
   }
 

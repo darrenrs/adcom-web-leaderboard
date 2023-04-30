@@ -15,7 +15,7 @@ module.exports = class SQLiteInterface {
     // cache a player in local db so we don't need to check for their existence against the external API
     this.db.run('INSERT INTO "players" (id) VALUES (?)', [id], (err) => {
       if (err) {
-        console.error(err.message)
+        console.error(`${(new Date()).toISOString()} [internal       ] - Unable to add player to database: ${err.message}.`)
       }
     })
   }
@@ -24,7 +24,7 @@ module.exports = class SQLiteInterface {
     // cache a player's event record in local db so we don't need to check for its existence against the external API
     this.db.run('INSERT INTO "players-events" (id, eventId, "exists") VALUES (?, ?, ?)', [id, eventId, exists], (err) => {
       if (err) {
-        console.error(err.message)
+        console.error(`${(new Date()).toISOString()} [internal       ] - Unable to add player event to database: ${err.message}.`)
       }
     })
   }

@@ -3,10 +3,10 @@ const fs = require('fs')
 const axios = require('axios')
 const db = require('./db')
 const balance = require('./balance')
-const { cached } = require('sqlite3')
+// const { cached } = require('sqlite3')
 const parse = require('csv-parse')
-const { send, json } = require('express/lib/response')
-const { start } = require('repl')
+// const { send, json } = require('express/lib/response')
+// const { start } = require('repl')
 
 const app = express()
 const port = 3000
@@ -16,9 +16,9 @@ let hhcfg
 // this information cannot be made public to minimize abuse against HH's systems
 fs.readFile(__dirname + '/hh-config.json', 'utf8', (err, data) => {
   if (err) {
-    console.log('Unable to load API config. PlayFab requests will not be enabled.')
+    log('Unable to load API config. This server will not work until an API config file is added.', 'internal')
   } else {
-    console.log('Successfully loaded API config.')
+    log('Successfully loaded API config.', 'internal')
     hhcfg = JSON.parse(data)
     hhcfg["fullBaseLeaderboard"] = hhcfg["baseLeaderboard"] + '/project/' + hhcfg["application"]
     hhcfg["fullBasePlayerMeta"] = hhcfg["basePlayerMeta"] + '/project/' + hhcfg["application"]
@@ -28,6 +28,17 @@ fs.readFile(__dirname + '/hh-config.json', 'utf8', (err, data) => {
 // load static content
 app.use(express.static('public'))
 app.use(express.static(__dirname + '/node_modules/bootstrap/dist/'))
+
+const log = async (message, remoteAddress, error=false) => {
+  const currentTime = (new Date()).toISOString()
+  const logMessage = `${currentTime} [${remoteAddress.padEnd(15, ' ')}] - ${message}`
+
+  if (error) {
+    console.error(logMessage)
+  } else {
+    console.log(logMessage)
+  }
+}
 
 // returns a list of every event since the inception of v3 leaderboard service up until either now or all scheduled
 const getAllEvents = async (future=false) => {
@@ -42,7 +53,7 @@ const getAllEvents = async (future=false) => {
     const eventList = parseAllEvents(eventListReq, future)
     return eventList
   } catch (e) {
-    console.error(e)
+    // console.error(e)
     return Promise.reject(e)
   }
 }
@@ -117,7 +128,7 @@ const getPlayerState = async(id) => {
     if (e.response && e.reponse.status === 404) {
       return false
     } else {
-      console.error(e)
+      // console.error(e)
       return Promise.reject(e)
     }
   } finally {
@@ -166,7 +177,7 @@ const getPlayerEventState = async(id, eventId, isCurrent) => {
     if (e.response && e.reponse.status === 404) {
       return false
     } else {
-      console.error(e)
+      // console.error(e)
       return Promise.reject(e)
     }
   } finally {
@@ -186,7 +197,7 @@ const getKnownPlayerEvents = async(id) => {
     const newKnownEvents = parseKnownPlayerEvents(id, allEvents, currentKnownEvents)
     return newKnownEvents
   } catch (e) {
-    console.error(e)
+    // console.error(e)
     return Promise.reject(e)
   }
 }
@@ -196,11 +207,11 @@ const parseKnownPlayerEvents = async(id, allEvents, currentKnownEvents) => {
 
   // inefficient O(mn) loop but luckily this isn't a lot of data
   for (let i of allEvents) {
-    let foundIt = false
+    // let foundIt = false
     for (let j of currentKnownEvents) {
       if (i["eventId"] === j["eventId"]) {
         // found a candidate match, so we know it's included
-        foundIt = true
+        // foundIt = true
       }
     }
     
@@ -234,7 +245,7 @@ const getPlayerEventInfo = async(id, eventId) => {
     
     return playerEventReq["data"]["data"]
   } catch (e) {
-    console.error(e)
+    // console.error(e)
     return Promise.reject(e)
   }
 }
@@ -252,7 +263,7 @@ const getPlayerLeaderboard = async(id, eventId, adjacentCount, topCount) => {
     
     return playerLeaderboardReq["data"]["resultMap"]
   } catch (e) {
-    console.error(e)
+    // console.error(e)
     return Promise.reject(e)
   }
 }
@@ -268,7 +279,7 @@ const getPosition = async(id, eventId, n) => {
     })
     return positionReq["data"]["resultMap"]["rootResult"]["score"]
   } catch (e) {
-    console.error(`Note: this may simply be an archived event\n${e}`)
+    // console.error(`Note: this may simply be an archived event\n${e}`)
     return Promise.reject(e)
   }
 }
@@ -298,8 +309,8 @@ const getBrackets = async(id, eventId, brackets, totalPlayers) => {
     trophies["0.999999"] = 0  // hacky thing
     return trophies
   } catch (e) {
-    console.error(e)
-    return
+    // console.error(e)
+    return Promise.reject(e)
   }
 }
 
@@ -381,7 +392,7 @@ const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboa
   return returnStruct
 }
 
-// returns the data for an archived event (which is way less unfortunately)
+// returns the data for an archived event (which is unfortunately limited)
 const archivedEntryData = async(currentEventData, playerEventInfo, playerLeaderboardInfo) => {
   let returnStruct = {}
 
@@ -415,29 +426,43 @@ const archivedEntryData = async(currentEventData, playerEventInfo, playerLeaderb
 
 // get event list
 app.get('/api/list', async (req, res) => {
+  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
   try {
+    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+    
     const allEvents = await getAllEvents()
+
     res.send(allEvents)
   } catch (e) {
+    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+
     res.sendStatus(502)
   }
 })
 
 // get event list including future events
 app.get('/api/list/all', async (req, res) => {
+  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
   try {
+    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+
     const allEvents = await getAllEvents(true)
+
     res.send(allEvents)
   } catch (e) {
+    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+
     res.sendStatus(502)
   }
 })
 
 // query all players who are participants in the Discord leaderboard
 app.get('/api/discord/:event', async(req, res) => {
+  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
   try {
-    const eventId = req.params.event
+    log(`${req.method} ${req.originalUrl}`, remoteAddress)
 
+    const eventId = req.params.event
     const allEventData = await getAllEvents()
     let currentEventData
 
@@ -474,7 +499,7 @@ app.get('/api/discord/:event', async(req, res) => {
         playerRecords.push(jsonRow)
       })
       .on('end', async () => {
-        console.log("Successfully parsed discord.csv")
+        // log(`${req.method} ${req.originalUrl} - successfully parsed discord.csv (Discord leaderboard).`, remoteAddress)
 
         const balanceHandler = new balance(currentEventData["eventName"], currentEventData["startDate"], currentEventData["endDate"])
         let currentKnownMaxPlayers = 0
@@ -483,21 +508,22 @@ app.get('/api/discord/:event', async(req, res) => {
         // get results for each player
         for (let i in playerRecords) {
           const id = playerRecords[i]["playFabId"]
-          console.log(`Querying player ${id} for event ${eventId} (Discord leaderboard)`)
 
           const playerEventInfo = await getPlayerEventInfo(id, eventId)
           if (!playerEventInfo) {
             // don't even bother continuing if we know the ID has no record
-            console.log(`Player ${id} not found (Discord leaderboard)`)
+            // log(`Player ${id} not found for event ${eventId} (Discord leaderboard)`, remoteAddress)
             continue
           }
 
           const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25)
           if (!playerLeaderboard) {
             // don't even bother continuing if we know the ID has no record
-            console.log(`Player ${id} not registered with ${eventId} (Discord ledaerboard)`)
+            // log(`Player ${id} not found for event ${eventId} (Discord leaderboard)`, remoteAddress)
             continue
           }
+
+          // log(`Player ${id} found for event ${eventId} (Discord leaderboard)`, remoteAddress)
 
           // differentiate between archived and active leaderboard
           let returnStruct
@@ -560,23 +586,29 @@ app.get('/api/discord/:event', async(req, res) => {
             }
           }
         }
-
+        
         res.status(200).send(playerFinalRecords)
       })
       .on('error', async(err) => {
         // fs emitted error
+        log(`${req.method} ${req.originalUrl} error - ${err}.`, remoteAddress, true)
         res.sendStatus(502)
       })
   } catch (e) {
+    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
     res.sendStatus(502)
   }
 })
 
 // convert PlayFab ID to Discord ID
 app.get('/api/player/:id/get-discord', async (req, res) => {
-  let playerRecords = []
+  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  try {
+    log(`${req.method} ${req.originalUrl}`, remoteAddress)
 
-  fs.createReadStream('discord.csv')
+    let playerRecords = []
+
+    fs.createReadStream('discord.csv')
       .pipe(parse.parse({delimiter: ','}))
       .on('data', (row) => {
         let jsonRow = {
@@ -593,7 +625,7 @@ app.get('/api/player/:id/get-discord', async (req, res) => {
         playerRecords.push(jsonRow)
       })
       .on('end', async () => {
-        console.log("Successfully parsed discord.csv")
+        log(`${req.method} ${req.originalUrl} - successfully parsed discord.csv (PlayFab to Discord ID).`, remoteAddress)
         for (i of playerRecords) {
           if (i["playFabId"] === req.params.id) {
             res.send(i["discordId"])
@@ -602,51 +634,77 @@ app.get('/api/player/:id/get-discord', async (req, res) => {
         }
 
         // if we got here, no record found
+        log(`${req.method} ${req.originalUrl} - no record found.`, remoteAddress)
+
         res.sendStatus(404)
         return
       })
+      .on('error', async(err) => {
+        // fs emitted error
+        log(`${req.method} ${req.originalUrl} error - ${err}.`, remoteAddress, true)
+        res.sendStatus(502)
+      })
+  } catch (e) {
+    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+
+    res.sendStatus(502)
+  }
 })
 
 // check if player exists
 app.get('/api/player/:id', async (req, res) => {
+  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
   try {
+    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+
     const id = req.params.id
-    console.log(`Testing player ${id}`)
 
     const playerState = await getPlayerState(id)
     if (playerState) {
       res.status(200).end()
     } else {
+      log(`${req.method} ${req.originalUrl} - no record found.`, remoteAddress)
+
       res.status(404).end()
     }
   } catch (e) {
+    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+
     res.sendStatus(502)
   }
 })
 
 // get list of all registered events for a player
 app.get('/api/list/:id', async (req, res) => {
+  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
   try {
+    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+
     const id = req.params.id
-    console.log(`Checking all events for ${id}`)
 
     const allKnownPlayerEvents = await getKnownPlayerEvents(id)
     if (allKnownPlayerEvents) {
       res.status(200).json(allKnownPlayerEvents)
     } else {
+      log(`${req.method} ${req.originalUrl} - no record found.`, remoteAddress)
+
       res.status(404).end()
     }
   } catch (e) {
+    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+
     res.sendStatus(502)
   }
 })
 
 // master player API
 app.get('/api/event/:event/:id', async (req, res) => {
+  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
   try {
+    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+
     const id = req.params.id
     const eventId = req.params.event
-    console.log(`Querying player ${id} for event ${eventId}`)
 
     const allEventData = await getAllEvents()
     let currentEventData
@@ -664,7 +722,8 @@ app.get('/api/event/:event/:id', async (req, res) => {
     const playerEventInfo = await getPlayerEventInfo(id, eventId)
     if (!playerEventInfo) {
       // don't even bother continuing if we know the ID has no record
-      console.log(`Player ${id} not found`)
+      log(`${req.method} ${req.originalUrl} - no record found.`, remoteAddress)
+
       res.status(404).end()
       return
     }
@@ -672,7 +731,8 @@ app.get('/api/event/:event/:id', async (req, res) => {
     const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25)
     if (!playerLeaderboard) {
       // don't even bother continuing if we know the ID has no record
-      console.log(`Player ${id} not registered with ${eventId}`)
+      log(`${req.method} ${req.originalUrl} - no record found.`, remoteAddress)
+
       res.status(404).end()
       return
     }
@@ -692,21 +752,26 @@ app.get('/api/event/:event/:id', async (req, res) => {
     
     res.status(200).json(returnStruct)
   } catch (e) {
+    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+
     res.sendStatus(502)
   }
 })
 
 // individual position for a player
 app.get('/api/event/:event/:id/position', async (req, res) => {
+  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
   try {
+    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+
     const id = req.params.id
     const eventId = req.params.event
-    console.log(`Querying player ${id} for event ${eventId} (position)`)
 
     const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25)
     if (!playerLeaderboard) {
       // don't even bother continuing if we know the ID has no record
-      console.log(`Player ${id} not found`)
+      log(`${req.method} ${req.originalUrl} - no record found.`, remoteAddress)
+
       res.status(404).end()
       return
     }
@@ -722,22 +787,27 @@ app.get('/api/event/:event/:id/position', async (req, res) => {
       res.status(200).send(playerLeaderboard["results"]["rootResults"]["offsetResults"]["archivedEntry"]["rootPosition"]["position"].toString())
     }
   } catch (e) {
+    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+
     res.sendStatus(502)
   }
 })
 
 // brackets for a leaderboard (requires PlayFab)
 app.get('/api/event/:event/:id/brackets', async (req, res) => {
+  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
   try {
+    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+
     const id = req.params.id
     const eventId = req.params.event
     const brackets = [1, 5, 25, 100, 0.01, 0.05, 0.10, 0.25, 0.50, 0.75]
-    console.log(`Querying player ${id} for event ${eventId} (lb brackets)`)
 
     const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25)
     if (!playerLeaderboard) {
       // don't even bother continuing if we know the ID has no record
-      console.log(`Player ${id} not registered with ${eventId}`)
+      log(`${req.method} ${req.originalUrl} - no record found.`, remoteAddress)
+
       res.status(404).end()
       return
     }
@@ -747,6 +817,8 @@ app.get('/api/event/:event/:id/brackets', async (req, res) => {
     if (playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]) {
       totalPlayers = playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"][0]["position"]["count"]
     } else {
+      log(`${req.method} ${req.originalUrl} - cannot query from archived leaderboard.`, remoteAddress)
+
       res.sendStatus(404) // can't currently retrieve brackets from archived leaderboards
       return
       totalPlayers = playerLeaderboard["results"]["rootResults"]["offsetResults"]["archivedEntry"]["rootPosition"]["count"]
@@ -761,24 +833,28 @@ app.get('/api/event/:event/:id/brackets', async (req, res) => {
 
     res.status(200).json(returnStruct)
   } catch (e) {
+    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+
     res.sendStatus(502)
   }
 })
 
 // top players for a leaderboard (requires PlayFab)
 app.get('/api/event/:event/:id/top/:count', async (req, res) => {
+  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
   try {
+    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+
     const id = req.params.id
     const eventId = req.params.event
     const topPlayers = parseInt(req.params.count)
-    console.log(`Querying player ${id} for event ${eventId} (top ${topPlayers})`)
 
     if (isNaN(topPlayers)) {
-      console.error('Must be an int')
+      log(`${req.method} ${req.originalUrl} - invalid request`, remoteAddress)
       res.status(400).end()
       return
     } else if (topPlayers < 1 || topPlayers > 1000) {
-      console.error('Out of bounds')
+      log(`${req.method} ${req.originalUrl} - invalid request`, remoteAddress)
       res.status(403).end()
       return
     }
@@ -786,7 +862,8 @@ app.get('/api/event/:event/:id/top/:count', async (req, res) => {
     const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 1, topPlayers)
     if (!playerLeaderboard["results"]["rootResults"]["topResults"]) {
       // don't even bother continuing if we know the ID has no record
-      console.log(`Player ${id} not registered with ${eventId}`)
+      log(`${req.method} ${req.originalUrl} - no record found.`, remoteAddress)
+
       res.status(404).end()
       return
     }
@@ -814,22 +891,24 @@ app.get('/api/event/:event/:id/top/:count', async (req, res) => {
 
     res.status(200).json(returnStruct)
   } catch (e) {
+    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+
     res.sendStatus(502)
   }
 })
 
 // how many players have finished the event? (estimate)
 app.get('/api/event/:event/:id/finished', async(req, res) => {
+  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
   try {
-    // todo add back Try/catch
+    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+
     const id = req.params.id
     const eventId = req.params.event
 
     const stepCount = 100
     let lastPlayerId = undefined
     let currentPlayerId = `${id}`
-
-    console.log(`Querying player ${id} for event ${eventId} (number of event finishers)`)
 
     const allEventData = await getAllEvents()
     let eventName
@@ -848,7 +927,8 @@ app.get('/api/event/:event/:id/finished', async(req, res) => {
     let playerLeaderboard = await getPlayerLeaderboard(id, eventId, 1, 1)
     if (!playerLeaderboard["results"]["rootResults"]["topResults"]) {
       // don't even bother continuing if we know the ID has no record
-      console.log(`Player ${id} not registered with ${eventId}`)
+      log(`${req.method} ${req.originalUrl} - no record found.`, remoteAddress)
+
       res.status(404).end()
       return
     }
@@ -894,12 +974,13 @@ app.get('/api/event/:event/:id/finished', async(req, res) => {
       return
     }
 
-  } catch(e) {
-    console.log(e)
+  } catch (e) {
+    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+
     res.sendStatus(502)
   }
 })
 
 app.listen(port, () => {
-  console.log(`Listening on port ${port}`)
+  log(`Server listening on port ${port}.`, 'internal')
 })
