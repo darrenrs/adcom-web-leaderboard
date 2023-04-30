@@ -9,9 +9,8 @@ module.exports = class BalanceParser {
     const fs = require('fs')
     const fileName = await fs.promises.readFile(__dirname + '/balance/_DataConfig.json', 'utf8')
     .then((data) => {
-      console.log('Successfully loaded DataConfig.')
-
       const dc = JSON.parse(data)
+      // console.log(`${(new Date()).toISOString()} [internal       ] - Successfully loaded balance master list.`)
       for (let i in dc["Balance"]) {
         if (i.includes(this.eventName)) {
           // load balance with that name
@@ -24,27 +23,27 @@ module.exports = class BalanceParser {
       return Promise.reject('Balance file not found')
     })
     .catch((error) => {
-      console.log('Unable to load DataConfig.')
+      console.error(`${(new Date()).toISOString()} [internal       ] - Unable to load balance master list: ${error}.`)
     })
 
     this.balanceData = await fs.promises.readFile(__dirname + '/balance/' + fileName, 'utf8')
     .then((data) => {
-      console.log(`Successfully loaded DataFile ${fileName}.`)
-      return JSON.parse(data)
+      const data1 = JSON.parse(data)
+      // console.log(`${(new Date()).toISOString()} [internal       ] - Successfully loaded data file ${fileName}.`)
+      return data1
     })
     .catch((error) => {
-      console.log(`Unable to load DataFile ${fileName}.`)
+      console.error(`${(new Date()).toISOString()} [internal       ] - Unable to laod data file ${fileName}: ${error}.`)
     })
 
     this.balanceSpendCurve = await fs.promises.readFile(__dirname + '/balance/BalSpendCurve.json', 'utf8')
     .then((data) => {
-      console.log('Successfully loaded BalSpendCurve.')
-  
       const wlbp = JSON.parse(data)
+      // console.log(`${(new Date()).toISOString()} [internal       ] - Successfully loaded balance spending parameters.`)
       return wlbp["balanceSpendingCurve"][this.eventName]
     })
     .catch((error) => {
-      console.log('Unable to load BalSpendCurve.')
+      console.error(`${(new Date()).toISOString()} [internal       ] - Unable to load balance spending parameters: ${error}.`)
     })
   }
 
@@ -105,7 +104,6 @@ module.exports = class BalanceParser {
       } else {
         duration = curr - this.startTime
       }
-      console.log(duration)
     }
 
     duration /= 1000

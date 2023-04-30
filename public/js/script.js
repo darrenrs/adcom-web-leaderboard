@@ -1,5 +1,7 @@
 const postFormPlayFab = async() => {
   document.querySelector('#mainContent').classList.add('d-none')
+  document.querySelector('#eventLoadConnectionError').classList.add('d-none')
+
   const playerId = document.querySelector('#playFabQuery').value
   const saveCurrentId = document.querySelector('#playFabSetDefault')
   
@@ -80,11 +82,12 @@ const postFormEvent = async() => {
   if (eventData) {
     // success
     document.querySelector('#noAccountFound').classList.add('d-none')
+    document.querySelector('#eventLoadConnectionError').classList.add('d-none')
     document.querySelector('#mainContent').classList.remove('d-none')
     populateFieldsGeneral(eventData)
   } else {
     // general failure
-    document.querySelector('#noAccountFound').classList.remove('d-none')
+    document.querySelector('#eventLoadConnectionError').classList.remove('d-none')
     return
   }
 
@@ -109,14 +112,18 @@ const getPlayerState = async(playerId) => {
   .then((response) => {
     if (response.status === 200) {
       return true
-    } else {
+    } else if (response.status === 404) {
       document.querySelector('#noAccountFound').innerText = `No account ${playerId} found.`
+      return false
+    } else {
+      console.error(`Server error (${response.status})`)
+      document.querySelector('#noAccountFound').innerText = `Server error (${response.status}).`
       return false
     }
   })
   .catch((error) => {
     console.error(error)
-    document.querySelector('#noAccountFound').innerText = 'Please check your internet connection'
+    document.querySelector('#noAccountFound').innerText = 'Please check your internet connection.'
     return false
   })
 }
@@ -124,11 +131,17 @@ const getPlayerState = async(playerId) => {
 const getPlayerEventList = async(playerId) => {
   return await fetch(`/api/list/${playerId}`)
     .then((response) => {
-      return response.json()
+      if (response.status === 200) {
+        return response.json()
+      } else {
+        console.error(`Server error (${response.status})`)
+        document.querySelector('option').innerText = `Server error (${response.status})`
+        return
+      }
     })
     .catch((error) => {
       console.error(error)
-      document.querySelector('option').innerText = 'Please check your internet connection'
+      document.querySelector('option').innerText = 'Please check your internet connection.'
       return
     })
 }
@@ -136,7 +149,13 @@ const getPlayerEventList = async(playerId) => {
 const getPlayerEventRecord = async(playerId, eventId) => {
   return await fetch(`/api/event/${eventId}/${playerId}`)
     .then((response) => {
-      return response.json()
+      if (response.status === 200) {
+        return response.json()
+      } else {
+        console.error(`Server error (${response.status})`)
+        document.querySelector('#eventLoadConnectionError').innerText = `Server error (${response.status}).`
+        return
+      }
     })
     .catch((error) => {
       console.error(error)
@@ -148,18 +167,28 @@ const getPlayerEventRecord = async(playerId, eventId) => {
 const getLeaderboardPosition = async(playerId, eventId) => {
   return await fetch(`/api/event/${eventId}/${playerId}/position`)
     .then((response) => {
-      return response.text()
+      if (response.status === 200) {
+        return response.text()
+      } else {
+        console.error(`Server error (${response.status})`)
+        return `Error ${response.status}`
+      }
     })
     .catch((error) => {
       console.error(error)
-      return
+      return "Check connection"
     })
 }
 
 const getLeaderboardBrackets = async(playerId, eventId) => {
   return await fetch(`/api/event/${eventId}/${playerId}/brackets`)
     .then((response) => {
-      return response.json()
+      if (response.status === 200) {
+        return response.json()
+      } else {
+        console.error(`Server error (${response.status})`)
+        return
+      }
     })
     .catch((error) => {
       console.error(error)
@@ -237,15 +266,15 @@ const populateFieldsGeneral = (data) => {
       globalPosBtn.addEventListener('click', async (e) => {
         let lbp = await getLeaderboardPosition(data["division"]["top"][i]["playerId"], data["event"]["eventGuid"])
         let parent = e.target.parentNode
-        lbp = parseInt(lbp) + 1
+        let lbp_parsed = parseInt(lbp) + 1
         e.target.remove()
-        if (lbp) {
-          parent.innerText = getOrdinalFormat(lbp)
-          if (lbp > 100) {
-            parent.innerText = `${parent.innerText} (${(lbp / (data["global"]["count"]-1) * 100).toFixed(1)}%)`
+        if (lbp_parsed) {
+          parent.innerText = getOrdinalFormat(lbp_parsed)
+          if (lbp_parsed > 100) {
+            parent.innerText = `${parent.innerText} (${(lbp_parsed / (data["global"]["count"]-1) * 100).toFixed(1)}%)`
           }
         } else {
-          parent.innerText = 'Error'
+          parent.innerText = lbp
         }
       })
 

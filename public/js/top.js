@@ -1,5 +1,7 @@
 const postFormPlayFab = async() => {
   document.querySelector('#mainContent').classList.add('d-none')
+  document.querySelector('#eventLoadConnectionError').classList.add('d-none')
+
   const playerId = document.querySelector('#playFabQuery').value
   const saveCurrentId = document.querySelector('#playFabSetDefault')
   
@@ -85,6 +87,7 @@ const postFormEventLeaderboard = async() => {
   
   if (topPlayers) {
     // success
+    document.querySelector('#noAccountFound').classList.add('d-none')
     document.querySelector('#eventLoadConnectionError').classList.add('d-none')
     document.querySelector('#mainContent').classList.remove('d-none')
     populateFieldsTop(topPlayers)
@@ -101,8 +104,12 @@ const getPlayerState = async(playerId) => {
   .then((response) => {
     if (response.status === 200) {
       return true
-    } else {
+    } else if (response.status === 404) {
       document.querySelector('#noAccountFound').innerText = `No account ${playerId} found.`
+      return false
+    } else {
+      console.error(`Server error (${response.status})`)
+      document.querySelector('#noAccountFound').innerText = `Server error (${response.status}).`
       return false
     }
   })
@@ -116,7 +123,13 @@ const getPlayerState = async(playerId) => {
 const getPlayerEventList = async(playerId) => {
   return await fetch(`/api/list/${playerId}`)
     .then((response) => {
-      return response.json()
+      if (response.status === 200) {
+        return response.json()
+      } else {
+        console.error(`Server error (${response.status})`)
+        document.querySelector('option').innerText = `Server error (${response.status})`
+        return
+      }
     })
     .catch((error) => {
       console.error(error)
@@ -125,11 +138,16 @@ const getPlayerEventList = async(playerId) => {
     })
 }
 
-
 const getTopPlayers = async(playerId, eventId, count) => {
   return await fetch(`/api/event/${eventId}/${playerId}/top/${count}`)
     .then((response) => {
-      return response.json()
+      if (response.status === 200) {
+        return response.json()
+      } else {
+        console.error(`Server error (${response.status})`)
+        document.querySelector('#eventLoadConnectionError').innerText = `Server error (${response.status}).`
+        return
+      }
     })
     .catch((error) => {
       console.error(error)

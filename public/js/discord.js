@@ -1,10 +1,19 @@
 const postFormDiscordLeaderboard = async() => {
+  document.querySelector('#mainContent').classList.add('d-none')
+  document.querySelector('#discordLeaderboardLoadError').classList.remove('d-none')
+  document.querySelector('#discordLeaderboardLoadError').innerText = 'Loading ...'
+
   const selectedEventId = document.querySelector('option:checked').value
+  const playerData = await getDiscordLeaderboard(selectedEventId)
+
+  if (!playerData) {
+    document.querySelector('#discordLeaderboardLoadError').classList.remove('d-none')
+    return
+  }
 
   document.querySelector('table').classList.add('d-none')
-  document.querySelector('#discordLeaderboardLoadError').classList.remove('d-none')
+  document.querySelector('#discordLeaderboardLoadError').classList.add('d-none')
 
-  const playerData = await getDiscordLeaderboard(selectedEventId)
   const discordId = await getDiscordId()
   populateDiscordLeaderboardTable(playerData, discordId)
 }
@@ -15,14 +24,15 @@ const getEventSchedule = async() => {
     if (response.status === 200) {
       return response.json()
     } else {
-      document.querySelector('#discordLeaderboardLoadError').innerText = 'Please check your internet connection.'
-      return false
+      console.error(`Server error (${response.status})`)
+      document.querySelector('option').innerText = `Server error (${response.status})`
+      return
     }
   })
   .catch((error) => {
     console.error(error)
-    document.querySelector('#discordLeaderboardLoadError').innerText = 'Please check your internet connection.'
-    return false
+    document.querySelector('option').innerText = 'Please check your internet connection'
+    return
   })
 }
 
@@ -52,7 +62,8 @@ const getDiscordLeaderboard = async(eventId) => {
     if (response.status === 200) {
       return response.json()
     } else {
-      document.querySelector('#discordLeaderboardLoadError').innerText = 'Please check your internet connection.'
+      console.error(`Server error (${response.status})`)
+      document.querySelector('#discordLeaderboardLoadError').innerText = `Server error (${response.status})`
       return false
     }
   })
@@ -64,6 +75,8 @@ const getDiscordLeaderboard = async(eventId) => {
 }
 
 const populateDiscordLeaderboardTable = (discordLb, discordId) => {
+  document.querySelector('#mainContent').classList.remove('d-none')
+
   let tbody = document.querySelector('#discordLeaderboard')
   const allExistingRows = document.querySelectorAll('tbody tr')
   
@@ -124,7 +137,7 @@ const populateDiscordLeaderboardTable = (discordLb, discordId) => {
     }
 
     let divRankCell = document.createElement('td')
-    divRankCell.innerHTML = getPositionHTMLFormat(discordLb[i]["divisionPosition"])
+    divRankCell.innerHTML = discordLb[i]["divisionPosition"] ? getPositionHTMLFormat(discordLb[i]["divisionPosition"]) : '?'
 
     let trophiesCell = document.createElement('td')
     trophiesCell.innerText = discordLb[i]["trophies"].toLocaleString()
@@ -175,7 +188,10 @@ const populateEventScheduleList = (data) => {
 
 const init = async() => {
   const eventSchedule = await getEventSchedule()
-  populateEventScheduleList(eventSchedule)
+
+  if (eventSchedule) {
+    populateEventScheduleList(eventSchedule)
+  }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
