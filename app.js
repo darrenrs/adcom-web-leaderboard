@@ -314,7 +314,7 @@ const getBrackets = async(id, eventId, brackets, totalPlayers) => {
 }
 
 // returns the data for an active event
-const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboard, id) => {
+const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboard, id, returnGlobalForDivision=false) => {
   let proximalPlayerHashMap = {}
   for (let i of playerLeaderboard["resolvedPlayers"]["objectArray"]) {
     // generate a list of players from the "resolvedPlayers" key, so we can obtain metadata such as ordinal ID (yields nickname) and custom name/icon (planned implementation in 2023)
@@ -390,48 +390,50 @@ const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboa
   }
 
   // get results for each division player
-  const playerEventRecordsPromises = returnStruct["division"]["adjacent"].map(async (record) => {
-    const id = record["playerId"]
-    const eventId = returnStruct["event"]["eventGuid"]
-    const rvalue = {
-      "playFabId": id,
-      "position": null
-    }
+  if (returnGlobalForDivision) {
+    const playerEventRecordsPromises = returnStruct["division"]["adjacent"].map(async (record) => {
+      const id = record["playerId"]
+      const eventId = returnStruct["event"]["eventGuid"]
+      const rvalue = {
+        "playFabId": id,
+        "position": null
+      }
 
-    const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25)
+      const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25)
 
-    if (!playerLeaderboard) {
-      return rvalue
-    }
-    
-    // differentiate between archived and active leaderboard
-    if (playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]) {
-      for (let i of playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]) {
-        if (i["playerId"] === id) {
-          rvalue["position"] = i["position"]["position"]
+      if (!playerLeaderboard) {
+        return rvalue
+      }
+      
+      // differentiate between archived and active leaderboard
+      if (playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]) {
+        for (let i of playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]) {
+          if (i["playerId"] === id) {
+            rvalue["position"] = i["position"]["position"]
 
-          return rvalue
+            return rvalue
+          }
+        }
+      } else {
+        return rvalue
+      }
+    })
+
+    const playerEventRecords = (await Promise.allSettled(playerEventRecordsPromises)).filter(
+      (result) => result.status === 'fulfilled' && result.value !== null
+    ).map(result => result.value)
+
+    for (let i of playerEventRecords) {
+      for (let j of returnStruct["division"]["adjacent"]) {
+        if (i["playFabId"] === j["playerId"]) {
+          j["globalPosition"] = i["position"]
         }
       }
-    } else {
-      return rvalue
-    }
-  })
-
-  const playerEventRecords = (await Promise.allSettled(playerEventRecordsPromises)).filter(
-    (result) => result.status === 'fulfilled' && result.value !== null
-  ).map(result => result.value)
-
-  for (let i of playerEventRecords) {
-    for (let j of returnStruct["division"]["adjacent"]) {
-      if (i["playFabId"] === j["playerId"]) {
-        j["globalPosition"] = i["position"]
-      }
-    }
-    
-    for (let k of returnStruct["division"]["top"]) {
-      if (i["playFabId"] === k["playerId"]) {
-        k["globalPosition"] = i["position"]
+      
+      for (let k of returnStruct["division"]["top"]) {
+        if (i["playFabId"] === k["playerId"]) {
+          k["globalPosition"] = i["position"]
+        }
       }
     }
   }
@@ -787,7 +789,7 @@ app.get('/api/event/:event/:id', async (req, res) => {
     let returnStruct
     if (playerLeaderboard["results"]["rootResults"]["topResults"]) {
       // active
-      returnStruct = await rankedEntryData(currentEventData, playerEventInfo, playerLeaderboard, id)
+      returnStruct = await rankedEntryData(currentEventData, playerEventInfo, playerLeaderboard, id, true)
     } else {
       // archive
       returnStruct = await archivedEntryData(currentEventData, playerEventInfo, playerLeaderboard)
