@@ -31,7 +31,7 @@ app.use(express.static(__dirname + '/node_modules/bootstrap/dist/'))
 
 const log = async (message, remoteAddress, error=false) => {
   const currentTime = (new Date()).toISOString()
-  const logMessage = `${currentTime} [${remoteAddress.padEnd(15, ' ')}] - ${message}`
+  const logMessage = `${currentTime} [${remoteAddress}] - ${message}`
 
   if (error) {
     console.error(logMessage)
@@ -207,7 +207,6 @@ const parseKnownPlayerEvents = async(id, allEvents, currentKnownEvents) => {
 
   // inefficient O(mn) loop but luckily this isn't a lot of data
   for (let i of allEvents) {
-    // let foundIt = false
     for (let j of currentKnownEvents) {
       if (i["eventId"] === j["eventId"]) {
         // found a candidate match, so we know it's included
@@ -385,8 +384,56 @@ const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboa
       "playerId": i["playerId"],
       "ordinal": proximalPlayerHashMap[i["playerId"]],
       "position": i["position"]["position"],
+      "globalPosition": null,
       "trophies": i["score"],
     })
+  }
+
+  // get results for each division player
+  const playerEventRecordsPromises = returnStruct["division"]["adjacent"].map(async (record) => {
+    const id = record["playerId"]
+    const eventId = returnStruct["event"]["eventGuid"]
+    const rvalue = {
+      "playFabId": id,
+      "position": null
+    }
+
+    const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25)
+
+    if (!playerLeaderboard) {
+      return rvalue
+    }
+    
+    // differentiate between archived and active leaderboard
+    if (playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]) {
+      for (let i of playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]) {
+        if (i["playerId"] === id) {
+          rvalue["position"] = i["position"]["position"]
+
+          return rvalue
+        }
+      }
+    } else {
+      return rvalue
+    }
+  })
+
+  const playerEventRecords = (await Promise.allSettled(playerEventRecordsPromises)).filter(
+    (result) => result.status === 'fulfilled' && result.value !== null
+  ).map(result => result.value)
+
+  for (let i of playerEventRecords) {
+    for (let j of returnStruct["division"]["adjacent"]) {
+      if (i["playFabId"] === j["playerId"]) {
+        j["globalPosition"] = i["position"]
+      }
+    }
+    
+    for (let k of returnStruct["division"]["top"]) {
+      if (i["playFabId"] === k["playerId"]) {
+        k["globalPosition"] = i["position"]
+      }
+    }
   }
 
   return returnStruct
@@ -479,7 +526,6 @@ app.get('/api/discord/:event', async(req, res) => {
     }
 
     let playerRecords = []
-    let playerEventRecords = []
 
     // get player records in a list format
     fs.createReadStream('discord.csv')
@@ -499,31 +545,27 @@ app.get('/api/discord/:event', async(req, res) => {
         playerRecords.push(jsonRow)
       })
       .on('end', async () => {
-        // log(`${req.method} ${req.originalUrl} - successfully parsed discord.csv (Discord leaderboard).`, remoteAddress)
-
         const balanceHandler = new balance(currentEventData["eventName"], currentEventData["startDate"], currentEventData["endDate"])
         let currentKnownMaxPlayers = 0
         await balanceHandler.loadBalanceData()
 
         // get results for each player
-        for (let i in playerRecords) {
-          const id = playerRecords[i]["playFabId"]
+        const playerEventRecordsPromises = playerRecords.map(async (record) => {
+          const id = record["playFabId"]
 
-          const playerEventInfo = await getPlayerEventInfo(id, eventId)
-          if (!playerEventInfo) {
-            // don't even bother continuing if we know the ID has no record
-            // log(`Player ${id} not found for event ${eventId} (Discord leaderboard)`, remoteAddress)
-            continue
+          const playerEventInfoPromise = getPlayerEventInfo(id, eventId)
+          const playerLeaderboardPromise = getPlayerLeaderboard(id, eventId, 25, 25)
+
+          const results = await Promise.allSettled([
+            playerEventInfoPromise,
+            playerLeaderboardPromise,
+          ])
+          
+          const [playerEventInfo, playerLeaderboard] = results.map((result) => result.value)
+
+          if (!playerEventInfo || !playerLeaderboard) {
+            return null
           }
-
-          const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25)
-          if (!playerLeaderboard) {
-            // don't even bother continuing if we know the ID has no record
-            // log(`Player ${id} not found for event ${eventId} (Discord leaderboard)`, remoteAddress)
-            continue
-          }
-
-          // log(`Player ${id} found for event ${eventId} (Discord leaderboard)`, remoteAddress)
 
           // differentiate between archived and active leaderboard
           let returnStruct
@@ -534,7 +576,7 @@ app.get('/api/discord/:event', async(req, res) => {
             // archive
             returnStruct = await archivedEntryData(currentEventData, playerEventInfo, playerLeaderboard)
           }
-          
+
           // get estimated rank
           const rankString = await balanceHandler.getRankFromTrophies(returnStruct["player"]["trophies"], returnStruct["player"]["dateJoined"], returnStruct["player"]["dateUpdated"])
           returnStruct["rankString"] = rankString
@@ -555,8 +597,12 @@ app.get('/api/discord/:event', async(req, res) => {
 
           returnStruct["player"]["divisionPosition"] = divisionPosition
 
-          playerEventRecords.push(returnStruct)
-        }
+          return returnStruct
+        })
+
+        const playerEventRecords = (await Promise.allSettled(playerEventRecordsPromises)).filter(
+          (result) => result.status === 'fulfilled' && result.value !== null
+        ).map(result => result.value)
 
         playerEventRecords.sort((a, b) => b["player"]["trophies"] - a["player"]["trophies"] || a["player"]["globalPosition"] - b["player"]["globalPosition"])
         

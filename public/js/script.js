@@ -256,29 +256,15 @@ const populateFieldsGeneral = (data) => {
 
       let trophyCell = document.createElement('td')
       trophyCell.innerText = data["division"]["top"][i]["trophies"].toLocaleString()
-
+      
       let globalPosCell = document.createElement('td')
-      let globalPosBtn = document.createElement('button')
-      globalPosBtn.classList.add('btn')
-      globalPosBtn.classList.add('btn-primary')
-      globalPosBtn.classList.add('btn-sm')
-      globalPosBtn.innerText = "Click to load"
-      globalPosBtn.addEventListener('click', async (e) => {
-        let lbp = await getLeaderboardPosition(data["division"]["top"][i]["playerId"], data["event"]["eventGuid"])
-        let parent = e.target.parentNode
-        let lbp_parsed = parseInt(lbp) + 1
-        e.target.remove()
-        if (lbp_parsed) {
-          parent.innerText = getOrdinalFormat(lbp_parsed)
-          if (lbp_parsed > 100) {
-            parent.innerText = `${parent.innerText} (${(lbp_parsed / (data["global"]["count"]-1) * 100).toFixed(1)}%)`
-          }
-        } else {
-          parent.innerText = lbp
-        }
-      })
 
-      globalPosCell.appendChild(globalPosBtn)
+      const lbp_parsed = parseInt(data["division"]["top"][i]["globalPosition"]) + 1
+      globalPosCell.innerText = getOrdinalFormat(lbp_parsed)
+      if (lbp_parsed > 100) {
+        globalPosCell.innerText = `${globalPosCell.innerText} (${(lbp_parsed / (data["global"]["count"]-1) * 100).toFixed(1)}%)`
+      }
+      
       divisionPlayer.appendChild(positionCell)
       divisionPlayer.appendChild(nameCell)
       divisionPlayer.appendChild(trophyCell)

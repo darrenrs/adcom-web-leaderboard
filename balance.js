@@ -10,7 +10,6 @@ module.exports = class BalanceParser {
     const fileName = await fs.promises.readFile(__dirname + '/balance/_DataConfig.json', 'utf8')
     .then((data) => {
       const dc = JSON.parse(data)
-      // console.log(`${(new Date()).toISOString()} [internal       ] - Successfully loaded balance master list.`)
       for (let i in dc["Balance"]) {
         if (i.includes(this.eventName)) {
           // load balance with that name
@@ -29,7 +28,6 @@ module.exports = class BalanceParser {
     this.balanceData = await fs.promises.readFile(__dirname + '/balance/' + fileName, 'utf8')
     .then((data) => {
       const data1 = JSON.parse(data)
-      // console.log(`${(new Date()).toISOString()} [internal       ] - Successfully loaded data file ${fileName}.`)
       return data1
     })
     .catch((error) => {
@@ -39,7 +37,6 @@ module.exports = class BalanceParser {
     this.balanceSpendCurve = await fs.promises.readFile(__dirname + '/balance/BalSpendCurve.json', 'utf8')
     .then((data) => {
       const wlbp = JSON.parse(data)
-      // console.log(`${(new Date()).toISOString()} [internal       ] - Successfully loaded balance spending parameters.`)
       return wlbp["balanceSpendingCurve"][this.eventName]
     })
     .catch((error) => {
