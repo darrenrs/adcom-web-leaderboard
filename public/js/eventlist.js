@@ -43,7 +43,12 @@ const populateScheduleTable = (eventSchedule) => {
         archiveString = `${archiveDate}`
       }
 
-      const s = `<li>API created: ${createDate}</li><li>API archived: ${archiveString}</li><li>Event ID <span class="font-monospace">${eventSchedule[i]["eventId"]}</span</li>`
+      const s = `<li><strong>Event ID:</strong> <span id="eid" class="font-monospace" style="font-size: 14px;">${eventSchedule[i]["eventId"]}</span></li>
+      <li><strong>Internal Name:</strong> ${eventSchedule[i]["eventName"]}</li>
+      <li><strong>API Created:</strong> ${createDate}</li>
+      <li><strong>API Archived:</strong> ${archiveString}</li>
+      <li><strong>Real Players:</strong> ${eventSchedule[i]["players"].toLocaleString()}</li>`
+
       document.querySelector('#eventDebugInfo').innerHTML = s
 
       $('#modal').modal('toggle')
@@ -65,12 +70,22 @@ const populateScheduleTable = (eventSchedule) => {
       playerCountCell.innerText = ''
     }
 
+    let statusCodeCell = document.createElement('td')
+    if (new Date(eventSchedule[i]["archivedAt"]).getFullYear() >= 1970) {
+      statusCodeCell.innerText = "A"
+    } else if (new Date(eventSchedule[i]["startDate"]) > new Date()) {
+      statusCodeCell.innerText = "F"
+    } else {
+      statusCodeCell.innerText = "C"
+    }
+
     eventRow.append(idCell)
     eventRow.append(nameCell)
     eventRow.append(dateFromCell)
     eventRow.append(dateToCell)
     eventRow.append(durationCell)
     eventRow.append(playerCountCell)
+    eventRow.append(statusCodeCell)
     
     tbody.appendChild(eventRow)
   }
@@ -79,6 +94,9 @@ const populateScheduleTable = (eventSchedule) => {
 }
 
 const init = async() => {
+  const tzs = Intl.DateTimeFormat().resolvedOptions().timeZone
+  document.querySelector('#tzs').innerText = `TZ: ${tzs}`
+
   const eventSchedule = await getEventSchedule()
 
   if (eventSchedule) {
@@ -88,4 +106,14 @@ const init = async() => {
 
 document.addEventListener('DOMContentLoaded', function() {
   init()
+})
+
+document.querySelector('#copyEventId').addEventListener('click', async function() {
+  const eid = document.querySelector('#eid').innerText
+  
+  try {
+    await navigator.clipboard.writeText(eid);
+  } catch (err) {
+    console.error('Failed to copy text: ', err);
+  }
 })

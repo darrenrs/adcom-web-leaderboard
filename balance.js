@@ -31,7 +31,7 @@ module.exports = class BalanceParser {
       return data1
     })
     .catch((error) => {
-      console.error(`${(new Date()).toISOString()} [internal       ] - Unable to laod data file ${fileName}: ${error}.`)
+      console.error(`${(new Date()).toISOString()} [internal       ] - Unable to load data file ${fileName}: ${error}.`)
     })
 
     this.balanceSpendCurve = await fs.promises.readFile(__dirname + '/balance/BalSpendCurve.json', 'utf8')
