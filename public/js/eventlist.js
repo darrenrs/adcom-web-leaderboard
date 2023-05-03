@@ -1,5 +1,5 @@
 const getEventSchedule = async() => {
-  return await fetch('/api/list/all')
+  return await fetch('api/list/all')
   .then((response) => {
     if (response.status === 200) {
       return response.json()

@@ -108,7 +108,7 @@ const postFormEvent = async() => {
 }
 
 const getPlayerState = async(playerId) => {
-  return await fetch(`/api/player/${playerId}`)
+  return await fetch(`api/player/${playerId}`)
   .then((response) => {
     if (response.status === 200) {
       return true
@@ -129,7 +129,7 @@ const getPlayerState = async(playerId) => {
 }
 
 const getPlayerEventList = async(playerId) => {
-  return await fetch(`/api/list/${playerId}`)
+  return await fetch(`api/list/${playerId}`)
     .then((response) => {
       if (response.status === 200) {
         return response.json()
@@ -147,7 +147,7 @@ const getPlayerEventList = async(playerId) => {
 }
 
 const getPlayerEventRecord = async(playerId, eventId) => {
-  return await fetch(`/api/event/${eventId}/${playerId}`)
+  return await fetch(`api/event/${eventId}/${playerId}`)
     .then((response) => {
       if (response.status === 200) {
         return response.json()
@@ -165,7 +165,7 @@ const getPlayerEventRecord = async(playerId, eventId) => {
 }
 
 const getLeaderboardPosition = async(playerId, eventId) => {
-  return await fetch(`/api/event/${eventId}/${playerId}/position`)
+  return await fetch(`api/event/${eventId}/${playerId}/position`)
     .then((response) => {
       if (response.status === 200) {
         return response.text()
@@ -181,7 +181,7 @@ const getLeaderboardPosition = async(playerId, eventId) => {
 }
 
 const getLeaderboardBrackets = async(playerId, eventId) => {
-  return await fetch(`/api/event/${eventId}/${playerId}/brackets`)
+  return await fetch(`api/event/${eventId}/${playerId}/brackets`)
     .then((response) => {
       if (response.status === 200) {
         return response.json()
@@ -199,7 +199,7 @@ const getLeaderboardBrackets = async(playerId, eventId) => {
 const populateFieldsGeneral = (data) => {
   const eventDetails = getEventDetails(data["event"]["eventName"])
   document.querySelector('#eventImage').classList.remove('d-none')
-  document.querySelector('#eventImage').setAttribute('src', `/img/adcom/${data["event"]["eventName"]}.png`)
+  document.querySelector('#eventImage').setAttribute('src', `img/adcom/${data["event"]["eventName"]}.png`)
   document.querySelector('#eventFullName').innerText = eventDetails["name"]
   document.querySelector('#eventDescription').innerText = eventDetails["desc"]
   document.querySelector('#eventStartDate').innerText = new Date(data["event"]["startDate"]).toLocaleString()

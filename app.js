@@ -3,13 +3,13 @@ const fs = require('fs')
 const axios = require('axios')
 const db = require('./db')
 const balance = require('./balance')
-// const { cached } = require('sqlite3')
 const parse = require('csv-parse')
-// const { send, json } = require('express/lib/response')
-// const { start } = require('repl')
 
-const app = express()
+const app = express({
+  strict: true
+})
 const port = 3000
+
 let hhcfg
 
 // load HH API endpoint and API key
@@ -26,7 +26,7 @@ fs.readFile(__dirname + '/hh-config.json', 'utf8', (err, data) => {
 })
 
 // load static content
-app.use(express.static('public'))
+app.use(express.static('public', {extensions: ['html', 'html']}))
 app.use(express.static(__dirname + '/node_modules/bootstrap/dist/'))
 
 const log = async (message, remoteAddress, error=false) => {
@@ -125,7 +125,7 @@ const getPlayerState = async(id) => {
     dbHandler.addPlayer(id)
     return true
   } catch (e) {
-    if (e.response && e.reponse.status === 404) {
+    if (e.response && e.response.status === 404) {
       return false
     } else {
       // console.error(e)
@@ -174,7 +174,7 @@ const getPlayerEventState = async(id, eventId, isCurrent) => {
       return false
     }
   } catch (e) {
-    if (e.response && e.reponse.status === 404) {
+    if (e.response && e.response.status === 404) {
       return false
     } else {
       // console.error(e)
@@ -852,7 +852,7 @@ app.get('/api/event/:event/:id/brackets', async (req, res) => {
     const brackets = [1, 5, 25, 100, 0.01, 0.05, 0.10, 0.25, 0.50, 0.75]
 
     const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25)
-    if (!playerLeaderboard) {
+    if (!playerLeaderboard) { // todo: fix to replace promise failure
       // don't even bother continuing if we know the ID has no record
       log(`${req.method} ${req.originalUrl} - no record found.`, remoteAddress)
 
@@ -971,7 +971,7 @@ app.get('/api/event/:event/:id/finished', async(req, res) => {
         break
       }
     }
-
+    
     let playerLeaderboard = await getPlayerLeaderboard(id, eventId, 1, 1)
     if (!playerLeaderboard["results"]["rootResults"]["topResults"]) {
       // don't even bother continuing if we know the ID has no record
