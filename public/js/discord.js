@@ -19,7 +19,7 @@ const postFormDiscordLeaderboard = async() => {
 }
 
 const getEventSchedule = async() => {
-  return await fetch('/api/list')
+  return await fetch('api/list')
   .then((response) => {
     if (response.status === 200) {
       return response.json()
@@ -43,7 +43,7 @@ const getDiscordId = async() => {
     return
   }
 
-  return await fetch(`/api/player/${cachedPlayFab}/get-discord`)
+  return await fetch(`api/player/${cachedPlayFab}/get-discord`)
   .then((response) => {
     if (response.status === 200) {
       return response.text()
@@ -57,7 +57,7 @@ const getDiscordId = async() => {
 }
 
 const getDiscordLeaderboard = async(eventId) => {
-  return await fetch(`/api/discord/${eventId}`)
+  return await fetch(`api/discord/${eventId}`)
   .then((response) => {
     if (response.status === 200) {
       return response.json()
@@ -111,7 +111,7 @@ const populateDiscordLeaderboardTable = (discordLb, discordId) => {
     imageCell.style = 'padding-top: 0 !important; padding-bottom: 0 !important'
 
     let image = document.createElement('img')
-    image.src = `/img/users/${discordLb[i]["discordId"]}.png`
+    image.src = `../img/users/${discordLb[i]["discordId"]}.png`
     image.style = 'width: 40px;'
     image.alt = ''
     imageCell.appendChild(image)

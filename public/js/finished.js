@@ -1,5 +1,5 @@
 const getEventSchedule = async() => {
-  return await fetch('/api/list')
+  return await fetch('api/list')
   .then((response) => {
     if (response.status === 200) {
       return response.json()
@@ -17,7 +17,7 @@ const getEventSchedule = async() => {
 }
 
 const getEventFinishers = async(eventId, playerId) => {
-  return await fetch(`/api/event/${eventId}/${playerId}/finished`)
+  return await fetch(`api/event/${eventId}/${playerId}/finished`)
   .then((response) => {
     if (response.status === 200) {
       return response.json()

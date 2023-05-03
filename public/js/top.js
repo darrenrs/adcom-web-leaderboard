@@ -100,7 +100,7 @@ const postFormEventLeaderboard = async() => {
 
 
 const getPlayerState = async(playerId) => {
-  return await fetch(`/api/player/${playerId}`)
+  return await fetch(`api/player/${playerId}`)
   .then((response) => {
     if (response.status === 200) {
       return true
@@ -121,7 +121,7 @@ const getPlayerState = async(playerId) => {
 }
 
 const getPlayerEventList = async(playerId) => {
-  return await fetch(`/api/list/${playerId}`)
+  return await fetch(`api/list/${playerId}`)
     .then((response) => {
       if (response.status === 200) {
         return response.json()
@@ -139,7 +139,7 @@ const getPlayerEventList = async(playerId) => {
 }
 
 const getTopPlayers = async(playerId, eventId, count) => {
-  return await fetch(`/api/event/${eventId}/${playerId}/top/${count}`)
+  return await fetch(`api/event/${eventId}/${playerId}/top/${count}`)
     .then((response) => {
       if (response.status === 200) {
         return response.json()
