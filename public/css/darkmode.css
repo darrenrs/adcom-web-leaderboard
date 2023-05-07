@@ -1,0 +1,61 @@
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #121212;
+    color: #f1f1f1;
+  }
+
+  /* input boxes */
+  input, select {
+    background-color: #232323 !important;
+    color: #f1f1f1 !important;
+    border: #121212 !important;
+  }
+
+  /* unstriped "table" list */
+  li.list-group-item {
+    background-color: #121212 !important;
+    color: #f1f1f1 !important;
+    border-color: #454545 !important;
+  }
+
+  /* event image */
+  img {
+    background-color: #232323 !important;
+    border-color: #454545 !important;
+  }
+
+  /* Update the table heading background color and text color */
+  .table-striped thead th {
+    background-color: #121212;
+    color: #f1f1f1;
+    border-bottom-color: #f1f1f1 !important;
+    border-bottom-width: 2px;
+  }
+
+  /* Change the table background color and text color for dark mode */
+  .table-striped {
+    background-color: #121212;
+  }
+
+  .table-striped tr {
+    border-color: #454545 !important;
+  }
+
+  .table-striped td {
+    color: #f1f1f1 !important;
+  }
+
+  /* Change the striped row background color for dark mode */
+  .table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  /* Optionally, change the hover row background color for dark mode */
+  .table-striped tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  #leaderboardMarker {
+    filter: drop-shadow(0px 4px 4px rgba(47, 47, 47, 1))
+  }
+}
