@@ -22,7 +22,7 @@ module.exports = class BalanceParser {
       return Promise.reject('Balance file not found')
     })
     .catch((error) => {
-      console.error(`${(new Date()).toISOString()} [internal       ] - Unable to load balance master list: ${error}.`)
+      console.error(`${(new Date()).toISOString()} [internal] - Unable to load balance master list: ${error}.`)
     })
 
     this.balanceData = await fs.promises.readFile(__dirname + '/balance/' + fileName, 'utf8')
@@ -31,7 +31,7 @@ module.exports = class BalanceParser {
       return data1
     })
     .catch((error) => {
-      console.error(`${(new Date()).toISOString()} [internal       ] - Unable to load data file ${fileName}: ${error}.`)
+      console.error(`${(new Date()).toISOString()} [internal] - Unable to load data file ${fileName}: ${error}.`)
     })
 
     this.balanceSpendCurve = await fs.promises.readFile(__dirname + '/balance/BalSpendCurve.json', 'utf8')
@@ -40,7 +40,7 @@ module.exports = class BalanceParser {
       return wlbp["balanceSpendingCurve"][this.eventName]
     })
     .catch((error) => {
-      console.error(`${(new Date()).toISOString()} [internal       ] - Unable to load balance spending parameters: ${error}.`)
+      console.error(`${(new Date()).toISOString()} [internal] - Unable to load balance spending parameters: ${error}.`)
     })
   }
 
@@ -110,40 +110,49 @@ module.exports = class BalanceParser {
     const CRITERION_TROPHY_THRESHOLD = trophies + 0
     const CRITERION_TIME_ELAPSED = duration + 0
     let i
+    
+    let currentStep = Math.trunc(this.balanceData["Missions"].length / 2)
+    let currentStepSize = Math.trunc(this.balanceData["Missions"].length / 2)
+     
+    while (currentStepSize > 0) {
+      let mission = this.missionsToTrophies(this.balanceData, rankTrophies, currentStep)
+      let free = this.freeCapsuleEstimate(this.balanceData, rankTrophies, CRITERION_TIME_ELAPSED, currentStep)
+      
+      currentStepSize = Math.trunc(currentStepSize / 2)
+  
+      if (mission + free >= CRITERION_TROPHY_THRESHOLD) {
+        currentStep -= currentStepSize
+      } else {
+        currentStep += currentStepSize
+      }
+    }
 
-    for (i = 1; i < this.balanceData["Missions"].length; i++) {
+    // check local neighborhood for exact number
+    for (i = currentStep - 3; i <= currentStep + 3; i++) {
+      if (i < 0 || i > this.balanceData["Missions"].length) {
+        continue
+      }
+
       let mission = this.missionsToTrophies(this.balanceData, rankTrophies, i)
       let free = this.freeCapsuleEstimate(this.balanceData, rankTrophies, CRITERION_TIME_ELAPSED, i)
-
+ 
       if (mission + free >= CRITERION_TROPHY_THRESHOLD) {
         break
       }
     }
-    
-    let currentRank = 1
-    let currentRankMission = 0
-    let currentGlobalMission = 0
-    let isMax = false
 
-    for (let j of this.balanceData["Missions"]) {
-      if (currentGlobalMission >= i) {
-        break
-      }
-      
-      currentRankMission += 1
-      currentGlobalMission += 1
+    let currentAverage = this.missionIdToRank(this.balanceData, rankTrophies, i)
+    let currentAverageRank = currentAverage[0]
+    let currentAverageRankMission = currentAverage[1]
+    let currentAverageIsMax = false
 
-      if (currentRankMission >= rankTrophies[currentRank-1]["missions"]) {
-        currentRankMission = 0
-        currentRank += 1
-      }
-    }
-
-    if (currentRank === this.balanceData["Ranks"].length) {
-      isMax = true
+    if (currentAverageRank === this.balanceData["Ranks"].length) {
+      currentAverageIsMax = true
     }
     
-    return {"rank": currentRank, "mission": currentRankMission, "isMaxRank": isMax}
+    return {
+      "rank": currentAverageRank, "mission": currentAverageRankMission, "isMaxRank": currentAverageIsMax
+    }
   }
 
   getRankStructure(data) {
@@ -152,7 +161,7 @@ module.exports = class BalanceParser {
     for (let i = 0; i < data["Ranks"].length; i++) {
       if (i == data["Ranks"].length - 1) {
         rank = {
-          "missions": 2147483647,
+          "missions": Infinity,
           "trophyCoefficient": parseInt(data["Ranks"][i]["GachaMultiplierTrophy"])
         }
       } else {
@@ -172,7 +181,7 @@ module.exports = class BalanceParser {
     let currentRankMission = 0
     let currentGlobalMission = 0
 
-    for (i of data["Missions"]) {
+    for (let i of data["Missions"]) {
       if (currentGlobalMission >= missionId) {
         break
       }
@@ -184,9 +193,9 @@ module.exports = class BalanceParser {
         currentRankMission = 0
         currentRank++
       }
-    
-    return currentRank, currentRankMission
     }
+    
+    return [currentRank, currentRankMission]
   }
 
   missionIdToRankTrophies(data, rankStructure, missionId, reward) {
@@ -257,18 +266,22 @@ module.exports = class BalanceParser {
   }
 
   freeCapsuleEstimate(data, rankStructure, totalSeconds, currentMission) {
-    const MISSION_EXP = 1.05
-    const AVG_SEC_BETWEEN_FREE = 7200
+    const MISSION_EXP = 1.01
+    const AVG_SEC_BETWEEN_FREE = 8100
 
     let trophies = 0
     let freeIndex = -1
-    let freeCycle = data["GachaFreeCycle"][0]["Cycle"]
+    let freeCycle = []
     let firstFreeId = data["GachaFreeCycle"][0]["ScriptId"]
     let firstFreeTrophies
 
     // Stage 0: Preparation
     // there is a bug where the final free capsule in a cycle is duplicated before returning to the beginning.
     // in all balances, this results in an extra plastic every twenty-four free capsules.
+    for (let i of data["GachaFreeCycle"][0]["Cycle"]) {
+      freeCycle.push(i)
+    }
+
     freeCycle.push(freeCycle[freeCycle.length - 1])
 
     for (let i of data["GachaScripts"]) {
@@ -318,7 +331,7 @@ module.exports = class BalanceParser {
       }
       freeIndex++
     }
-
+    
     return trophies
   }
 }

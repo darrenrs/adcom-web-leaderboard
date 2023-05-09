@@ -1,4 +1,5 @@
-function getPlayerNameFromOrdinal(n) {
+// todo: better way to store this data
+const getPlayerNameFromOrdinal = (n) => {
   if (n < 0) {
     return 'Not available if archived'
   }
@@ -16,12 +17,13 @@ function getPlayerNameFromOrdinal(n) {
   return fullName
 }
 
-function getEventDetails(eventId) {
+// todo: better way to store this data
+const getEventDetails = (eventId) => {
   const odict = {"atlantis":{"name":"Anew Atlantis","short":"Atlantis","desc":"Fish are Comrades too. Dive deep to restore the kingdom of Atlantis with the glory of Communism leading the way."},"attack":{"name":"Quest for Oil","short":"Oil","desc":"Glorious State needs more oil to expand the glory of Communism"},"bamboo":{"name":"Comrade's Communist Vacation!","short":"Vacation","desc":"When it's time to get away, the best (and only) place for Comrades is the Great Motherland Resort and Supreme State Spa!"},"cockatrice":{"name":"Comrades & Cockatrices","short":"C&C","desc":"It's game night, Comrade! Grab some snacks, your dice set and character sheet, because it's time for an adventure party!"},"cowboy":{"name":"Comrade Cowboys","short":"Cowboy","desc":"Reshape the wild west with the glories of Communism. Expand the railways and become the sheriff of a new socialist frontier."},"crusade":{"name":"Communist Crusade","short":"Crusade","desc":"The dark ages need light! Bring the glory of Communism to a fantastic land of wizards, knights, and dragons!"},"defense":{"name":"Shields Up","short":"Shield","desc":"We are under attack! Activate defense protocols and protect the comrades."},"export":{"name":"Potato Export","short":"Export","desc":"Communist allies are hungry, and Glorious State is here to help."},"fusfarm":{"name":"Farm to Table","short":"Farm to Table","desc":"From the soil to our plates, potatoes make the greatest of journeys to fuel our great State!"},"fuspet":{"name":"Grand Pet Show","short":"Pet Show","desc":"It's a party of animals! Which one of these fine pets will be crowned best in show?"},"fusscience":{"name":"State Science","short":"State Science","desc":"Eureka! Communism progresses in leaps and bounds with the power of science!"},"fusvehicle":{"name":"Supreme Vehicle Show","short":"Vehicle Show","desc":"Vroom! Get your hands behind the wheel of some of the most impressive vehicles in the Motherland!"},"hexathlon":{"name":"The Motherland Games","short":"Motherland Games","desc":"Cheer on our Comrades as the world's best athletes compete in the Motherland's greatest farming competition! Let's go, Comrades!"},"ninja":{"name":"Ninja Union","short":"Ninja","desc":"Seek to master the deadly arts of Communism in an ancient land of honor and discipline. Find enlightenment and become a supreme Ninja Master."},"potatofactory":{"name":"Glorious Potato Factory","short":"Potato Factory","desc":"Grow your Communist food empire from humble beginnings and become the pride of the glorious Motherland!"},"power":{"name":"Power Underwhelming","short":"Power","desc":"Power outage! Glorious State needs an electricity surge."},"santa":{"name":"Supreme Santa","short":"Santa","desc":"Conquer the North Pole in the name of the Motherland! Build a new Great State in a frozen landscape and celebrate the gift of Communism with all your comrades!"},"space":{"name":"Space Force","short":"Space","desc":"Take control of the Communist space program tasked with spreading the glory of communism into the cosmos!"},"spooky":{"name":"Spooky State","short":"Spooky","desc":"Collect candy and conjure Comrades to seize the means of trick or treating season!"},"stone":{"name":"Stone State","short":"Stone","desc":"Show our Comrade ancestors the glory of Communism and lead them out of the Stone Age!"},"supervillain":{"name":"Supreme Supervillain","short":"Supervillain","desc":"Build your villainous base and prepare your monolog! It's time to show our Capitalist nemesis the greatness of Communism!"},"winter":{"name":"Winter Motherland","short":"Winter","desc":"Winter in the Motherland is a time to celebrate the glories of Communism by raising a mug of socialist-cider in the name of Supreme Leader!"},"zombie":{"name":"Zombie Revolution","short":"Zombie","desc":"Show our Comrade survivors how to handle the zombie Capitalist outbreak and rebuild the Motherland!"}}
   return odict[eventId]
 }
 
-function getSpendingCategory(b) {
+const getSpendingCategory = (b) => {
   if (!b) {
     console.warn("The requested player has no division. If this is you, please let Enigma#2989 know on Discord.")
     return 'No division (ultra rare bug)'
@@ -47,7 +49,7 @@ function getSpendingCategory(b) {
   }
 }
 
-function getLeaderboardType(t) {
+const getLeaderboardType = (t) => {
   switch (t) {
     case 'global':
       return 'Normal'
@@ -61,7 +63,7 @@ function getLeaderboardType(t) {
   }
 }
 
-function getTimedeltaFormat(timestamp) {
+const getTimedeltaFormat = (timestamp) => {
   let current = new Date()
   let timeSeconds = Math.abs((timestamp - current) / 1000)
 
@@ -78,23 +80,23 @@ function getTimedeltaFormat(timestamp) {
   }
 }
 
-function getOrdinalFormat(n) {
-  n = Math.abs(n)
-  ns = n.toLocaleString()
-  if (n % 100 >= 11 && n % 100 <= 13) {
-    return `${ns}th`
-  } else if (n % 10 === 1) {
-    return `${ns}st`
-  } else if (n % 10 === 2) {
-    return `${ns}nd`
-  } else if (n % 10 === 3) {
-    return `${ns}rd`
-  } else {
-    return `${ns}th`
-  }
-}
+// const getOrdinalFormat = (n) => {
+//   n = Math.abs(n)
+//   ns = n.toLocaleString()
+//   if (n % 100 >= 11 && n % 100 <= 13) {
+//     return `${ns}th`
+//   } else if (n % 10 === 1) {
+//     return `${ns}st`
+//   } else if (n % 10 === 2) {
+//     return `${ns}nd`
+//   } else if (n % 10 === 3) {
+//     return `${ns}rd`
+//   } else {
+//     return `${ns}th`
+//   }
+// }
 
-function getPositionHTMLFormat(n) {
+const getPositionHTMLFormat = (n) => {
   const numString = n.toString()
   const lastDigit = numString.charAt(numString.length - 1)
   let ordinal = ""
