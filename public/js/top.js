@@ -183,13 +183,27 @@ const populateFieldsTop = (data) => {
     let positionCell = document.createElement('td')
     positionCell.innerText = parseInt(i) + 1
 
+    let imageCell = document.createElement('td')
+    imageCell.style = 'padding-top: 0 !important; padding-bottom: 0 !important; width: 0;'
+
+    const playerNameProperties = getPlayerNameFromOrdinal(data["top"]["list"][i]["ordinal"])
+
+    let image = document.createElement('img')
+    image.src = playerNameProperties["imagePath"]
+    image.style = 'width: 40px;'
+    image.alt = `${playerNameProperties["defaultName"]} (${playerNameProperties["color"]} ${playerNameProperties["texture"]})`
+    image.classList.add('tinted-image')
+    image.classList.add(playerNameProperties["color"])
+    imageCell.appendChild(image)
+
     let nameCell = document.createElement('td')
-    nameCell.innerText = getPlayerNameFromOrdinal(data["top"]["list"][i]["ordinal"])
+    nameCell.innerText = playerNameProperties["defaultName"]
 
     let trophyCell = document.createElement('td')
     trophyCell.innerText = data["top"]["list"][i]["trophies"].toLocaleString()
 
     topPlayer.appendChild(positionCell)
+    topPlayer.appendChild(imageCell)
     topPlayer.appendChild(nameCell)
     topPlayer.appendChild(trophyCell)
     

@@ -212,7 +212,7 @@ const populateFieldsGeneral = (data) => {
     document.querySelector('#eventArchivedWarning').classList.add('d-none')
   }
 
-  document.querySelector('#playerName').innerText = getPlayerNameFromOrdinal(data["player"]["playerOrdinal"])
+  document.querySelector('#playerName').innerText = getPlayerNameFromOrdinal(data["player"]["playerOrdinal"])["defaultName"]
   document.querySelector('#globalPosition').innerText = `${(data["player"]["globalPosition"]+1).toLocaleString()} / ${data["global"]["count"].toLocaleString()}`
   document.querySelector('#globalPositionPercentile').innerText = `Top ${(data["player"]["globalPosition"] / (data["global"]["count"]-1) * 100).toFixed(2)}%`
   document.querySelector('#trophies').innerText = data["player"]["trophies"].toLocaleString()
@@ -239,7 +239,7 @@ const populateFieldsGeneral = (data) => {
           let moveUp = document.createElement('tr')
           moveUp.classList.add('fw-bold')
           let moveUpCell = document.createElement('td')
-          moveUpCell.setAttribute('colspan', 4)
+          moveUpCell.setAttribute('colspan', 5)
           moveUpCell.classList.add('text-center')
           moveUpCell.innerText = `▲ ${trophyDelta.toLocaleString()} trophies needed to move up ▲`
 
@@ -251,8 +251,21 @@ const populateFieldsGeneral = (data) => {
       let positionCell = document.createElement('td')
       positionCell.innerText = parseInt(i) + 1
 
+      let imageCell = document.createElement('td')
+      imageCell.style = 'padding-top: 0 !important; padding-bottom: 0 !important; width: 0;'
+  
+      const playerNameProperties = getPlayerNameFromOrdinal(data["division"]["top"][i]["ordinal"])
+  
+      let image = document.createElement('img')
+      image.src = playerNameProperties["imagePath"]
+      image.style = 'width: 40px;'
+      image.alt = `${playerNameProperties["defaultName"]} (${playerNameProperties["color"]} ${playerNameProperties["texture"]})`
+      image.classList.add('tinted-image')
+      image.classList.add(playerNameProperties["color"])
+      imageCell.appendChild(image)
+
       let nameCell = document.createElement('td')
-      nameCell.innerText = getPlayerNameFromOrdinal(data["division"]["top"][i]["ordinal"])
+      nameCell.innerText = playerNameProperties["defaultName"]
 
       let trophyCell = document.createElement('td')
       trophyCell.innerText = data["division"]["top"][i]["trophies"].toLocaleString()
@@ -266,6 +279,7 @@ const populateFieldsGeneral = (data) => {
       }
       
       divisionPlayer.appendChild(positionCell)
+      divisionPlayer.appendChild(imageCell)
       divisionPlayer.appendChild(nameCell)
       divisionPlayer.appendChild(trophyCell)
       divisionPlayer.appendChild(globalPosCell)
