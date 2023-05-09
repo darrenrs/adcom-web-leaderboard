@@ -113,7 +113,7 @@ const populateDiscordLeaderboardTable = (discordLb, discordId) => {
     let image = document.createElement('img')
     image.src = `img/users/${discordLb[i]["discordId"]}.png`
     image.style = 'width: 40px;'
-    image.alt = ''
+    image.alt = discordLb[i]["name"]
     imageCell.appendChild(image)
 
     let nameCell = document.createElement('td')

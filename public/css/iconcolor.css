@@ -1,0 +1,27 @@
+.tinted-image {
+  filter: grayscale(100%);
+}
+
+.tinted-image.green {
+  filter: grayscale(100%) sepia(1) hue-rotate(70deg);
+}
+
+.tinted-image.blue {
+  filter: grayscale(100%) sepia(1) hue-rotate(190deg);
+}
+
+.tinted-image.pink {
+  filter: grayscale(100%) sepia(1) hue-rotate(275deg);
+}
+
+.tinted-image.red {
+  filter: grayscale(100%) sepia(1) hue-rotate(315deg);
+}
+
+.tinted-image.orange {
+  filter: grayscale(100%) sepia(1) hue-rotate(345deg);
+}
+
+.tinted-image.yellow {
+  filter: grayscale(100%) sepia(1) hue-rotate(10deg);
+}
