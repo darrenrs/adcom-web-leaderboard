@@ -260,9 +260,9 @@ const populateFieldsGeneral = (data) => {
       let globalPosCell = document.createElement('td')
 
       const lbp_parsed = parseInt(data["division"]["top"][i]["globalPosition"]) + 1
-      globalPosCell.innerText = getOrdinalFormat(lbp_parsed)
+      globalPosCell.innerHTML = getPositionHTMLFormat(lbp_parsed)
       if (lbp_parsed > 100) {
-        globalPosCell.innerText = `${globalPosCell.innerText} (${(lbp_parsed / (data["global"]["count"]-1) * 100).toFixed(1)}%)`
+        globalPosCell.innerHTML = `${globalPosCell.innerHTML} (${(lbp_parsed / (data["global"]["count"]-1) * 100).toFixed(1)}%)`
       }
       
       divisionPlayer.appendChild(positionCell)
@@ -349,7 +349,7 @@ const populateFieldsGlobal = (data, playerData) => {
     }
 
     let actualPositionCell = document.createElement('td')
-    actualPositionCell.innerText = getOrdinalFormat(actualPositionInt)
+    actualPositionCell.innerHTML = getPositionHTMLFormat(actualPositionInt)
 
     let thresholdCell = document.createElement('td')
     if (!Object.values(data["brackets"])[i] && Object.values(data["brackets"])[i] !== 0) {
@@ -382,7 +382,7 @@ const populateFieldsGlobal = (data, playerData) => {
   }
 
   if (playerData["player"]["globalPosition"] < 100) {
-    document.querySelector('#leaderboardMarker').innerText = getOrdinalFormat(playerData["player"]["globalPosition"] + 1)
+    document.querySelector('#leaderboardMarker').innerHTML = getPositionHTMLFormat(playerData["player"]["globalPosition"] + 1)
   } else {
     document.querySelector('#leaderboardMarker').innerText = `${((playerData["player"]["globalPosition"] + 1) / data["totalPlayers"] * 100).toFixed(1)}%`
   }

@@ -37,7 +37,6 @@ const getEventFinishers = async(eventId, playerId) => {
 }
 
 const populateFinishers = (data) => {
-  // todo: fix time continuing to advance after event finish
   const endTimeDate = new Date(data["chrono"]["end"])
   const startTimeDate = new Date(data["chrono"]["start"])
   const currentDate = new Date()
@@ -54,8 +53,15 @@ const populateFinishers = (data) => {
   document.querySelector("#giantPlayersFinished").innerText = data["finishers"].toLocaleString()
   document.querySelector("#amountSpentUSD").innerText = getAmountSpentUSD(data["spendingCurve"], timeElapsed)
   document.querySelector("#amountSpentGold").innerText = getAmountSpentGold(data["spendingCurve"], timeElapsed)
-  document.querySelector("#timeDeltaElapsed").innerText = getTimedeltaFormat(startTimeDate)
-  document.querySelector("#timeDeltaRemaining").innerText = getTimedeltaFormat(endTimeDate)
+
+  if (currentDate > endTimeDate) {
+    // display "static" values after event ends
+    document.querySelector("#timeDeltaRemaining").innerText = getTimedeltaFormat(currentDate)
+    document.querySelector("#timeDeltaElapsed").innerText = getTimedeltaFormat(new Date(Date.now() + Math.abs(startTimeDate - endTimeDate)))
+  } else {
+    document.querySelector("#timeDeltaRemaining").innerText = getTimedeltaFormat(endTimeDate)
+    document.querySelector("#timeDeltaElapsed").innerText = getTimedeltaFormat(startTimeDate)
+  }
 }
 
 const getAmountSpentUSD = (func, timeElapsedSec) => {
