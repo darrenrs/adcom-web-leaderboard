@@ -26,6 +26,7 @@ fs.readFile(__dirname + '/hh-config.json', 'utf8', (err, data) => {
 })
 
 // load static content
+app.use(express.json())
 app.use(express.static('public', {extensions: ['html', 'html']}))
 app.use(express.static(__dirname + '/node_modules/bootstrap/dist/'))
 
@@ -471,6 +472,54 @@ const archivedEntryData = async(currentEventData, playerEventInfo, playerLeaderb
   returnStruct["division"]["count"] = playerLeaderboardInfo["results"]["rootResults"]["offsetResults"]["archivedEntry"]["segmentPosition"]["count"]
 
   return returnStruct
+}
+
+const discordLeaderboardEntries = async() => {
+  let playerRecords = []
+
+  const stream = new Promise((resolve, reject) => {
+    fs.createReadStream('discord.csv')
+      .pipe(parse.parse({delimiter: ','}))
+      .on('data', (row) => {
+        let jsonRow = {
+          "discordId": null,
+          "nameDiscord": null,
+          "nameWebsite": null,
+          "playFabId": null
+        }
+
+        jsonRow["discordId"] = row[0]
+        jsonRow["nameDiscord"] = row[1]
+        jsonRow["nameWebsite"] = row[2]
+        jsonRow["playFabId"] = row[3]
+        playerRecords.push(jsonRow)
+      })
+      .on('end', () => {
+        resolve(playerRecords)
+      })
+      .on('error', (err) => {
+        // fs emitted error
+        reject('fs emitted error')
+      })
+  })
+
+  return stream
+}
+
+const dbPlayerList = async() => {
+  const dbHandler = new db()
+  const data = await dbHandler.getAllPlayers()
+
+  dbHandler.close()
+  return data
+}
+
+const dbPlayerEventRecords = async() => {
+  const dbHandler = new db()
+  const data = await dbHandler.getAllPlayerEvents()
+
+  dbHandler.close()
+  return data
 }
 
 // get event list
@@ -1027,6 +1076,27 @@ app.get('/api/event/:event/:id/finished', async(req, res) => {
 
     res.sendStatus(502)
   }
+})
+
+app.post('/api/admin', async(req, res) => {
+  // not the best solution, but hashes aren't necessary for this
+  if (req.body && req.body.password == hhcfg["localAdminPassword"]) {
+    const returnStruct = {
+      "discordLeaderboard": null,
+      "dbPlayerList": null,
+      "dbPlayerEventRecords": null
+    }
+
+    returnStruct["discordLeaderboard"] = await discordLeaderboardEntries()
+    returnStruct["dbPlayerList"] = await dbPlayerList()
+    returnStruct["dbPlayerEventRecords"] = await dbPlayerEventRecords()
+
+    res.json(returnStruct)
+  } else {
+    res.sendStatus(401)
+  }
+  
+  return
 })
 
 app.listen(port, () => {
