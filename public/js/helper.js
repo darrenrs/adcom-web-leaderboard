@@ -1,7 +1,6 @@
-// todo: better way to store this data
 const getPlayerNameFromOrdinal = (n) => {
   if (n < 0) {
-    return 'Not available if archived'
+    return {"defaultName": 'Not available if archived'}
   }
 
   const nameValues = {
@@ -90,7 +89,6 @@ const getPlayerNameFromOrdinal = (n) => {
   return returnStruct
 }
 
-// todo: better way to store this data
 const getEventDetails = (eventId) => {
   const eventMetadata = {
     "atlantis": {
