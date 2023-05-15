@@ -84,6 +84,15 @@ const postFormEvent = async() => {
     document.querySelector('#noAccountFound').classList.add('d-none')
     document.querySelector('#eventLoadConnectionError').classList.add('d-none')
     document.querySelector('#mainContent').classList.remove('d-none')
+
+    const invalidBanner = await getInvalidState(selectedEventId)
+
+    if (invalidBanner && invalidBanner === "true") {
+      document.querySelector('#exploitWarning').classList.remove('d-none')
+    } else {
+      document.querySelector('#exploitWarning').classList.add('d-none')
+    }
+
     populateFieldsGeneral(eventData)
   } else {
     // general failure
@@ -185,6 +194,22 @@ const getLeaderboardBrackets = async(playerId, eventId) => {
     .then((response) => {
       if (response.status === 200) {
         return response.json()
+      } else {
+        console.error(`Server error (${response.status})`)
+        return
+      }
+    })
+    .catch((error) => {
+      console.error(error)
+      return
+    })
+}
+
+const getInvalidState = async(eventId) => {
+  return await fetch(`api/event/${eventId}/lb-invalid`)
+    .then((response) => {
+      if (response.status === 200) {
+        return response.text()
       } else {
         console.error(`Server error (${response.status})`)
         return

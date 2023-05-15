@@ -11,6 +11,14 @@ const postFormDiscordLeaderboard = async() => {
     return
   }
 
+  const invalidBanner = await getInvalidState(selectedEventId)
+
+  if (invalidBanner && invalidBanner === "true") {
+    document.querySelector('#exploitWarning').classList.remove('d-none')
+  } else {
+    document.querySelector('#exploitWarning').classList.add('d-none')
+  }
+
   document.querySelector('table').classList.add('d-none')
   document.querySelector('#discordLeaderboardLoadError').classList.add('d-none')
 
@@ -72,6 +80,22 @@ const getDiscordLeaderboard = async(eventId) => {
     document.querySelector('#discordLeaderboardLoadError').innerText = 'Please check your internet connection.'
     return false
   })
+}
+
+const getInvalidState = async(eventId) => {
+  return await fetch(`api/event/${eventId}/lb-invalid`)
+    .then((response) => {
+      if (response.status === 200) {
+        return response.text()
+      } else {
+        console.error(`Server error (${response.status})`)
+        return
+      }
+    })
+    .catch((error) => {
+      console.error(error)
+      return
+    })
 }
 
 const populateDiscordLeaderboardTable = (discordLb, discordId) => {
