@@ -36,6 +36,22 @@ const getEventFinishers = async(eventId, playerId) => {
   })
 }
 
+const getInvalidState = async(eventId) => {
+  return await fetch(`api/event/${eventId}/lb-invalid`)
+    .then((response) => {
+      if (response.status === 200) {
+        return response.text()
+      } else {
+        console.error(`Server error (${response.status})`)
+        return
+      }
+    })
+    .catch((error) => {
+      console.error(error)
+      return
+    })
+}
+
 const populateFinishers = (data) => {
   const endTimeDate = new Date(data["chrono"]["end"])
   const startTimeDate = new Date(data["chrono"]["start"])
@@ -163,6 +179,14 @@ const init = async() => {
   } else if (!finishedData) {
     document.querySelector('#eventFinisherLoadError').classList.remove('d-none')
     return
+  }
+  
+  const invalidBanner = await getInvalidState(eventSchedule[0]["eventId"])
+
+  if (invalidBanner && invalidBanner === "true") {
+    document.querySelector('#exploitWarning').classList.remove('d-none')
+  } else {
+    document.querySelector('#exploitWarning').classList.add('d-none')
   }
 
   document.querySelector('#eventFinisherLoadError').classList.add('d-none')

@@ -91,6 +91,14 @@ const postFormEventLeaderboard = async() => {
     document.querySelector('#eventLoadConnectionError').classList.add('d-none')
     document.querySelector('#mainContent').classList.remove('d-none')
     populateFieldsTop(topPlayers)
+
+    const invalidBanner = await getInvalidState(selectedEventId)
+
+    if (invalidBanner && invalidBanner === "true") {
+      document.querySelector('#exploitWarning').classList.remove('d-none')
+    } else {
+      document.querySelector('#exploitWarning').classList.add('d-none')
+    }
   } else {
     // general failure
     document.querySelector('#eventLoadConnectionError').classList.remove('d-none')
@@ -155,6 +163,23 @@ const getTopPlayers = async(playerId, eventId, count) => {
       return
     })
 }
+
+const getInvalidState = async(eventId) => {
+  return await fetch(`api/event/${eventId}/lb-invalid`)
+    .then((response) => {
+      if (response.status === 200) {
+        return response.text()
+      } else {
+        console.error(`Server error (${response.status})`)
+        return
+      }
+    })
+    .catch((error) => {
+      console.error(error)
+      return
+    })
+}
+
 
 const populateFieldsTop = (data) => {
   let tbody = document.querySelector('#topGlobalPlayers')

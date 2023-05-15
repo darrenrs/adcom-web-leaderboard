@@ -4,6 +4,7 @@ const axios = require('axios')
 const db = require('./db')
 const balance = require('./balance')
 const parse = require('csv-parse')
+const readline = require('readline')
 
 const app = express({
   strict: true
@@ -792,6 +793,35 @@ app.get('/api/list/:id', async (req, res) => {
 
     res.sendStatus(502)
   }
+})
+
+app.get('/api/event/:event/lb-invalid', async(req, res) => {
+  const stream = await new Promise((resolve, reject) => {
+    const readStream = fs.createReadStream('afflicted-events.txt');
+    const reader = readline.createInterface({
+      input: readStream,
+      output: process.stdout,
+      terminal: false
+    })
+  
+    reader.on('line', (line) => {
+      if (line.includes(req.params.event)) {
+        resolve(true)
+      }
+    })
+  
+    reader.on('close', () => {
+      resolve(false)
+    })
+  
+    readStream.on('error', (err) => {
+      // fs emitted error
+      reject('fs emitted error')
+    })
+  })
+  
+  res.send(stream)
+  return
 })
 
 // master player API
