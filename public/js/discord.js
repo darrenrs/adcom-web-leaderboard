@@ -51,11 +51,30 @@ const getDiscordId = async() => {
     return
   }
 
-  return await fetch(`api/player/${cachedPlayFab}/get-discord`)
+  const data = {
+    "playFabId": cachedPlayFab
+  }
+
+  return await fetch(`api/discord/account`, {
+    method: 'POST',
+    headers: {
+      'Content-type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  })
   .then((response) => {
     if (response.status === 200) {
-      return response.text()
+      return response.json()
+      .then((data) => {
+        if (new Date() - new Date(data["lastCheckDate"]+"Z") >= 56*86400*1000) {
+          document.querySelector('#uncacheDisclaimer').classList.remove('d-none')
+        } else {
+          document.querySelector('#uncacheDisclaimer').classList.add('d-none')
+        }
+        return data["discordId"]
+      })
     } else {
+      document.querySelector('#uncacheDisclaimer').classList.add('d-none')
       return
     }
   })
@@ -216,6 +235,8 @@ const init = async() => {
   if (eventSchedule) {
     populateEventScheduleList(eventSchedule)
   }
+
+  document.querySelector('#earliestPossibleDate').innerText = new Date((new Date() - 56*86400*1000)).toLocaleString()
 }
 
 document.addEventListener('DOMContentLoaded', function() {

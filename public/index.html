@@ -30,8 +30,9 @@
         <form onsubmit="return false">
           <div class="mb-3">
             <label for="playFabQuery">PlayFab ID</label>
-            <input id="playFabQuery" class="form-control" type="text" aria-describedby="playFabStorage" maxlength="16">
-            <a href="discord" class="link-primary">View Discord Leaderboard</a>
+            <input id="playFabQuery" class="form-control" type="text" aria-describedby="playFabStorageS1" maxlength="16">
+            <div id="playFabStorageS1" class="form-text">You can find this in-game in the Settings.</div>
+            <a href="account" class="link-primary">Account Management</a>
           </div>
           <div class="mb-3 form-check">
             <input type="checkbox" class="form-check-input" id="playFabSetDefault">
@@ -51,6 +52,8 @@
               <option>Please load an account to continue</option>
             </select>
             <div id="eventLoadDisclaimer" class="form-text">You may have to wait a few seconds the first time you load your account.</div>
+            <a href="discord" class="link-primary">View Discord Leaderboard</a>
+            <br>
             <a href="eventlist" class="link-primary">View full event schedule</a>
           </div>
           <div class="mb-3">

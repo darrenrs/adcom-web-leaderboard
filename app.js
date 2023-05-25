@@ -5,6 +5,8 @@ const db = require('./db')
 const balance = require('./balance')
 const parse = require('csv-parse')
 const readline = require('readline')
+const formidable = require('formidable')
+const path = require('path')
 
 const app = express({
   strict: true
@@ -110,6 +112,7 @@ const getPlayerState = async(id) => {
   const dbHandler = new db()
   try {
     const cachedPlayerState = await dbHandler.getPlayer(id)
+    dbHandler.updatePlayerDiscordTimestamp(id)
 
     if (cachedPlayerState) {
       // check cache first
@@ -191,8 +194,8 @@ const getPlayerEventState = async(id, eventId, isCurrent) => {
 // returns a fully updated synopsis of player participation
 const getKnownPlayerEvents = async(id) => {
   const dbHandler = new db()
-
   try {
+    dbHandler.updatePlayerDiscordTimestamp(id)
     const allEvents = await getAllEvents()
     const currentKnownEvents = await dbHandler.getPlayerEvents(id)
 
@@ -252,9 +255,13 @@ const getPlayerEventInfo = async(id, eventId) => {
 }
 
 // return the player's division leaderboard and global leaderboard
-const getPlayerLeaderboard = async(id, eventId, adjacentCount, topCount) => {
+const getPlayerLeaderboard = async(id, eventId, adjacentCount, topCount, indirectRequest) => {
+  const dbHandler = new db()
   try {
-    // todo: add ability to adjust adjacent players (offset) and top players (topCount)
+    if (!indirectRequest) {
+      dbHandler.updatePlayerDiscordTimestamp(id)
+    }
+
     const playerLeaderboardReq = await axios.get(`${hhcfg["fullBaseLeaderboard"]}/leaderboards/${eventId}/players/${id}/results?offset=${adjacentCount}&resolvePlayers=true&topCount=${topCount}`, config={
       "headers": {
         "_token": hhcfg["token"],
@@ -475,38 +482,6 @@ const archivedEntryData = async(currentEventData, playerEventInfo, playerLeaderb
   return returnStruct
 }
 
-const discordLeaderboardEntries = async() => {
-  let playerRecords = []
-
-  const stream = new Promise((resolve, reject) => {
-    fs.createReadStream('discord.csv')
-      .pipe(parse.parse({delimiter: ','}))
-      .on('data', (row) => {
-        let jsonRow = {
-          "discordId": null,
-          "nameDiscord": null,
-          "nameWebsite": null,
-          "playFabId": null
-        }
-
-        jsonRow["discordId"] = row[0]
-        jsonRow["nameDiscord"] = row[1]
-        jsonRow["nameWebsite"] = row[2]
-        jsonRow["playFabId"] = row[3]
-        playerRecords.push(jsonRow)
-      })
-      .on('end', () => {
-        resolve(playerRecords)
-      })
-      .on('error', (err) => {
-        // fs emitted error
-        reject('fs emitted error')
-      })
-  })
-
-  return stream
-}
-
 const dbPlayerList = async() => {
   const dbHandler = new db()
   const data = await dbHandler.getAllPlayers()
@@ -518,6 +493,14 @@ const dbPlayerList = async() => {
 const dbPlayerEventRecords = async() => {
   const dbHandler = new db()
   const data = await dbHandler.getAllPlayerEvents()
+
+  dbHandler.close()
+  return data
+}
+
+const dbPlayerDiscordRecords = async() => {
+  const dbHandler = new db()
+  const data = await dbHandler.getAllPlayerDiscordRecords()
 
   dbHandler.close()
   return data
@@ -555,6 +538,226 @@ app.get('/api/list/all', async (req, res) => {
   }
 })
 
+// check if exists in discord lb
+app.post('/api/discord/account', async(req, res) => {
+  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  try {
+    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+
+    if (!req.body || !req.body["playFabId"]) {
+      res.sendStatus(400)
+      return
+    }
+
+    let id = req.body["playFabId"]
+    id = id.toString().trim()
+
+    if (id.length > 16) {
+      res.sendStatus(400)
+      return
+    }
+
+    const dbHandler = new db()
+    const playerRecord = await dbHandler.checkPlayerDiscord(id)
+    await dbHandler.updatePlayerDiscordTimestamp(id)
+    
+    if (playerRecord) {
+      res.send(playerRecord)
+    } else {
+      res.sendStatus(404)
+    }
+
+    dbHandler.close()
+    return
+  } catch (e) {
+    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+
+    res.sendStatus(500)
+    
+    return
+  }
+})
+
+// add record to discord lb
+app.put('/api/discord/account', async(req, res) => {
+  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  try {
+    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+
+    if (!req.body) {
+      res.sendStatus(400)
+      return
+    }
+    
+    let id = req.body.playFabId
+    let discordId = req.body.discordId
+    let displayName = req.body.displayName
+    let username = req.body.username
+
+    if (!id || !displayName || !username) {
+      res.sendStatus(400)
+      return
+    }
+    
+    // input validation
+    id = id.toString().trim()
+    discordId = discordId.toString().trim()
+    displayName = displayName.toString().trim()
+    username = username.toString().trim()
+
+    if (id.length > 16) {
+      res.sendStatus(400)
+      return
+    }
+    
+    if (discordId && (discordId.length < 17 || discordId.length > 19 || !(/^\d+$/.test(discordId)))) {
+      res.sendStatus(400)
+      return
+    }
+
+    if (displayName.length > 32) {
+      res.sendStatus(400)
+      return
+    }
+
+    if (username.length > 32) {
+      res.sendStatus(400)
+      return
+    }
+
+    const dbHandler = new db()
+    await dbHandler.addPlayerDiscord(id, discordId, displayName, username)
+
+    res.sendStatus(201)
+
+    dbHandler.close()
+    return
+  } catch (e) {
+    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+
+    if (e.includes("UNIQUE constraint failed")) {
+      res.sendStatus(409)
+    } else {
+      res.sendStatus(500)
+    }
+    
+    return
+  }
+})
+
+// update discord lb record
+app.patch('/api/discord/account', async(req, res) => {
+  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  try {
+    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+
+    if (!req.body) {
+      res.sendStatus(400)
+      return
+    }
+    
+    let id = req.body.playFabId
+    let discordId = req.body.discordId
+    let displayName = req.body.displayName
+    let username = req.body.username
+
+    if (!id || !displayName || !username) {
+      res.sendStatus(400)
+      return
+    }
+    
+    // input validation
+    id = id.toString().trim()
+    discordId = discordId.toString().trim()
+    displayName = displayName.toString().trim()
+    username = username.toString().trim()
+
+    if (id.length > 16) {
+      res.sendStatus(400)
+      return
+    }
+    
+    if (discordId && (discordId.length < 17 || discordId.length > 19 || !(/^\d+$/.test(discordId)))) {
+      res.sendStatus(400)
+      return
+    }
+
+    if (displayName.length > 32) {
+      res.sendStatus(400)
+      return
+    }
+
+    if (username.length > 32) {
+      res.sendStatus(400)
+      return
+    }
+
+    const dbHandler = new db()
+    await dbHandler.updatePlayerDiscord(id, discordId, displayName, username)
+
+    res.sendStatus(204)
+
+    dbHandler.close()
+    return
+  } catch (e) {
+    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+
+    if (e.includes("no records found")) {
+      res.sendStatus(404)
+    } else {
+      res.sendStatus(500)
+    }
+    
+    return
+  }
+})
+
+// delete record from discord lb
+app.delete('/api/discord/account', async(req, res) => {
+  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  try {
+    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+
+    if (!req.body) {
+      res.sendStatus(400)
+      return
+    }
+    
+    let id = req.body.playFabId
+
+    if (!id) {
+      res.sendStatus(400)
+      return
+    }
+    
+    // input validation
+    id = id.toString().trim()
+
+    if (id.length > 16) {
+      res.sendStatus(400)
+      return
+    }
+
+    const dbHandler = new db()
+    await dbHandler.removePlayerDiscord(id)
+    
+    res.sendStatus(200)
+
+    dbHandler.close()
+    return
+  } catch (e) {
+    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+
+    if (e.includes("no records found")) {
+      res.sendStatus(404)
+    } else {
+      res.sendStatus(500)
+    }
+
+    return
+  }
+})
+
 // query all players who are participants in the Discord leaderboard
 app.get('/api/discord/:event', async(req, res) => {
   const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
@@ -577,174 +780,100 @@ app.get('/api/discord/:event', async(req, res) => {
       return
     }
 
-    let playerRecords = []
+    let playerRecords = await dbPlayerDiscordRecords()
 
-    // get player records in a list format
-    fs.createReadStream('discord.csv')
-      .pipe(parse.parse({delimiter: ','}))
-      .on('data', (row) => {
-        let jsonRow = {
-          "discordId": null,
-          "nameDiscord": null,
-          "nameWebsite": null,
-          "playFabId": null
-        }
+    const balanceHandler = new balance(currentEventData["eventName"], currentEventData["startDate"], currentEventData["endDate"])
+    let currentKnownMaxPlayers = 0
+    await balanceHandler.loadBalanceData()
+    
+    // get results for each player
+    const playerEventRecordsPromises = playerRecords.map(async (record) => {
+      const id = record["id"]
 
-        jsonRow["discordId"] = row[0]
-        jsonRow["nameDiscord"] = row[1]
-        jsonRow["nameWebsite"] = row[2]
-        jsonRow["playFabId"] = row[3]
-        playerRecords.push(jsonRow)
-      })
-      .on('end', async () => {
-        const balanceHandler = new balance(currentEventData["eventName"], currentEventData["startDate"], currentEventData["endDate"])
-        let currentKnownMaxPlayers = 0
-        await balanceHandler.loadBalanceData()
+      const playerEventInfoPromise = getPlayerEventInfo(id, eventId)
+      const playerLeaderboardPromise = getPlayerLeaderboard(id, eventId, 25, 25, true)
 
-        // get results for each player
-        const playerEventRecordsPromises = playerRecords.map(async (record) => {
-          const id = record["playFabId"]
+      const results = await Promise.allSettled([
+        playerEventInfoPromise,
+        playerLeaderboardPromise,
+      ])
+      
+      const [playerEventInfo, playerLeaderboard] = results.map((result) => result.value)
 
-          const playerEventInfoPromise = getPlayerEventInfo(id, eventId)
-          const playerLeaderboardPromise = getPlayerLeaderboard(id, eventId, 25, 25)
+      if (!playerEventInfo || !playerLeaderboard) {
+        return null
+      }
 
-          const results = await Promise.allSettled([
-            playerEventInfoPromise,
-            playerLeaderboardPromise,
-          ])
-          
-          const [playerEventInfo, playerLeaderboard] = results.map((result) => result.value)
+      // differentiate between archived and active leaderboard
+      let returnStruct
+      if (playerLeaderboard["results"]["rootResults"]["topResults"]) {
+        // active
+        returnStruct = await rankedEntryData(currentEventData, playerEventInfo, playerLeaderboard, id)
+      } else {
+        // archive
+        returnStruct = await archivedEntryData(currentEventData, playerEventInfo, playerLeaderboard)
+      }
 
-          if (!playerEventInfo || !playerLeaderboard) {
-            return null
-          }
+      // get estimated rank
+      const rankString = await balanceHandler.getRankFromTrophies(returnStruct["player"]["trophies"], returnStruct["player"]["dateJoined"], returnStruct["player"]["dateUpdated"])
+      returnStruct["rankString"] = rankString
+      if (returnStruct["global"]["count"] > currentKnownMaxPlayers) {
+        currentKnownMaxPlayers = returnStruct["global"]["count"]
+      }
 
-          // differentiate between archived and active leaderboard
-          let returnStruct
-          if (playerLeaderboard["results"]["rootResults"]["topResults"]) {
-            // active
-            returnStruct = await rankedEntryData(currentEventData, playerEventInfo, playerLeaderboard, id)
-          } else {
-            // archive
-            returnStruct = await archivedEntryData(currentEventData, playerEventInfo, playerLeaderboard)
-          }
+      let divisionPosition = null
 
-          // get estimated rank
-          const rankString = await balanceHandler.getRankFromTrophies(returnStruct["player"]["trophies"], returnStruct["player"]["dateJoined"], returnStruct["player"]["dateUpdated"])
-          returnStruct["rankString"] = rankString
-          if (returnStruct["global"]["count"] > currentKnownMaxPlayers) {
-            currentKnownMaxPlayers = returnStruct["global"]["count"]
-          }
-
-          let divisionPosition = null
-
-          if (returnStruct["division"]["top"]) {
-            for (let j in returnStruct["division"]["top"]) {
-              if (returnStruct["division"]["top"][j]["playerId"] === returnStruct["player"]["playerId"]) {
-                divisionPosition = parseInt(j) + 1
-                break
-              }
-            }
-          }
-
-          returnStruct["player"]["divisionPosition"] = divisionPosition
-
-          return returnStruct
-        })
-
-        const playerEventRecords = (await Promise.allSettled(playerEventRecordsPromises)).filter(
-          (result) => result.status === 'fulfilled' && result.value !== null
-        ).map(result => result.value)
-
-        playerEventRecords.sort((a, b) => b["player"]["trophies"] - a["player"]["trophies"] || a["player"]["globalPosition"] - b["player"]["globalPosition"])
-        
-        let playerFinalRecords = []
-
-        // transform data to correct format
-        // a non-efficient O(n^2) loop, but there are few records so performance implications are negligible
-        for (let j of playerEventRecords) {
-          for (let k of playerRecords) {
-            if (j["player"]["playerId"] === k["playFabId"]) {
-              let individualPlayerFinalRecord = {
-                "name": k["nameWebsite"],
-                "discordId": k["discordId"],
-                "discordName": k["nameDiscord"],
-                "primaryKeySeq": j["player"]["playerOrdinal"],
-                "position": j["player"]["globalPosition"] + 1,
-                "positionOf": currentKnownMaxPlayers,
-                "trophies": j["player"]["trophies"],
-                "divisionId": j["player"]["divisionId"],
-                "divisionPosition": j["player"]["divisionPosition"],
-                "isMainBoard": j["player"]["divisionRoot"] === 'global' ? true : false,
-                "lastUpdated": j["player"]["dateUpdated"],
-                "rankString": j["rankString"]
-              }
-
-              playerFinalRecords.push(individualPlayerFinalRecord)
-            }
+      if (returnStruct["division"]["top"]) {
+        for (let j in returnStruct["division"]["top"]) {
+          if (returnStruct["division"]["top"][j]["playerId"] === returnStruct["player"]["playerId"]) {
+            divisionPosition = parseInt(j) + 1
+            break
           }
         }
-        
-        res.status(200).send(playerFinalRecords)
-      })
-      .on('error', async(err) => {
-        // fs emitted error
-        log(`${req.method} ${req.originalUrl} error - ${err}.`, remoteAddress, true)
-        res.sendStatus(502)
-      })
+      }
+
+      returnStruct["player"]["divisionPosition"] = divisionPosition
+
+      return returnStruct
+    })
+
+    const playerEventRecords = (await Promise.allSettled(playerEventRecordsPromises)).filter(
+      (result) => result.status === 'fulfilled' && result.value !== null
+    ).map(result => result.value)
+
+    playerEventRecords.sort((a, b) => b["player"]["trophies"] - a["player"]["trophies"] || a["player"]["globalPosition"] - b["player"]["globalPosition"])
+    
+    let playerFinalRecords = []
+
+    // transform data to correct format
+    // a non-efficient O(n^2) loop, but there are few records so performance implications are negligible
+    for (let j of playerEventRecords) {
+      for (let k of playerRecords) {
+        if (j["player"]["playerId"] === k["id"]) {
+          let individualPlayerFinalRecord = {
+            "name": k["displayName"],
+            "discordId": k["discordId"],
+            "discordName": k["username"],
+            "primaryKeySeq": j["player"]["playerOrdinal"],
+            "position": j["player"]["globalPosition"] + 1,
+            "positionOf": currentKnownMaxPlayers,
+            "trophies": j["player"]["trophies"],
+            "divisionId": j["player"]["divisionId"],
+            "divisionPosition": j["player"]["divisionPosition"],
+            "isMainBoard": j["player"]["divisionRoot"] === 'global' ? true : false,
+            "lastUpdated": j["player"]["dateUpdated"],
+            "rankString": j["rankString"]
+          }
+
+          playerFinalRecords.push(individualPlayerFinalRecord)
+        }
+      }
+    }
+    
+    res.status(200).send(playerFinalRecords)
+    return
   } catch (e) {
     log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
-    res.sendStatus(502)
-  }
-})
-
-// convert PlayFab ID to Discord ID
-app.get('/api/player/:id/get-discord', async (req, res) => {
-  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
-  try {
-    log(`${req.method} ${req.originalUrl}`, remoteAddress)
-
-    let playerRecords = []
-
-    fs.createReadStream('discord.csv')
-      .pipe(parse.parse({delimiter: ','}))
-      .on('data', (row) => {
-        let jsonRow = {
-          "discordId": null,
-          "nameDiscord": null,
-          "nameWebsite": null,
-          "playFabId": null
-        }
-
-        jsonRow["discordId"] = row[0]
-        jsonRow["nameDiscord"] = row[1]
-        jsonRow["nameWebsite"] = row[2]
-        jsonRow["playFabId"] = row[3]
-        playerRecords.push(jsonRow)
-      })
-      .on('end', async () => {
-        log(`${req.method} ${req.originalUrl} - successfully parsed discord.csv (PlayFab to Discord ID).`, remoteAddress)
-        for (i of playerRecords) {
-          if (i["playFabId"] === req.params.id) {
-            res.send(i["discordId"])
-            return
-          }
-        }
-
-        // if we got here, no record found
-        log(`${req.method} ${req.originalUrl} - no record found.`, remoteAddress)
-
-        res.sendStatus(404)
-        return
-      })
-      .on('error', async(err) => {
-        // fs emitted error
-        log(`${req.method} ${req.originalUrl} error - ${err}.`, remoteAddress, true)
-        res.sendStatus(502)
-      })
-  } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
-
     res.sendStatus(502)
   }
 })
@@ -797,7 +926,7 @@ app.get('/api/list/:id', async (req, res) => {
 
 app.get('/api/event/:event/lb-invalid', async(req, res) => {
   const stream = await new Promise((resolve, reject) => {
-    const readStream = fs.createReadStream('afflicted-events.txt');
+    const readStream = fs.createReadStream('afflicted-events.txt')
     const reader = readline.createInterface({
       input: readStream,
       output: process.stdout,
@@ -1109,24 +1238,64 @@ app.get('/api/event/:event/:id/finished', async(req, res) => {
 })
 
 app.post('/api/admin', async(req, res) => {
+  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+
   // not the best solution, but hashes aren't necessary for this
   if (req.body && req.body.password == hhcfg["localAdminPassword"]) {
+    log(`${req.method} ${req.originalUrl} - successful admin login`, remoteAddress)
     const returnStruct = {
       "discordLeaderboard": null,
       "dbPlayerList": null,
       "dbPlayerEventRecords": null
     }
 
-    returnStruct["discordLeaderboard"] = await discordLeaderboardEntries()
+    returnStruct["discordLeaderboard"] = await dbPlayerDiscordRecords()
     returnStruct["dbPlayerList"] = await dbPlayerList()
     returnStruct["dbPlayerEventRecords"] = await dbPlayerEventRecords()
 
     res.json(returnStruct)
   } else {
+    log(`${req.method} ${req.originalUrl} - failed admin login`, remoteAddress)
     res.sendStatus(401)
   }
   
   return
+})
+
+app.post('/api/admin/icon', async(req, res) => {
+  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const form = formidable({ multiples: true })
+
+  form.parse(req, (err, fields, files) => {
+    if (err) {
+      console.error('Error parsing form data: ', err)
+      res.sendStatus(500)
+      return
+    }
+
+    if (fields.password === hhcfg["localAdminPassword"]) {
+      log(`${req.method} ${req.originalUrl} - successful icon upload authentication`, remoteAddress)
+      const uploadedFile = files.file
+      const uploadDirectory = path.join(__dirname, hhcfg["iconRelativePath"])
+      const newFilePath = path.join(uploadDirectory, uploadedFile.originalFilename)
+
+      fs.rename(uploadedFile.filepath, newFilePath, (err) => {
+        if (err) {
+          console.error('Error moving the file:', err)
+          res.status(500).send('Error moving the file.')
+          return
+        }
+
+        console.log('File saved as:', newFilePath)
+
+        // Send response
+        res.sendStatus(200)
+      })
+    } else {
+      log(`${req.method} ${req.originalUrl} - failed icon upload authentication`, remoteAddress)
+      res.sendStatus(401)
+    }
+  })
 })
 
 app.listen(port, () => {
