@@ -10,6 +10,7 @@ const postFormAdmin = async() => {
     return
   }
 
+  document.querySelector('#adminControlPassIcon').value = document.querySelector('#adminControlPass').value
   populateAdmin(playerData)
 }
 
@@ -62,24 +63,28 @@ const populateAdmin = async(data) => {
     idCell.innerText = parseInt(i)
 
     let nameCell = document.createElement('td')
-    nameCell.innerText = data["discordLeaderboard"][i]["nameWebsite"]
+    nameCell.innerText = data["discordLeaderboard"][i]["displayName"]
 
     let discordNameCell = document.createElement('td')
-    discordNameCell.innerText = data["discordLeaderboard"][i]["nameDiscord"]
+    discordNameCell.innerText = data["discordLeaderboard"][i]["username"]
 
     let discordIdCell = document.createElement('td')
     discordIdCell.innerText = data["discordLeaderboard"][i]["discordId"]
     discordIdCell.classList.add('font-monospace')
 
     let playFabIdCell = document.createElement('td')
-    playFabIdCell.innerText = data["discordLeaderboard"][i]["playFabId"]
+    playFabIdCell.innerText = data["discordLeaderboard"][i]["id"]
     playFabIdCell.classList.add('font-monospace')
+
+    let lastLoginCell = document.createElement('td')
+    lastLoginCell.innerText = data["discordLeaderboard"][i]["lastCheckDate"]
 
     discordLbRow.append(idCell)
     discordLbRow.append(nameCell)
     discordLbRow.append(discordNameCell)
     discordLbRow.append(discordIdCell)
     discordLbRow.append(playFabIdCell)
+    discordLbRow.append(lastLoginCell)
     
     tbodyDiscord.appendChild(discordLbRow)
   }

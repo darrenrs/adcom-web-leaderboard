@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="img/icon.png">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/darkmode.css">
+    <script src="js/account.js" defer></script>
+    <script src="js/helper.js" defer></script>
+    <title>AdVenture Communist Account Management</title>
+  </head>
+  <body>
+    <nav class="navbar navbar-dark bg-dark sticky-top">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="./">
+          <img src="img/icon.png" width="30" height="40" class="d-inline-block align-self-center" alt="AdCom icon">
+          AdCom Account Management
+        </a>
+        <a class="navbar-brand" href="https://github.com/darrenrs/adcom-web-leaderboard">
+          <img src="img/github.png" width="40" height="40" class="d-inline-block align-text-top" alt="GitHub">
+        </a>
+      </div>
+    </nav>
+    <div class="container pt-2">
+      <h2>Account Management</h2>
+      <div class="mb-3">
+        <form onsubmit="return false">
+          <div class="mb-3">
+            <label for="playFabIdInitCheck">PlayFab ID <span class="text-danger">*</span></label>
+            <input id="playFabIdInitCheck" class="form-control" type="text" aria-describedby="playFabDescInitCheck" maxlength="16" required>
+            <div id="playFabDescInitCheck" class="form-text">You can find this in-game in the Settings.</div>
+          </div>
+          <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="playFabSetDefault">
+            <label class="form-check-label" for="playFabSetDefault">Set as default</label>
+            <div id="playFabStorage" class="form-text">Your PlayFab ID will be stored locally on your device.</div>
+          </div>
+          <button id="formInitAccount" type="submit" class="btn btn-primary">Load Account</button>
+          <span id="accountCheckStatus" class="p-2 text-danger"></span>
+        </form>
+      </div>
+      <div id="mainContent" class="d-none">
+        <hr>
+        <div class="mb-3">
+          <form onsubmit="return false">
+            <div class="mb-3">
+              <label for="playFabId">PlayFab ID <span class="text-danger">*</span></label>
+              <input id="playFabId" class="form-control" type="text" aria-describedby="playFabDesc" maxlength="16" required disabled>
+              <div id="playFabDesc" class="form-text">This field is autofilled from the input box above.</div>
+            </div>
+            <div class="mb-3">
+              <label for="displayName">Preferred Display Name <span class="text-danger">*</span></label>
+              <input id="displayName" class="form-control" type="text" aria-describedby="displayNameDesc" maxlength="32" required>
+              <div id="displayNameDesc" class="form-text">What would you like to be called on the website?</div>
+            </div>
+            <div class="mb-3">
+              <label for="username">Discord Username<span class="text-danger">*</span></label>
+              <input id="username" class="form-control" type="text" aria-describedby="usernameDesc" maxlength="32" required>
+              <div id="usernameDesc" class="form-text">What is your Discord username? (please include the four-digit tag if you still have it)</div>
+            </div>
+            <div class="mb-3">
+              <label for="discordId">Discord User ID (number)</label>
+              <input id="discordId" class="form-control" type="text" aria-describedby="discordIdDesc" maxlength="19">
+              <div id="discordIdDesc" class="form-text">What is your Discord ID? This can be found by right clicking your profile picture and then hitting "Copy User ID" with Developer Mode enabled. Please provide if available.</div>
+            </div>
+            <button id="formSubmitAccount" type="submit" class="btn btn-primary">Create Account</button>
+            <button id="formPatchAccount" type="submit" class="btn btn-primary">Update Account</button>
+            <button id="formDeleteAccount" type="submit" class="btn btn-primary">Delete Account</button>
+            <span id="accountManagementStatus" class="p-2 text-danger"></span>
+          </form>
+        </div>
+      </div>
+  </body>
+</html>

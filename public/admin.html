@@ -40,6 +40,18 @@
       <hr>
       <div class="container pt-2">
         <div class="row pt-3">
+          <form action="api/admin/icon" method="POST" enctype="multipart/form-data">
+            <h3>Upload Leaderboard Icon</h3>
+            <div class="mb-3">
+              <label for="formFile" class="form-label">Required format: <span class="font-monospace">DISCORD_USER_ID.png</span><br><strong>Note:</strong> if nothing appears to happen but no error messages are visible, the server processed the file.</label>
+              <input class="form-control" type="file" id="formFile" name="file" accept="image/png">
+              <input id="adminControlPassIcon" class="form-control d-none" type="password" name="password" maxlength="1024">
+              <br>
+              <button type="submit" class="btn btn-primary">Upload!</button>
+            </div>
+          </form>
+        </div>
+        <div class="row pt-3">
           <h3>Record Count</h3>
           <ul style="list-style-type: none;">
             <li><strong>Discord Leaderboard: </strong><span id="discordLeaderboardCount">...</span></li>
@@ -57,6 +69,7 @@
                 <th>Discord Username</th>
                 <th>Discord ID</th>
                 <th>PlayFab ID</th>
+                <th>Last Login (UTC)</th>
               </tr>
             </thead>
             <tbody id="discordLeaderboardRaw" class="table-group-divider"></tbody>
