@@ -5,7 +5,7 @@
   }
 
   /* input boxes */
-  input, select {
+  input, select, textarea {
     background-color: #232323 !important;
     color: #f1f1f1 !important;
     border: #121212 !important;
