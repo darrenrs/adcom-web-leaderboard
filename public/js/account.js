@@ -26,8 +26,9 @@ const postFormCreate = async() => {
   const displayName = document.querySelector('#displayName').value
   const username = document.querySelector('#username').value
   const discordId = document.querySelector('#discordId').value
+  const iconDesc = document.querySelector('#iconQualitativeDesc').value
   
-  const createAccountStatus = await createAccount(playerId, displayName, username, discordId)
+  const createAccountStatus = await createAccount(playerId, displayName, username, discordId, iconDesc)
   
   if (createAccountStatus) {
     // success
@@ -53,10 +54,11 @@ const postFormUpdate = async() => {
   const displayName = document.querySelector('#displayName').value
   const username = document.querySelector('#username').value
   const discordId = document.querySelector('#discordId').value
+  const iconDesc = document.querySelector('#iconQualitativeDesc').value
   
-  const createAccountStatus = await patchAccount(playerId, displayName, username, discordId)
+  const patchAccountStatus = await patchAccount(playerId, displayName, username, discordId, iconDesc)
   
-  if (createAccountStatus) {
+  if (patchAccountStatus) {
     // success
     document.querySelector('#accountManagementStatus').classList.remove('d-none')
     document.querySelector('#accountManagementStatus').classList.add('text-success')
@@ -110,6 +112,7 @@ const checkAccount = async(playFabId) => {
         document.querySelector('#displayName').value = data["displayName"]
         document.querySelector('#username').value = data["username"]
         document.querySelector('#discordId').value = data["discordId"]
+        document.querySelector('#iconQualitativeDesc').value = data["iconQualitativeDesc"]
         document.querySelector('#formSubmitAccount').classList.add('d-none')
         document.querySelector('#formPatchAccount').classList.remove('d-none')
         document.querySelector('#formDeleteAccount').classList.remove('d-none')
@@ -120,6 +123,7 @@ const checkAccount = async(playFabId) => {
       document.querySelector('#displayName').value = ""
       document.querySelector('#username').value = ""
       document.querySelector('#discordId').value = ""
+      document.querySelector('#iconQualitativeDesc').value = ""
       document.querySelector('#formSubmitAccount').classList.remove('d-none')
       document.querySelector('#formPatchAccount').classList.add('d-none')
       document.querySelector('#formDeleteAccount').classList.add('d-none')
@@ -138,12 +142,13 @@ const checkAccount = async(playFabId) => {
   })
 }
 
-const createAccount = async(playFabId, displayName, username, discordId) => {
+const createAccount = async(playFabId, displayName, username, discordId, iconQualitativeDesc) => {
   const data = {
     "playFabId": playFabId,
     "displayName": displayName,
     "username": username,
-    "discordId": discordId
+    "discordId": discordId,
+    "iconQualitativeDesc": iconQualitativeDesc
   }
 
   return await fetch('api/discord/account', {
@@ -176,12 +181,13 @@ const createAccount = async(playFabId, displayName, username, discordId) => {
   })
 }
 
-const patchAccount = async(playFabId, displayName, username, discordId) => {
+const patchAccount = async(playFabId, displayName, username, discordId, iconQualitativeDesc) => {
   const data = {
     "playFabId": playFabId,
     "displayName": displayName,
     "username": username,
-    "discordId": discordId
+    "discordId": discordId,
+    "iconQualitativeDesc": iconQualitativeDesc
   }
 
   return await fetch('api/discord/account', {

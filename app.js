@@ -506,6 +506,20 @@ const dbPlayerDiscordRecords = async() => {
   return data
 }
 
+const fsIconStatus = async() => {
+  const iconDirectory = path.join(__dirname, hhcfg["iconRelativePath"])
+  let icons = []
+
+  fs.readdir(iconDirectory, (err, files) => {
+    files.forEach(file => {
+      icons.push(file.replace('.png', ''))
+    })
+    icons.sort((a, b) => a - b)
+  })
+
+  return icons
+}
+
 // get event list
 app.get('/api/list', async (req, res) => {
   const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
@@ -593,6 +607,7 @@ app.put('/api/discord/account', async(req, res) => {
     let discordId = req.body.discordId
     let displayName = req.body.displayName
     let username = req.body.username
+    let iconDesc = req.body.iconQualitativeDesc
 
     if (!id || !displayName || !username) {
       res.sendStatus(400)
@@ -604,6 +619,7 @@ app.put('/api/discord/account', async(req, res) => {
     discordId = discordId.toString().trim()
     displayName = displayName.toString().trim()
     username = username.toString().trim()
+    iconDesc = iconDesc.toString().trim()
 
     if (id.length > 16) {
       res.sendStatus(400)
@@ -625,8 +641,13 @@ app.put('/api/discord/account', async(req, res) => {
       return
     }
 
+    if (iconDesc.length > 1024) {
+      res.sendStatus(400)
+      return
+    }
+
     const dbHandler = new db()
-    await dbHandler.addPlayerDiscord(id, discordId, displayName, username)
+    await dbHandler.addPlayerDiscord(id, discordId, displayName, username, iconDesc)
 
     res.sendStatus(201)
 
@@ -660,6 +681,7 @@ app.patch('/api/discord/account', async(req, res) => {
     let discordId = req.body.discordId
     let displayName = req.body.displayName
     let username = req.body.username
+    let iconDesc = req.body.iconQualitativeDesc
 
     if (!id || !displayName || !username) {
       res.sendStatus(400)
@@ -671,6 +693,7 @@ app.patch('/api/discord/account', async(req, res) => {
     discordId = discordId.toString().trim()
     displayName = displayName.toString().trim()
     username = username.toString().trim()
+    iconDesc = iconDesc.toString().trim()
 
     if (id.length > 16) {
       res.sendStatus(400)
@@ -692,8 +715,13 @@ app.patch('/api/discord/account', async(req, res) => {
       return
     }
 
+    if (iconDesc.length > 1024) {
+      res.sendStatus(400)
+      return
+    }
+
     const dbHandler = new db()
-    await dbHandler.updatePlayerDiscord(id, discordId, displayName, username)
+    await dbHandler.updatePlayerDiscord(id, discordId, displayName, username, iconDesc)
 
     res.sendStatus(204)
 
@@ -1245,11 +1273,13 @@ app.post('/api/admin', async(req, res) => {
     log(`${req.method} ${req.originalUrl} - successful admin login`, remoteAddress)
     const returnStruct = {
       "discordLeaderboard": null,
+      "discordLeaderboardIcons": null,
       "dbPlayerList": null,
       "dbPlayerEventRecords": null
     }
 
     returnStruct["discordLeaderboard"] = await dbPlayerDiscordRecords()
+    returnStruct["discordLeaderboardIcons"] = await fsIconStatus()
     returnStruct["dbPlayerList"] = await dbPlayerList()
     returnStruct["dbPlayerEventRecords"] = await dbPlayerEventRecords()
 

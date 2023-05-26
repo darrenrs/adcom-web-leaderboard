@@ -46,6 +46,7 @@ const populateAdmin = async(data) => {
   document.querySelector('#mainContent').classList.remove('d-none')
 
   document.querySelector('#discordLeaderboardCount').innerText = (data["discordLeaderboard"].length).toLocaleString()
+  document.querySelector('#discordLeaderboardIconCount').innerText = (data["discordLeaderboardIcons"].length).toLocaleString()
   document.querySelector('#dbPlayerCount').innerText = (data["dbPlayerList"].length).toLocaleString()
   document.querySelector('#dbPlayerEventRecordCount').innerText = (data["dbPlayerEventRecords"].length).toLocaleString()
 
@@ -87,6 +88,45 @@ const populateAdmin = async(data) => {
     discordLbRow.append(lastLoginCell)
     
     tbodyDiscord.appendChild(discordLbRow)
+  }
+
+  // ---------- //
+
+
+  const tbodyDiscordIcon = document.querySelector('#discordLeaderboardIconDesc')
+  const allExistingRowsDiscordIcon = document.querySelectorAll('#discordLeaderboardIconDesc tr')
+  
+  for (let i of allExistingRowsDiscordIcon) {
+    i.remove()
+  }
+
+  for (let i in data["discordLeaderboardIcons"]) {
+    let discordIconRow = document.createElement('tr')
+
+    let idCell = document.createElement('td')
+    idCell.innerText = data["discordLeaderboardIcons"][i]
+    idCell.classList.add('font-monospace')
+
+    let displayName = document.createElement('td')
+    let description = document.createElement('td')
+
+    for (let j in data["discordLeaderboard"]) {
+      if (data["discordLeaderboardIcons"][i] === data["discordLeaderboard"][j]["discordId"]) {
+        displayName.innerText = data["discordLeaderboard"][j]["displayName"]
+        description.innerText = data["discordLeaderboard"][j]["iconQualitativeDesc"]
+        displayName.classList.remove('fst-italic')
+        break
+      }
+
+      displayName.innerText = "unknown"
+      displayName.classList.add('fst-italic')
+    }
+
+    discordIconRow.append(idCell)
+    discordIconRow.append(displayName)
+    discordIconRow.append(description)
+
+    tbodyDiscordIcon.append(discordIconRow)
   }
 
   // ---------- //
