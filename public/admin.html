@@ -44,7 +44,7 @@
             <h3>Upload Leaderboard Icon</h3>
             <div class="mb-3">
               <label for="formFile" class="form-label">Required format: <span class="font-monospace">DISCORD_USER_ID.png</span><br><strong>Note:</strong> if nothing appears to happen but no error messages are visible, the server processed the file.</label>
-              <input class="form-control" type="file" id="formFile" name="file" accept="image/png">
+              <input class="form-control" type="file" id="formFile" name="file" accept="image/png" required>
               <input id="adminControlPassIcon" class="form-control d-none" type="password" name="password" maxlength="1024">
               <br>
               <button type="submit" class="btn btn-primary">Upload!</button>
@@ -84,6 +84,7 @@
                 <th>Discord ID</th>
                 <th>Linked Name</th>
                 <th>Provided Description</th>
+                <th>Icon Status</th>
               </tr>
             </thead>
             <tbody id="discordLeaderboardIconDesc" class="table-group-divider"></tbody>
