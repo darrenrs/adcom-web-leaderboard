@@ -510,12 +510,31 @@ const fsIconStatus = async() => {
   const iconDirectory = path.join(__dirname, hhcfg["iconRelativePath"])
   let icons = []
 
-  fs.readdir(iconDirectory, (err, files) => {
+  fs.readdir(iconDirectory, async(err, files) => {
     files.forEach(file => {
-      icons.push(file.replace('.png', ''))
+      icons.push({
+        "id": file.replace('.png', ''),
+        "exists": true
+      })
     })
-    icons.sort((a, b) => a - b)
+
+    // now get a list of Discord IDs without an icon
+    const dbHandler = new db()
+    const data = await dbHandler.getAllPlayerDiscordRecordsNoDateConstraint()
+    const iconsIdl = icons.map(a => a["id"])
+
+    for (let i of data) {
+      if (!iconsIdl.includes(i["discordId"]) && i["discordId"] !== "") {
+        icons.push({
+          "id": i["discordId"],
+          "exists": false
+        })
+      }
+    }
+    
+    icons.sort((a, b) => a["id"] - b["id"])
   })
+
 
   return icons
 }

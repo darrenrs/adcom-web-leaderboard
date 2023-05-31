@@ -181,6 +181,18 @@ module.exports = class SQLiteInterface {
     })
   }
 
+  async getAllPlayerDiscordRecordsNoDateConstraint() {
+    return new Promise((resolve, reject) => {
+      this.db.all('SELECT * FROM "players-discord"', (err, rows) => {
+        if (err) {
+          reject(err)
+        }
+        
+        resolve(rows)
+      })
+    })
+  }
+
   // close database--DO NOT use a class instance after calling this method
   close() {
     this.db.close()

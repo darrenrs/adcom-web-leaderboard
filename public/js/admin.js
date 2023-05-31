@@ -29,6 +29,9 @@ const getAdmin = async() => {
   .then((response) => {
     if (response.status === 200) {
       return response.json()
+    } else if (response.status === 401) {
+      document.querySelector('#adminLoginStatus').innerText = `Incorrect password`
+      return
     } else {
       console.error(`Server error (${response.status})`)
       document.querySelector('#adminLoginStatus').innerText = `Server error (${response.status})`
@@ -104,14 +107,14 @@ const populateAdmin = async(data) => {
     let discordIconRow = document.createElement('tr')
 
     let idCell = document.createElement('td')
-    idCell.innerText = data["discordLeaderboardIcons"][i]
+    idCell.innerText = data["discordLeaderboardIcons"][i]["id"]
     idCell.classList.add('font-monospace')
 
     let displayName = document.createElement('td')
     let description = document.createElement('td')
 
     for (let j in data["discordLeaderboard"]) {
-      if (data["discordLeaderboardIcons"][i] === data["discordLeaderboard"][j]["discordId"]) {
+      if (data["discordLeaderboardIcons"][i]["id"] === data["discordLeaderboard"][j]["discordId"]) {
         displayName.innerText = data["discordLeaderboard"][j]["displayName"]
         description.innerText = data["discordLeaderboard"][j]["iconQualitativeDesc"]
         displayName.classList.remove('fst-italic')
@@ -122,9 +125,13 @@ const populateAdmin = async(data) => {
       displayName.classList.add('fst-italic')
     }
 
+    let status = document.createElement('td')
+    status.innerHTML = data["discordLeaderboardIcons"][i]["exists"] ? "Exists" : "<strong>Missing</strong>"
+
     discordIconRow.append(idCell)
     discordIconRow.append(displayName)
     discordIconRow.append(description)
+    discordIconRow.append(status)
 
     tbodyDiscordIcon.append(discordIconRow)
   }
