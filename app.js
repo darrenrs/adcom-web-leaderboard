@@ -500,7 +500,7 @@ const dbPlayerEventRecords = async() => {
 
 const dbPlayerDiscordRecords = async() => {
   const dbHandler = new db()
-  const data = await dbHandler.getAllPlayerDiscordRecords()
+  const data = await dbHandler.getAllPlayerDiscordRecordsNoDateConstraint()
 
   dbHandler.close()
   return data

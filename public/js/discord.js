@@ -156,7 +156,7 @@ const populateDiscordLeaderboardTable = (discordLb, discordId) => {
     let image = document.createElement('img')
     image.src = `img/users/${discordLb[i]["discordId"]}.png`
     image.style = 'width: 40px;'
-    image.alt = '' // don't add an "alt" or it'll look ugly
+    image.alt = '' // don't add a value to this or it'll look ugly
     imageCell.appendChild(image)
 
     let nameCell = document.createElement('td')
@@ -205,8 +205,46 @@ const populateDiscordLeaderboardTable = (discordLb, discordId) => {
     tbody.appendChild(discordLbRow)
   }
 
+  populateSharedDivisions(discordLb)
+
   document.querySelector('table').classList.remove('d-none')
   document.querySelector('#discordLeaderboardLoadError').classList.add('d-none')
+}
+
+const populateSharedDivisions = (data) => {
+  const keys = {}
+  const listRoot = document.createElement('ul')
+
+  document.querySelector('#sharedDivisions').innerHTML = ''
+  for (i of data) {
+    if (Object.keys(keys).includes(i["divisionId"])) {
+      keys[i["divisionId"]].push(i["name"])
+    } else {
+      keys[i["divisionId"]] = [i["name"]]
+    }
+  }
+  
+  for (j of Object.keys(keys)) {
+    if (keys[j].length > 1) {
+      const element = document.createElement('li')
+      element.innerText = `${expandPlayerList(keys[j])} shared a division!`
+      listRoot.append(element)
+    }
+  }
+
+  if (listRoot.childElementCount > 0) {
+    document.querySelector('#sharedDivisions').appendChild(listRoot)
+  } else {
+    document.querySelector('#sharedDivisions').innerText = 'No players on the Discord leaderboard shared a division in this event.'
+  }
+}
+
+const expandPlayerList = (names) => {
+  if (names.length === 2) {
+    return `${names[0]} and ${names[1]}`
+  } else if (names.length > 2) {
+    return `${names.slice(0, -1).join(', ')}, and ${names.slice(-1)}`
+  }
 }
 
 const populateEventScheduleList = (data) => {
