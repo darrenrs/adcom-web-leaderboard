@@ -166,7 +166,7 @@ const populateAdmin = async(data) => {
   }
 
   // ---------- //
-
+  /*
   const tbodyEventRecords = document.querySelector('#dbPlayerEventRecords')
   const allExistingRowsEventRecords = document.querySelectorAll('#dbPlayerEventRecords tr')
   
@@ -202,6 +202,7 @@ const populateAdmin = async(data) => {
     
     tbodyEventRecords.appendChild(dbPlayerEventRecordRow)
   }
+  */
 
   document.querySelector('#adminLoginStatus').classList.add('d-none')
 }
