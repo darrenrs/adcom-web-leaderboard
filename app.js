@@ -197,9 +197,8 @@ const getKnownPlayerEvents = async(id) => {
   try {
     dbHandler.updatePlayerDiscordTimestamp(id)
     const allEvents = await getAllEvents()
-    const currentKnownEvents = await dbHandler.getPlayerEvents(id)
 
-    const newKnownEvents = parseKnownPlayerEvents(id, allEvents, currentKnownEvents)
+    const newKnownEvents = parseKnownPlayerEvents(id, allEvents)
     return newKnownEvents
   } catch (e) {
     // console.error(e)
@@ -207,18 +206,8 @@ const getKnownPlayerEvents = async(id) => {
   }
 }
 
-const parseKnownPlayerEvents = async(id, allEvents, currentKnownEvents) => {
-  const newKnownEvents = []
-
-  // inefficient O(mn) loop but luckily this isn't a lot of data
-  for (let i of allEvents) {
-    for (let j of currentKnownEvents) {
-      if (i["eventId"] === j["eventId"]) {
-        // found a candidate match, so we know it's included
-        // foundIt = true
-      }
-    }
-    
+const parseKnownPlayerEvents = async(id, allEvents) => {
+  const newKnownEventsPromises = allEvents.map(async (i) => {
     const isCurrent = Boolean(i["eventId"] == allEvents[0]["eventId"])
     const status = await getPlayerEventState(id, i["eventId"], isCurrent)
     const eventStruct = {
@@ -230,8 +219,10 @@ const parseKnownPlayerEvents = async(id, allEvents, currentKnownEvents) => {
       "status": status
     }
 
-    newKnownEvents.push(eventStruct)
-  }
+    return eventStruct
+  })
+
+  const newKnownEvents = await Promise.all(newKnownEventsPromises)
 
   newKnownEvents.sort((a, b) => b["startDate"] - a["startDate"])
   return newKnownEvents
@@ -637,7 +628,7 @@ app.put('/api/discord/account', async(req, res) => {
     id = id.toString().trim()
     discordId = discordId.toString().trim()
     displayName = displayName.toString().trim()
-    username = username.toString().trim()
+    username = username.toString().trim().toLowerCase()
     iconDesc = iconDesc.toString().trim()
 
     if (id.length > 16) {
@@ -655,7 +646,7 @@ app.put('/api/discord/account', async(req, res) => {
       return
     }
 
-    if (username.length > 32) {
+    if (!username.match(/^(?!.*\.\.)[a-z0-9_.]{2,32}$/)) {
       res.sendStatus(400)
       return
     }
@@ -711,7 +702,7 @@ app.patch('/api/discord/account', async(req, res) => {
     id = id.toString().trim()
     discordId = discordId.toString().trim()
     displayName = displayName.toString().trim()
-    username = username.toString().trim()
+    username = username.toString().trim().toLowerCase()
     iconDesc = iconDesc.toString().trim()
 
     if (id.length > 16) {
@@ -729,7 +720,7 @@ app.patch('/api/discord/account', async(req, res) => {
       return
     }
 
-    if (username.length > 32) {
+    if (!username.match(/^(?!.*\.\.)[a-z0-9_.]{2,32}$/)) {
       res.sendStatus(400)
       return
     }
@@ -941,6 +932,87 @@ app.get('/api/player/:id', async (req, res) => {
 
       res.status(404).end()
     }
+  } catch (e) {
+    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+
+    res.sendStatus(502)
+  }
+})
+
+// get all player events with position
+app.get('/api/player/:id/all', async (req, res) => {
+  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  try {
+    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+
+    const id = req.params.id
+
+    const allKnownPlayerEvents = await getKnownPlayerEvents(id)
+
+    if (!allKnownPlayerEvents) {
+      log(`${req.method} ${req.originalUrl} - no record found.`, remoteAddress)
+
+      res.status(404).end()
+      return
+    }
+    
+    const joinedEvents = allKnownPlayerEvents.filter(element => element.status)
+
+    // get results for each event
+    const playerEventRecordsPromises = joinedEvents.map(async (record) => {
+      const eventId = record["eventId"]
+      const balanceHandler = new balance(record["eventName"], record["startDate"], record["endDate"])
+      await balanceHandler.loadBalanceData()
+
+      const playerEventInfoPromise = getPlayerEventInfo(id, eventId)
+      const playerLeaderboardPromise = getPlayerLeaderboard(id, eventId, 25, 25, true)
+
+      const results = await Promise.allSettled([
+        playerEventInfoPromise,
+        playerLeaderboardPromise,
+      ])
+      
+      const [playerEventInfo, playerLeaderboard] = results.map((result) => result.value)
+
+      if (!playerEventInfo || !playerLeaderboard) {
+        return null
+      }
+      
+      // differentiate between archived and active leaderboard
+      let returnStruct
+      if (playerLeaderboard["results"]["rootResults"]["topResults"]) {
+        // active
+        returnStruct = await rankedEntryData(record, playerEventInfo, playerLeaderboard, id)
+      } else {
+        // archive
+        returnStruct = await archivedEntryData(record, playerEventInfo, playerLeaderboard)
+      }
+
+      // get estimated rank
+      const rankString = await balanceHandler.getRankFromTrophies(returnStruct["player"]["trophies"], returnStruct["player"]["dateJoined"], returnStruct["player"]["dateUpdated"])
+      returnStruct["rankString"] = rankString
+
+      let divisionPosition = null
+
+      if (returnStruct["division"]["top"]) {
+        for (let j in returnStruct["division"]["top"]) {
+          if (returnStruct["division"]["top"][j]["playerId"] === returnStruct["player"]["playerId"]) {
+            divisionPosition = parseInt(j) + 1
+            break
+          }
+        }
+      }
+
+      returnStruct["player"]["divisionPosition"] = divisionPosition
+      
+      return returnStruct
+    })
+
+    const playerEventRecords = (await Promise.allSettled(playerEventRecordsPromises)).filter(
+      (result) => result.status === 'fulfilled' && result.value !== null
+    ).map(result => result.value)
+    
+    res.status(200).send(playerEventRecords)
   } catch (e) {
     log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
 

@@ -224,7 +224,7 @@ const getInvalidState = async(eventId) => {
 const populateFieldsGeneral = (data) => {
   const eventDetails = getEventDetails(data["event"]["eventName"])
   document.querySelector('#eventImage').classList.remove('d-none')
-  document.querySelector('#eventImage').setAttribute('src', `img/adcom/${data["event"]["eventName"]}.png`)
+  document.querySelector('#eventImage').setAttribute('src', `img/adcom/banner/${data["event"]["eventName"]}.png`)
   document.querySelector('#eventFullName').innerText = eventDetails["name"]
   document.querySelector('#eventDescription').innerText = eventDetails["desc"]
   document.querySelector('#eventStartDate').innerText = new Date(data["event"]["startDate"]).toLocaleString()

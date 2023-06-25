@@ -275,6 +275,10 @@ document.querySelector('#playFabIdInitCheck').addEventListener('keyup', function
   this.value = this.value.toUpperCase()
 })
 
+document.querySelector('#username').addEventListener('keyup', function() {
+  this.value = this.value.toLowerCase()
+})
+
 document.querySelector('#formInitAccount').addEventListener('click', function() {
   postFormInit()
 })
