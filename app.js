@@ -68,7 +68,7 @@ const parseAllEvents = async (eventListReq, future) => {
   // iterate through all leaderboards exposed by the API
   for (let i of eventListReq["data"]["data"]) {
     // some "template" events should be ignored
-    if (i["instance"]["definition"]["requirements"].length === 0) {
+    if (i["instance"]["definition"]["requirements"].length === 0 || !i["instance"]["definition"]["segmentDefinition"]) {
       continue
     }
 
@@ -81,6 +81,7 @@ const parseAllEvents = async (eventListReq, future) => {
     const status = (i["instance"]["status"]["currentStatus"] === "Enabled") ? "active" : "archived"
     let playerCount = i["instance"]["statistics"]["rootCounts"]["global"] + i["instance"]["statistics"]["rootCounts"]["sandbox"]
     const currentDate = new Date()
+    const divisionSize = parseInt(i["instance"]["definition"]["segmentDefinition"]["configuration"]["MAX_ENTRIES"])
 
     if (!isNaN(i["instance"]["statistics"]["rootCounts"]["archive"])) {
       playerCount += i["instance"]["statistics"]["rootCounts"]["archive"]
@@ -96,7 +97,8 @@ const parseAllEvents = async (eventListReq, future) => {
         "endDate": endDate,
         "createdAt": createdAt,
         "archivedAt": archivedAt,
-        "players": playerCount
+        "players": playerCount,
+        "divisionSize": divisionSize
       }
       eventList.push(eventStruct)
     }

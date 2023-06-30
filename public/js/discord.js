@@ -260,7 +260,11 @@ const populateEventScheduleList = (data) => {
 
   for (let i of data) {
     const newOption = document.createElement('option')
-    newOption.innerText = `${getEventDetails(i["eventName"])["short"]} (${new Date(i["startDate"]).toDateString().substring(4)} to ${new Date(i["endDate"]).toDateString().substring(4)})`
+    if (!getEventDetails(i["eventName"])) {
+      newOption.innerText = "Unknown event!"
+    } else {
+      newOption.innerText = `${getEventDetails(i["eventName"])["short"]} (${new Date(i["startDate"]).toDateString().substring(4)} to ${new Date(i["endDate"]).toDateString().substring(4)})`
+    }
     newOption.value = i["eventId"]
     
     selectList.appendChild(newOption)

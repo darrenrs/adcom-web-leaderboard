@@ -32,7 +32,7 @@ const populateScheduleTable = (eventSchedule) => {
     if (eventRecord) {
       nameCell.innerText = eventRecord["name"]
     } else {
-      nameCell.innerText = `NEW EVENT "${i["eventName"]}"`
+      nameCell.innerText = `NEW EVENT "${eventSchedule[i]["eventName"]}"`
     }
     nameCell.addEventListener('click', () => {
       let archiveString = 'active event'
@@ -65,7 +65,11 @@ const populateScheduleTable = (eventSchedule) => {
 
     let playerCountCell = document.createElement('td')
     if (new Date(eventSchedule[i]["startDate"]) < new Date()) {
-      playerCountCell.innerText = eventSchedule[i]["players"].toLocaleString()
+      if (!eventSchedule[i]["players"]) {
+        playerCountCell.innerText = '0'
+      } else {
+        playerCountCell.innerText = eventSchedule[i]["players"].toLocaleString()
+      }
     } else {
       playerCountCell.innerText = ''
     }
