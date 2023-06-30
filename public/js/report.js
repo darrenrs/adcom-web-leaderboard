@@ -93,7 +93,11 @@ const populateUserData = (data) => {
     imageCell.appendChild(image)
 
     let nameCell = document.createElement('td')
-    nameCell.innerText = getEventDetails(data[i]["event"]["eventName"])["name"]
+    if (!getEventDetails(data[i]["event"]["eventName"])) {
+      newCell.innerText = "Unknown event!"
+    } else {
+      nameCell.innerText = getEventDetails(data[i]["event"]["eventName"])["name"]
+    }
 
     let positionCell = document.createElement('td')
     positionCell.innerText = `${(data[i]["player"]["globalPosition"] + 1).toLocaleString()} / ${data[i]["global"]["count"].toLocaleString()}`
@@ -112,7 +116,6 @@ const populateUserData = (data) => {
 
     let divisionTypeCell = document.createElement('td')
     divisionTypeCell.innerText = getSpendingCategory(data[i]["player"]["divisionId"])
-    console.log(data[i]["player"])
 
     let lastUpdatedCell = document.createElement('td')
     lastUpdatedCell.innerText = new Date(data[i]["player"]["dateUpdated"]).toLocaleString()

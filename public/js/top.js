@@ -58,7 +58,13 @@ const postFormEventList = async() => {
       if (i["status"] && i["eventStatus"] === "active") {
         // the player participated in this event and the event is active
         const newOption = document.createElement('option')
-        newOption.innerText = `${getEventDetails(i["eventName"])["short"]} (${new Date(i["startDate"]).toDateString().substring(4)} to ${new Date(i["endDate"]).toDateString().substring(4)})`
+
+        if (!getEventDetails(i["eventName"])) {
+          newOption.innerText = "Unknown event!"
+        } else {
+          newOption.innerText = `${getEventDetails(i["eventName"])["short"]} (${new Date(i["startDate"]).toDateString().substring(4)} to ${new Date(i["endDate"]).toDateString().substring(4)})`
+        }
+        
         newOption.value = i["eventId"]
         
         selectList.appendChild(newOption)
