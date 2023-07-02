@@ -44,6 +44,10 @@ module.exports = class BalanceParser {
     })
   }
 
+  async getBalanceData() {
+    return this.balanceData
+  }
+
   async getBalanceSpendingCurve() {
     return this.balanceSpendCurve
   }
