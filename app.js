@@ -1074,6 +1074,105 @@ app.get('/api/event/:event/lb-invalid', async(req, res) => {
   return
 })
 
+// balance data
+// common gateway for rank estimator
+app.get('/api/event/:event/balance', async (req, res) => {
+  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  try {
+    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+
+    const eventId = req.params.event
+
+    const allEventData = await getAllEvents()
+    let currentEventData
+
+    for (let i of allEventData) {
+      if (i["eventId"] == eventId) {
+        currentEventData = i
+        break
+      }
+    }
+
+    const balanceHandler = new balance(currentEventData["eventName"])
+    await balanceHandler.loadBalanceData()
+
+    const balanceData = await balanceHandler.getBalanceData()
+
+    currentEventData["balance"] = JSON.stringify(balanceData)
+
+    res.send(currentEventData)
+  } catch (e) {
+    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+
+    res.sendStatus(500).end()
+  }
+})
+
+// common gateway for rank estimator
+app.get('/api/event/:event/rank-estimator', async (req, res) => {
+  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  try {
+    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+
+    const eventId = req.params.event
+    const trophies = req.query.trophies
+    const timeElapsed = req.query.time
+
+    // trophies is required
+    if (!trophies || !parseInt(trophies)) {
+      res.sendStatus(400).end()
+      return
+    }
+
+    const allEventData = await getAllEvents()
+    let currentEventData
+
+    for (let i of allEventData) {
+      if (i["eventId"] == eventId) {
+        currentEventData = i
+        break
+      }
+    }
+
+    const balanceHandler = new balance(currentEventData["eventName"], currentEventData["startDate"], currentEventData["endDate"])
+    await balanceHandler.loadBalanceData()
+
+    if (!timeElapsed || !parseInt(timeElapsed)) {
+      let rankString = await balanceHandler.getRankFromTrophies(parseInt(trophies))
+
+      // getRankFromTrophies automatically caps event at the end time
+      if (new Date() > currentEventData["endDate"]) {
+        rankString["timeElapsed"] = currentEventData["endDate"] - currentEventData["startDate"]
+      } else {
+        rankString["timeElapsed"] = Math.floor((new Date() - currentEventData["startDate"]) / 1000)
+      }
+
+      res.json(rankString)
+    } else {
+      const timeElapsedInt = parseInt(timeElapsed)
+
+      let currentEventStart = currentEventData["startDate"]
+      let currentEventEnd = new Date(currentEventStart)
+      currentEventEnd = new Date(currentEventEnd.getTime() + timeElapsedInt * 1000)
+
+      let rankString = await balanceHandler.getRankFromTrophies(parseInt(trophies), currentEventStart, currentEventEnd)
+
+      // getRankFromTrophies automatically caps event at the end time
+      if (new Date() > currentEventData["endDate"]) {
+        rankString["timeElapsed"] = currentEventData["endDate"] - currentEventData["startDate"]
+      } else {
+        rankString["timeElapsed"] = (currentEventEnd - currentEventStart) / 1000
+      }
+
+      res.json(rankString)
+    }
+  } catch (e) {
+    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+
+    res.sendStatus(502).end()
+  }
+})
+
 // master player API
 app.get('/api/event/:event/:id', async (req, res) => {
   const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
