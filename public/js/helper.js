@@ -89,126 +89,216 @@ const getPlayerNameFromOrdinal = (n) => {
   return returnStruct
 }
 
-const getEventDetails = (eventId) => {
-  const eventMetadata = {
+const getAllEventDetails = () => {
+  return {
     "atlantis": {
       "name": "Anew Atlantis",
       "short": "Atlantis",
-      "desc": "Fish are Comrades too. Dive deep to restore the kingdom of Atlantis with the glory of Communism leading the way."
+      "desc": "Fish are Comrades too. Dive deep to restore the kingdom of Atlantis with the glory of Communism leading the way.",
+      "commonBalance": "atlantis",
+      "eventType": "weekend"
     },
     "attack": {
       "name": "Quest for Oil",
       "short": "Oil",
-      "desc": "Glorious State needs more oil to expand the glory of Communism"
+      "desc": "Glorious State needs more oil to expand the glory of Communism",
+      "commonBalance": "globalmini",
+      "eventType": "mini"
     },
     "bamboo": {
       "name": "Comrade's Communist Vacation!",
       "short": "Vacation",
-      "desc": "When it's time to get away, the best (and only) place for Comrades is the Great Motherland Resort and Supreme State Spa!"
+      "desc": "When it's time to get away, the best (and only) place for Comrades is the Great Motherland Resort and Supreme State Spa!",
+      "commonBalance": "legacysanta",
+      "eventType": "special"
     },
     "cockatrice": {
       "name": "Comrades & Cockatrices",
       "short": "C&C",
-      "desc": "It's game night, Comrade! Grab some snacks, your dice set and character sheet, because it's time for an adventure party!"
+      "desc": "It's game night, Comrade! Grab some snacks, your dice set and character sheet, because it's time for an adventure party!",
+      "commonBalance": "legacysanta",
+      "eventType": "special"
     },
     "cowboy": {
       "name": "Comrade Cowboys",
       "short": "Cowboy",
-      "desc": "Reshape the wild west with the glories of Communism. Expand the railways and become the sheriff of a new socialist frontier."
+      "desc": "Reshape the wild west with the glories of Communism. Expand the railways and become the sheriff of a new socialist frontier.",
+      "commonBalance": "space",
+      "eventType": "weekend"
     },
     "crusade": {
       "name": "Communist Crusade",
       "short": "Crusade",
-      "desc": "The dark ages need light! Bring the glory of Communism to a fantastic land of wizards, knights, and dragons!"
+      "desc": "The dark ages need light! Bring the glory of Communism to a fantastic land of wizards, knights, and dragons!",
+      "commonBalance": "crusade",
+      "eventType": "weekend"
     },
     "defense": {
       "name": "Shields Up",
       "short": "Shield",
-      "desc": "We are under attack! Activate defense protocols and protect the comrades."
+      "desc": "We are under attack! Activate defense protocols and protect the comrades.",
+      "commonBalance": "industrymini",
+      "eventType": "mini"
     },
     "export": {
       "name": "Potato Export",
       "short": "Export",
-      "desc": "Communist allies are hungry, and Glorious State is here to help."
+      "desc": "Communist allies are hungry, and Glorious State is here to help.",
+      "commonBalance": "industrymini",
+      "eventType": "mini"
     },
     "fusfarm": {
       "name": "Farm to Table",
       "short": "Farm to Table",
-      "desc": "From the soil to our plates, potatoes make the greatest of journeys to fuel our great State!"
+      "desc": "From the soil to our plates, potatoes make the greatest of journeys to fuel our great State!",
+      "commonBalance": "fusionages",
+      "eventType": "fusion"
     },
     "fuspet": {
       "name": "Grand Pet Show",
       "short": "Pet Show",
-      "desc": "It's a party of animals! Which one of these fine pets will be crowned best in show?"
+      "desc": "It's a party of animals! Which one of these fine pets will be crowned best in show?",
+      "commonBalance": "fusionnew",
+      "eventType": "fusion"
     },
     "fusscience": {
       "name": "State Science",
       "short": "State Science",
-      "desc": "Eureka! Communism progresses in leaps and bounds with the power of science!"
+      "desc": "Eureka! Communism progresses in leaps and bounds with the power of science!",
+      "commonBalance": "fusionages",
+      "eventType": "fusion"
     },
     "fusvehicle": {
       "name": "Supreme Vehicle Show",
       "short": "Vehicle Show",
-      "desc": "Vroom! Get your hands behind the wheel of some of the most impressive vehicles in the Motherland!"
+      "desc": "Vroom! Get your hands behind the wheel of some of the most impressive vehicles in the Motherland!",
+      "commonBalance": "fusionnew",
+      "eventType": "fusion"
     },
     "hexathlon": {
       "name": "The Motherland Games",
       "short": "Motherland Games",
-      "desc": "Cheer on our Comrades as the world's best athletes compete in the Motherland's greatest farming competition! Let's go, Comrades!"
+      "desc": "Cheer on our Comrades as the world's best athletes compete in the Motherland's greatest farming competition! Let's go, Comrades!",
+      "commonBalance": "newsanta",
+      "eventType": "special"
     },
     "ninja": {
       "name": "Ninja Union",
       "short": "Ninja",
-      "desc": "Seek to master the deadly arts of Communism in an ancient land of honor and discipline. Find enlightenment and become a supreme Ninja Master."
+      "desc": "Seek to master the deadly arts of Communism in an ancient land of honor and discipline. Find enlightenment and become a supreme Ninja Master.",
+      "commonBalance": "crusade",
+      "eventType": "weekend"
     },
     "potatofactory": {
       "name": "Glorious Potato Factory",
       "short": "Potato Factory",
-      "desc": "Grow your Communist food empire from humble beginnings and become the pride of the glorious Motherland!"
+      "desc": "Grow your Communist food empire from humble beginnings and become the pride of the glorious Motherland!",
+      "commonBalance": "newsanta",
+      "eventType": "special"
     },
     "power": {
       "name": "Power Underwhelming",
       "short": "Power",
-      "desc": "Power outage! Glorious State needs an electricity surge."
+      "desc": "Power outage! Glorious State needs an electricity surge.",
+      "commonBalance": "globalmini",
+      "eventType": "mini"
     },
     "santa": {
       "name": "Supreme Santa",
       "short": "Santa",
-      "desc": "Conquer the North Pole in the name of the Motherland! Build a new Great State in a frozen landscape and celebrate the gift of Communism with all your comrades!"
+      "desc": "Conquer the North Pole in the name of the Motherland! Build a new Great State in a frozen landscape and celebrate the gift of Communism with all your comrades!",
+      "commonBalance": "legacysanta",
+      "eventType": "special"
     },
     "space": {
       "name": "Space Force",
       "short": "Space",
-      "desc": "Take control of the Communist space program tasked with spreading the glory of communism into the cosmos!"
+      "desc": "Take control of the Communist space program tasked with spreading the glory of communism into the cosmos!",
+      "commonBalance": "space",
+      "eventType": "weekend"
     },
     "spooky": {
       "name": "Spooky State",
       "short": "Spooky",
-      "desc": "Collect candy and conjure Comrades to seize the means of trick or treating season!"
+      "desc": "Collect candy and conjure Comrades to seize the means of trick or treating season!",
+      "commonBalance": "legacysanta",
+      "eventType": "special"
     },
     "stone": {
       "name": "Stone State",
       "short": "Stone",
-      "desc": "Show our Comrade ancestors the glory of Communism and lead them out of the Stone Age!"
+      "desc": "Show our Comrade ancestors the glory of Communism and lead them out of the Stone Age!",
+      "commonBalance": "atlantis",
+      "eventType": "weekend"
     },
     "supervillain": {
       "name": "Supreme Supervillain",
       "short": "Supervillain",
-      "desc": "Build your villainous base and prepare your monolog! It's time to show our Capitalist nemesis the greatness of Communism!"
+      "desc": "Build your villainous base and prepare your monolog! It's time to show our Capitalist nemesis the greatness of Communism!",
+      "commonBalance": "newsanta",
+      "eventType": "special"
     },
     "winter": {
       "name": "Winter Motherland",
       "short": "Winter",
-      "desc": "Winter in the Motherland is a time to celebrate the glories of Communism by raising a mug of socialist-cider in the name of Supreme Leader!"
+      "desc": "Winter in the Motherland is a time to celebrate the glories of Communism by raising a mug of socialist-cider in the name of Supreme Leader!",
+      "commonBalance": "atlantis",
+      "eventType": "weekend"
     },
     "zombie": {
       "name": "Zombie Revolution",
       "short": "Zombie",
-      "desc": "Show our Comrade survivors how to handle the zombie Capitalist outbreak and rebuild the Motherland!"
+      "desc": "Show our Comrade survivors how to handle the zombie Capitalist outbreak and rebuild the Motherland!",
+      "commonBalance": "crusade",
+      "eventType": "weekend"
     }
   }
+}
+
+const getEventDetails = (eventId) => {
+  const eventMetadata = getAllEventDetails()
 
   return eventMetadata[eventId]
+}
+
+const getEventCommonBalanceName = (commonBalanceId) => {
+  switch (commonBalanceId) {
+    case 'atlantis':
+      return 'Atlantis/Winter/Stone'
+    case 'crusade':
+      return 'Crusade/Ninja/Zombie'
+    case 'space':
+      return 'Space/Cowboy'
+    case 'globalmini':
+      return 'Oil/Power Mini'
+    case 'industrymini':
+      return 'Export/Shield Mini'
+    case 'legacysanta':
+      return 'Original Santa Balances'
+    case 'newsanta':
+      return 'New Santa Balances'
+    case 'fusionages':
+      return 'Ages Fusions'
+    case 'fusionnew':
+      return 'New Fusions'
+    default:
+      return 'Unknown common event balance'
+  }
+}
+
+const getEventTypeName = (eventType) => {
+  switch (eventType) {
+    case 'weekend':
+      return 'Weekend Event (4 days 4 hours)'
+    case 'mini':
+      return 'Mini Event (1 day 4 hours)'
+    case 'special':
+      return 'Special Event (11 days 4 hours)'
+    case 'fusion':
+      return 'Fusion Event (2 days 4 hours)'
+    default:
+      return 'Unknown event type'
+  }
 }
 
 const getSpendingCategory = (b) => {
