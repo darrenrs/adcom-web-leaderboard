@@ -1,3 +1,6 @@
+// MUST be global to reset the event listener
+let eventSelectorListener
+
 const postFormPlayFab = async() => {
   document.querySelector('#mainContent').classList.add('d-none')
   document.querySelector('#eventLoadConnectionError').classList.add('d-none')
@@ -51,40 +54,51 @@ const postFormEventList = async() => {
     countInput.removeAttribute('disabled')
     selectButton.removeAttribute('disabled')
 
-    const templateOption = document.querySelector('option')
-    templateOption.remove()
-
-    for (let i of eventList) {
-      if (i["status"] && i["eventStatus"] === "active") {
-        // the player participated in this event and the event is active
-        const newOption = document.createElement('option')
-
-        if (!getEventDetails(i["eventName"])) {
-          newOption.innerText = "Unknown event!"
-        } else {
-          newOption.innerText = `${getEventDetails(i["eventName"])["short"]} (${new Date(i["startDate"]).toDateString().substring(4)} to ${new Date(i["endDate"]).toDateString().substring(4)})`
-        }
-        
-        newOption.value = i["eventId"]
-        
-        selectList.appendChild(newOption)
-      }
+    if (eventSelectorListener) {
+      selectList.removeEventListener('change', eventSelectorListener)
     }
 
-    if (selectList.childElementCount < 1) {
-      // if after all this there have been no events found, we will restore the template message
-      // it is possible for a PlayFab account to exist but no events to have been participated in
-      const newOption = document.createElement('option')
-      newOption.innerText = 'No event participation'
-      selectList.appendChild(newOption)
-      selectList.setAttribute('disabled', 'disabled')
-      countInput.setAttribute('disabled', 'disabled')
-      selectButton.setAttribute('disabled', 'disabled')
-    }
+    eventSelectorListener = nestedEventSelector(eventList.filter(element => element["status"]), selectList, selectButton)
+
+    // const templateOption = document.querySelector('option')
+    // templateOption.remove()
+
+    // for (let i of eventList) {
+    //   if (i["status"] && i["eventStatus"] === "active") {
+    //     // the player participated in this event and the event is active
+    //     const newOption = document.createElement('option')
+
+    //     if (!getEventDetails(i["eventName"])) {
+    //       newOption.innerText = "Unknown event!"
+    //     } else {
+    //       newOption.innerText = `${getEventDetails(i["eventName"])["short"]} (${new Date(i["startDate"]).toDateString().substring(4)} to ${new Date(i["endDate"]).toDateString().substring(4)})`
+    //     }
+        
+    //     newOption.value = i["eventId"]
+        
+    //     selectList.appendChild(newOption)
+    //   }
+    // }
+
+    // if (selectList.childElementCount < 1) {
+    //   // if after all this there have been no events found, we will restore the template message
+    //   // it is possible for a PlayFab account to exist but no events to have been participated in
+    //   const newOption = document.createElement('option')
+    //   newOption.innerText = 'No event participation'
+    //   selectList.appendChild(newOption)
+    //   selectList.setAttribute('disabled', 'disabled')
+    //   countInput.setAttribute('disabled', 'disabled')
+    //   selectButton.setAttribute('disabled', 'disabled')
+    // }
   }
 }
 
 const postFormEventLeaderboard = async() => {
+  // not a valid event if "level" attribute is present or "value" attribute is missing (check explicitly)
+  if (document.querySelector('option:checked').getAttribute('level') !== null || document.querySelector('option:checked').getAttribute('value') === null) {
+    return
+  }
+  
   const playerId = document.querySelector('#activePlayFabId').innerText
   const selectedEventId = document.querySelector('option:checked').value
   const topCount = document.querySelector('#eventNPlayers').value

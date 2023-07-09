@@ -1,4 +1,9 @@
 const postFormDiscordLeaderboard = async() => {
+  // not a valid event if "level" attribute is present or "value" attribute is missing (check explicitly)
+  if (document.querySelector('option:checked').getAttribute('level') !== null || document.querySelector('option:checked').getAttribute('value') === null) {
+    return
+  }
+
   document.querySelector('#mainContent').classList.add('d-none')
   document.querySelector('#discordLeaderboardLoadError').classList.remove('d-none')
   document.querySelector('#discordLeaderboardLoadError').innerText = 'Loading ...'
@@ -247,35 +252,13 @@ const expandPlayerList = (names) => {
   }
 }
 
-const populateEventScheduleList = (data) => {
-  const selectList = document.querySelector('#eventSelect')
-  const selectButton = document.querySelector('#formSubmitEvent')
-
-  while (selectList.childElementCount > 0) {
-    selectList.remove(selectList.lastChild)
-  }
-
-  selectList.removeAttribute('disabled')
-  selectButton.removeAttribute('disabled')
-
-  for (let i of data) {
-    const newOption = document.createElement('option')
-    if (!getEventDetails(i["eventName"])) {
-      newOption.innerText = "Unknown event!"
-    } else {
-      newOption.innerText = `${getEventDetails(i["eventName"])["short"]} (${new Date(i["startDate"]).toDateString().substring(4)} to ${new Date(i["endDate"]).toDateString().substring(4)})`
-    }
-    newOption.value = i["eventId"]
-    
-    selectList.appendChild(newOption)
-  }
-}
-
 const init = async() => {
   const eventSchedule = await getEventSchedule()
 
   if (eventSchedule) {
-    populateEventScheduleList(eventSchedule)
+    const selectElement = document.querySelector('#eventSelect')
+    const selectButton = document.querySelector('#formSubmitEvent')
+    nestedEventSelector(eventSchedule, selectElement, selectButton)
   }
 
   document.querySelector('#earliestPossibleDate').innerText = new Date((new Date() - 56*86400*1000)).toLocaleString()
