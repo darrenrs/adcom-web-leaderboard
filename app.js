@@ -393,15 +393,28 @@ const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboa
 
   // get results for each division player
   if (returnGlobalForDivision) {
+    const balanceHandler = new balance(currentEventData["eventName"], currentEventData["startDate"], currentEventData["endDate"])
+    await balanceHandler.loadBalanceData()
+
     const playerEventRecordsPromises = returnStruct["division"]["adjacent"].map(async (record) => {
       const id = record["playerId"]
       const eventId = returnStruct["event"]["eventGuid"]
       const rvalue = {
         "playFabId": id,
-        "position": null
+        "position": null,
+        "rankString": null,
+        "dateJoined": null,
+        "dateUpdated": null
       }
 
-      const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25)
+      const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25, true)
+      const playerEventInfo = await getPlayerEventInfo(id, eventId)
+
+      // get estimated rank
+      const rankString = await balanceHandler.getRankFromTrophies(playerEventInfo["score"], playerEventInfo["created"], playerEventInfo["updated"])
+      rvalue["rankString"] = rankString
+      rvalue["dateJoined"] = playerEventInfo["created"]
+      rvalue["dateUpdated"] = playerEventInfo["updated"]
 
       if (!playerLeaderboard) {
         return rvalue
@@ -412,7 +425,6 @@ const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboa
         for (let i of playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]) {
           if (i["playerId"] === id) {
             rvalue["position"] = i["position"]["position"]
-
             return rvalue
           }
         }
@@ -429,12 +441,18 @@ const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboa
       for (let j of returnStruct["division"]["adjacent"]) {
         if (i["playFabId"] === j["playerId"]) {
           j["globalPosition"] = i["position"]
+          j["rankString"] = i["rankString"]
+          j["dateJoined"] = i["dateJoined"]
+          j["dateUpdated"] = i["dateUpdated"]
         }
       }
       
       for (let k of returnStruct["division"]["top"]) {
         if (i["playFabId"] === k["playerId"]) {
           k["globalPosition"] = i["position"]
+          k["rankString"] = i["rankString"]
+          k["dateJoined"] = i["dateJoined"]
+          k["dateUpdated"] = i["dateUpdated"]
         }
       }
     }
@@ -1280,7 +1298,7 @@ app.get('/api/event/:event/:id/brackets', async (req, res) => {
     const brackets = [1, 5, 25, 100, 0.01, 0.05, 0.10, 0.25, 0.50, 0.75]
 
     const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25)
-    if (!playerLeaderboard) { // todo: fix to replace promise failure
+    if (!playerLeaderboard) {
       // don't even bother continuing if we know the ID has no record
       log(`${req.method} ${req.originalUrl} - no record found.`, remoteAddress)
 
@@ -1421,7 +1439,7 @@ app.get('/api/event/:event/:id/finished', async(req, res) => {
     }
 
     while (finalPlayersFinished === -1) {
-      playerLeaderboard = await getPlayerLeaderboard(currentPlayerId, eventId, stepCount, 1)
+      playerLeaderboard = await getPlayerLeaderboard(currentPlayerId, eventId, stepCount, 1, true)
       
       for (let i of playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]) {
         lastPlayerId = `${currentPlayerId}`

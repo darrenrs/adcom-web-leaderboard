@@ -471,6 +471,8 @@ const nestedEventSelector = (data, selectList, selectButton) => {
   selectList.addEventListener('change', onChangeEventListener)
 
   if (data.length === 0) {
+    clearList()
+    
     const optionNone = document.createElement('option')
     optionNone.innerText = 'No events available'
     selectList.appendChild(optionNone)
