@@ -120,11 +120,8 @@ const nestedEventSelector = (data, selectList, selectButton) => {
           return subBaseData[a]["title"].localeCompare(subBaseData[b]["title"])
         })
         .forEach(function(key) {
-          console.log(key)
           subBaseDataSorted[key] = subBaseData[key]
         })
-
-        console.log(subBaseDataSorted)
 
         const keys = Object.keys(subBaseDataSorted)
         const values = Object.values(subBaseDataSorted)
@@ -379,8 +376,6 @@ const nestedEventSelector = (data, selectList, selectButton) => {
     if (!year) {
       return
     }
-
-    console.log(year, month, quarter)
 
     let events = []
     for (let i of data) {

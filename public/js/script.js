@@ -266,8 +266,10 @@ const populateFieldsGeneral = (data) => {
   let tbody = document.querySelector('#divisionPlayers')
   tbody.innerHTML = ''
   if (data["player"]["divisionId"]) {
-    const joinTimestamps = data["division"]["top"].map(x => x["dateJoined"]).sort()
-    document.querySelector('#divisionTime').innerText = getFastTimedeltaFormat((new Date(joinTimestamps[joinTimestamps.length-1]) - new Date(joinTimestamps[0]))/1000)
+    if (data["division"]["top"] && data["division"]["top"].length > 0) {
+      const joinTimestamps = data["division"]["top"].map(x => x["dateJoined"]).sort()
+      document.querySelector('#divisionTime').innerText = getFastTimedeltaFormat((new Date(joinTimestamps[joinTimestamps.length-1]) - new Date(joinTimestamps[0]))/1000)
+    }
 
     for (let i in data["division"]["top"]) {
       let divisionPlayer = document.createElement('tr')
