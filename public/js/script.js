@@ -266,6 +266,9 @@ const populateFieldsGeneral = (data) => {
   let tbody = document.querySelector('#divisionPlayers')
   tbody.innerHTML = ''
   if (data["player"]["divisionId"]) {
+    const joinTimestamps = data["division"]["top"].map(x => x["dateJoined"]).sort()
+    document.querySelector('#divisionTime').innerText = getFastTimedeltaFormat((new Date(joinTimestamps[joinTimestamps.length-1]) - new Date(joinTimestamps[0]))/1000)
+
     for (let i in data["division"]["top"]) {
       let divisionPlayer = document.createElement('tr')
       if (data["division"]["top"][i]["ordinal"] === data["player"]["playerOrdinal"]) {
@@ -278,7 +281,7 @@ const populateFieldsGeneral = (data) => {
           let moveUp = document.createElement('tr')
           moveUp.classList.add('fw-bold')
           let moveUpCell = document.createElement('td')
-          moveUpCell.setAttribute('colspan', 5)
+          moveUpCell.setAttribute('colspan', 6)
           moveUpCell.classList.add('text-center')
           moveUpCell.innerText = `▲ ${trophyDelta.toLocaleString()} trophies needed to move up ▲`
 
@@ -316,12 +319,16 @@ const populateFieldsGeneral = (data) => {
       if (lbp_parsed > 100) {
         globalPosCell.innerHTML = `${globalPosCell.innerHTML} (${(lbp_parsed / (data["global"]["count"]-1) * 100).toFixed(1)}%)`
       }
+
+      let rankCell = document.createElement('td')
+      rankCell.innerText = `${data["division"]["top"][i]["rankString"]["rank"]}/${data["division"]["top"][i]["rankString"]["mission"]}`
       
       divisionPlayer.appendChild(positionCell)
       divisionPlayer.appendChild(imageCell)
       divisionPlayer.appendChild(nameCell)
       divisionPlayer.appendChild(trophyCell)
       divisionPlayer.appendChild(globalPosCell)
+      divisionPlayer.appendChild(rankCell)
       
       tbody.appendChild(divisionPlayer)
     }

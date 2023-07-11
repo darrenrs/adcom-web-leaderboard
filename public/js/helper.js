@@ -358,6 +358,18 @@ const getTimedeltaFormat = (timestamp) => {
   }
 }
 
+const getFastTimedeltaFormat = (sec) => {
+  if (sec < 10) {
+    return `${(sec).toFixed(3)} sec`
+  } else if (sec < 60) {
+    return `${(sec).toFixed(2)} sec`
+  } else if (sec < 3600) {
+    return `${Math.floor(sec / 60)} min ${Math.floor(sec % 60)} sec`
+  } else {
+    return `${Math.floor(sec / 3600)} hr ${Math.floor((sec / 60) % 60)} min ${Math.floor(sec % 60)} sec`
+  }
+}
+
 const getPositionHTMLFormat = (n) => {
   const numString = n.toString()
   const lastDigit = numString.charAt(numString.length - 1)
