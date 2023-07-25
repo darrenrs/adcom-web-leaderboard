@@ -436,12 +436,18 @@ const populateFieldsGlobal = (data, playerData) => {
     }
   }
 
+  let bracketScore = bracketValues.length - ((margin - 41) / 80)
+
   if (isNaN(margin)) {
     // 1st place
     margin = 40
+    bracketScore = bracketValues.length
   } else if (window.getComputedStyle(document.querySelector('#moveUpTrophies')).getPropertyValue('height') === '65px') {
+    // trophies to move up row spans two lines
     margin += 24
   }
+  
+  document.querySelector('#bracketScore').innerText = bracketScore.toFixed(4)
 
   if (playerData["player"]["globalPosition"] < 100) {
     document.querySelector('#leaderboardMarker').innerHTML = getPositionHTMLFormat(playerData["player"]["globalPosition"] + 1)

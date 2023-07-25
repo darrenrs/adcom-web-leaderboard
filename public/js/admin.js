@@ -49,7 +49,7 @@ const populateAdmin = async(data) => {
   document.querySelector('#mainContent').classList.remove('d-none')
 
   document.querySelector('#discordLeaderboardCount').innerText = (data["discordLeaderboard"].length).toLocaleString()
-  document.querySelector('#discordLeaderboardIconCount').innerText = (data["discordLeaderboardIcons"].length).toLocaleString()
+  document.querySelector('#discordLeaderboardIconCount').innerText = (data["discordLeaderboardIcons"].filter(x => x.exists).length).toLocaleString()
   document.querySelector('#dbPlayerCount').innerText = (data["dbPlayerList"].length).toLocaleString()
   document.querySelector('#dbPlayerEventRecordCount').innerText = (data["dbPlayerEventRecords"].length).toLocaleString()
 
@@ -60,6 +60,7 @@ const populateAdmin = async(data) => {
     i.remove()
   }
 
+  // todo: flag if player record is eligible for deletion
   for (let i in data["discordLeaderboard"]) {
     let discordLbRow = document.createElement('tr')
 
@@ -82,7 +83,7 @@ const populateAdmin = async(data) => {
 
     let lastLoginCell = document.createElement('td')
     lastLoginCell.innerText = data["discordLeaderboard"][i]["lastCheckDate"]
-
+    
     discordLbRow.append(idCell)
     discordLbRow.append(nameCell)
     discordLbRow.append(discordNameCell)
@@ -90,6 +91,12 @@ const populateAdmin = async(data) => {
     discordLbRow.append(playFabIdCell)
     discordLbRow.append(lastLoginCell)
     
+    let loginDateObj = new Date(data["discordLeaderboard"][i]["lastCheckDate"] + 'Z') // make it UTC
+    
+    if ((new Date() - loginDateObj) > 56 * 86400 * 1000 && !data["discordLeaderboard"][i]["discordId"]) {
+      discordLbRow.classList.add('bg-danger')
+    }
+
     tbodyDiscord.appendChild(discordLbRow)
   }
 
@@ -164,45 +171,6 @@ const populateAdmin = async(data) => {
     
     tbodyPlayerList.appendChild(dbPlayerListRow)
   }
-
-  // ---------- //
-  /*
-  const tbodyEventRecords = document.querySelector('#dbPlayerEventRecords')
-  const allExistingRowsEventRecords = document.querySelectorAll('#dbPlayerEventRecords tr')
-  
-  for (let i of allExistingRowsEventRecords) {
-    i.remove()
-  }
-
-  for (let i in data["dbPlayerEventRecords"]) {
-    let dbPlayerEventRecordRow = document.createElement('tr')
-
-    let idCell = document.createElement('td')
-    idCell.innerText = parseInt(i)
-
-    let playFabIdCell = document.createElement('td')
-    playFabIdCell.innerText = data["dbPlayerEventRecords"][i]["id"]
-    playFabIdCell.classList.add('font-monospace')
-
-    let eventIdCell = document.createElement('td')
-    eventIdCell.innerText = data["dbPlayerEventRecords"][i]["eventId"]
-    eventIdCell.classList.add('font-monospace')
-
-    let statusCell = document.createElement('td')
-    statusCell.innerText = data["dbPlayerEventRecords"][i]["exists"] ? "true" : "false"
-
-    let addDateCell = document.createElement('td')
-    addDateCell.innerText = data["dbPlayerEventRecords"][i]["addDate"]
-
-    dbPlayerEventRecordRow.append(idCell)
-    dbPlayerEventRecordRow.append(playFabIdCell)
-    dbPlayerEventRecordRow.append(eventIdCell)
-    dbPlayerEventRecordRow.append(statusCell)
-    dbPlayerEventRecordRow.append(addDateCell)
-    
-    tbodyEventRecords.appendChild(dbPlayerEventRecordRow)
-  }
-  */
 
   document.querySelector('#adminLoginStatus').classList.add('d-none')
 }
