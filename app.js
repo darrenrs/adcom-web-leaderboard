@@ -68,7 +68,8 @@ const parseAllEvents = async (eventListReq, future) => {
   // iterate through all leaderboards exposed by the API
   for (let i of eventListReq["data"]["data"]) {
     // some "template" events should be ignored
-    if (i["instance"]["definition"]["requirements"].length === 0 || !i["instance"]["definition"]["segmentDefinition"]) {
+    console.log(i["instance"])
+    if (!i["instance"]["definition"]["requirements"] || !i["instance"]["definition"]["segmentDefinition"]) {
       continue
     }
 
