@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="img/icon.png">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/darkmode.css">
+    <script src="js/rankestimator.js" defer></script>
+    <script src="js/helper.js" defer></script>
+    <title>AdVenture Communist Rank Estimator</title>
+  </head>
+  <body>
+    <nav class="navbar navbar-dark bg-dark sticky-top">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="./">
+          <img src="img/icon.png" width="30" height="40" class="d-inline-block align-self-center" alt="AdCom icon">
+          Rank Estimator
+        </a>
+        <a class="navbar-brand" href="https://github.com/darrenrs/adcom-web-leaderboard">
+          <img src="img/github.png" width="40" height="40" class="d-inline-block align-text-top" alt="GitHub">
+        </a>
+      </div>
+    </nav>
+    <div class="container pt-2">
+      <h2>Rank Estimator</h2>
+      <div class="mb-3">
+        <form onsubmit="return false">
+          <div class="mb-3">
+            <label for="trophyInput">Trophies <span class="text-danger">*</span></label>
+            <input id="trophyInput" class="form-control" type="number" aria-describedby="trophyInputDesc" max="500000" required>
+            <div id="trophyInputDesc" class="form-text">Current number of trophies</div>
+          </div>
+          <div class="mb-3">
+            <label for="startTimeInput">Start Time (UTC) <span class="text-danger">*</span></label>
+            <input id="startTimeInput" class="form-control" type="datetime-local" aria-describedby="startTimeInput" required>
+            <div id="trophyInputDesc" class="form-text">Event join time</div>
+          </div>
+          <div class="mb-3">
+            <label for="endTimeInput">End Time (UTC) <span class="text-danger">*</span></label>
+            <input id="endTimeInput" class="form-control" type="datetime-local" aria-describedby="endTimeInput" required>
+            <div id="trophyInputDesc" class="form-text">Time of last capsule opening</div>
+          </div>
+          <input id="activeEventId" class="form-control d-none" type="text">
+          <button id="formCheckRank" type="submit" class="btn btn-primary">Check Rank</button>
+          <span id="checkRankStatus" class="p-2 text-danger"></span>
+        </form>
+      </div>
+      <div class="mb-3">
+        <div>
+          <span>Rank: </span>
+          <span id="output" class="fw-bold">...</span>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
