@@ -200,35 +200,41 @@ const getKnownPlayerEvents = async(id) => {
   try {
     dbHandler.updatePlayerDiscordTimestamp(id)
     const allEvents = await getAllEvents()
+    const newKnownEvents = await parseKnownPlayerEvents(id, allEvents)
 
-    const newKnownEvents = parseKnownPlayerEvents(id, allEvents)
     return newKnownEvents
   } catch (e) {
-    // console.error(e)
+    console.error(e)
     return Promise.reject(e)
   }
 }
 
 const parseKnownPlayerEvents = async(id, allEvents) => {
-  const newKnownEventsPromises = allEvents.map(async (i) => {
-    const isCurrent = Boolean(i["eventId"] == allEvents[0]["eventId"])
-    const status = await getPlayerEventState(id, i["eventId"], isCurrent)
-    const eventStruct = {
-      "eventId": i["eventId"],
-      "eventName": i["eventName"],
-      "eventStatus": i["eventStatus"],
-      "startDate": i["startDate"],
-      "endDate": i["endDate"],
-      "status": status
+  while (true) {
+    try {
+      const newKnownEventsPromises = allEvents.map(async (i) => {
+        const isCurrent = Boolean(i["eventId"] == allEvents[0]["eventId"])
+        const status = await getPlayerEventState(id, i["eventId"], isCurrent)
+        const eventStruct = {
+          "eventId": i["eventId"],
+          "eventName": i["eventName"],
+          "eventStatus": i["eventStatus"],
+          "startDate": i["startDate"],
+          "endDate": i["endDate"],
+          "status": status
+        }
+
+        return eventStruct
+      })
+
+      const newKnownEvents = await Promise.all(newKnownEventsPromises)
+
+      newKnownEvents.sort((a, b) => b["startDate"] - a["startDate"])
+      return newKnownEvents
+    } catch(e) {
+      // Ratelimited; try again
     }
-
-    return eventStruct
-  })
-
-  const newKnownEvents = await Promise.all(newKnownEventsPromises)
-
-  newKnownEvents.sort((a, b) => b["startDate"] - a["startDate"])
-  return newKnownEvents
+  }
 }
 
 // return information about individual player event registration
@@ -1048,8 +1054,8 @@ app.get('/api/list/:id', async (req, res) => {
     log(`${req.method} ${req.originalUrl}`, remoteAddress)
 
     const id = req.params.id
-
     const allKnownPlayerEvents = await getKnownPlayerEvents(id)
+    
     if (allKnownPlayerEvents) {
       res.status(200).json(allKnownPlayerEvents)
     } else {
