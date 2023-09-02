@@ -139,7 +139,10 @@ const populateUserData = (data) => {
 
     cumulativeTrophies += data[i]["player"]["trophies"]
     globalPositions.push(data[i]["player"]["globalPosition"])
-    divPositions.push(data[i]["player"]["divisionPosition"])
+
+    if (data[i]["player"]["divisionPosition"] !== null) {
+      divPositions.push(data[i]["player"]["divisionPosition"])
+    }
   }
 
   document.querySelector('table').classList.remove('d-none')
