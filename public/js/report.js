@@ -73,12 +73,16 @@ const populateUserData = (data) => {
   let tbody = document.querySelector('#eventReport')
   const allExistingRows = document.querySelectorAll('tbody tr')
   
+  let cumulativeTrophies = 0
+  let globalPositions = []
+  let divPositions = []
+  
   for (let i of allExistingRows) {
     i.remove()
   }
 
   for (let i in data) {
-    let discordLbRow = document.createElement('tr')
+    let eventReportRow = document.createElement('tr')
 
     let idCell = document.createElement('td')
     idCell.innerText = data.length - parseInt(i)
@@ -120,22 +124,30 @@ const populateUserData = (data) => {
     let lastUpdatedCell = document.createElement('td')
     lastUpdatedCell.innerText = new Date(data[i]["player"]["dateUpdated"]).toLocaleString()
 
-    discordLbRow.append(idCell)
-    discordLbRow.append(imageCell)
-    discordLbRow.append(nameCell)
-    discordLbRow.append(positionCell)
-    discordLbRow.append(percentileCell)
-    discordLbRow.append(divRankCell)
-    discordLbRow.append(trophiesCell)
-    discordLbRow.append(rankCell)
-    discordLbRow.append(divisionTypeCell)
-    discordLbRow.append(lastUpdatedCell)
+    eventReportRow.append(idCell)
+    eventReportRow.append(imageCell)
+    eventReportRow.append(nameCell)
+    eventReportRow.append(positionCell)
+    eventReportRow.append(percentileCell)
+    eventReportRow.append(divRankCell)
+    eventReportRow.append(trophiesCell)
+    eventReportRow.append(rankCell)
+    eventReportRow.append(divisionTypeCell)
+    eventReportRow.append(lastUpdatedCell)
     
-    tbody.appendChild(discordLbRow)
+    tbody.appendChild(eventReportRow)
+
+    cumulativeTrophies += data[i]["player"]["trophies"]
+    globalPositions.push(data[i]["player"]["globalPosition"])
+    divPositions.push(data[i]["player"]["divisionPosition"])
   }
 
   document.querySelector('table').classList.remove('d-none')
-  document.querySelector('#discordLeaderboardLoadError').classList.add('d-none')
+  document.querySelector('#loadStatus').classList.add('d-none')
+
+  document.querySelector('#totalTrophies').innerText = cumulativeTrophies.toLocaleString()
+  document.querySelector('#medianGlobalPos').innerHTML = getPositionHTMLFormat(globalPositions.slice().sort((a, b) => a - b)[Math.floor(globalPositions.length / 2)])
+  document.querySelector('#medianDivPos').innerHTML = getPositionHTMLFormat(divPositions.slice().sort((a, b) => a - b)[Math.floor(divPositions.length / 2)])
 }
 
 const init = async() => {
