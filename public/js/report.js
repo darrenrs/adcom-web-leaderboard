@@ -150,7 +150,12 @@ const populateUserData = (data) => {
 
   document.querySelector('#totalTrophies').innerText = cumulativeTrophies.toLocaleString()
   document.querySelector('#medianGlobalPos').innerHTML = getPositionHTMLFormat(globalPositions.slice().sort((a, b) => a - b)[Math.floor(globalPositions.length / 2)])
-  document.querySelector('#medianDivPos').innerHTML = getPositionHTMLFormat(divPositions.slice().sort((a, b) => a - b)[Math.floor(divPositions.length / 2)])
+
+  if (divPositions.length > 0) {
+    document.querySelector('#medianDivPos').innerHTML = getPositionHTMLFormat(divPositions.slice().sort((a, b) => a - b)[Math.floor(divPositions.length / 2)])
+  } else {
+    document.querySelector('#medianDivPos').innerText = '?'
+  }
 }
 
 const init = async() => {
