@@ -127,6 +127,7 @@ const postFormEvent = async() => {
     document.querySelector('#globalPositions').classList.add('d-none')
     document.querySelector('#leaderboardMarkerContainer').style = `margin-top: 0px !important;`
     document.querySelector('#leaderboardMarker').innerText = 'N/A'
+    document.querySelector('#bracketScore').innerText = 'unavailable'
   }
 }
 
@@ -269,6 +270,8 @@ const populateFieldsGeneral = (data) => {
     if (data["division"]["top"] && data["division"]["top"].length > 0) {
       const joinTimestamps = data["division"]["top"].map(x => x["dateJoined"]).sort()
       document.querySelector('#divisionTime').innerText = getFastTimedeltaFormat((new Date(joinTimestamps[joinTimestamps.length-1]) - new Date(joinTimestamps[0]))/1000)
+    } else {
+      document.querySelector('#divisionTime').innerText = 'unavailable'
     }
 
     for (let i in data["division"]["top"]) {
@@ -283,7 +286,7 @@ const populateFieldsGeneral = (data) => {
           let moveUp = document.createElement('tr')
           moveUp.classList.add('fw-bold')
           let moveUpCell = document.createElement('td')
-          moveUpCell.setAttribute('colspan', 6)
+          moveUpCell.setAttribute('colspan', 7)
           moveUpCell.classList.add('text-center')
           moveUpCell.innerText = `▲ ${trophyDelta.toLocaleString()} trophies needed to move up ▲`
 
@@ -314,12 +317,13 @@ const populateFieldsGeneral = (data) => {
       let trophyCell = document.createElement('td')
       trophyCell.innerText = data["division"]["top"][i]["trophies"].toLocaleString()
       
-      let globalPosCell = document.createElement('td')
-
       const lbp_parsed = parseInt(data["division"]["top"][i]["globalPosition"]) + 1
+      let globalPosCell = document.createElement('td')
       globalPosCell.innerHTML = getPositionHTMLFormat(lbp_parsed)
+
+      let globalPctCell = document.createElement('td')
       if (lbp_parsed > 100) {
-        globalPosCell.innerHTML = `${globalPosCell.innerHTML} (${(lbp_parsed / (data["global"]["count"]-1) * 100).toFixed(1)}%)`
+        globalPctCell.innerHTML = `${(lbp_parsed / (data["global"]["count"]-1) * 100).toFixed(1)}%`
       }
 
       let rankCell = document.createElement('td')
@@ -330,6 +334,7 @@ const populateFieldsGeneral = (data) => {
       divisionPlayer.appendChild(nameCell)
       divisionPlayer.appendChild(trophyCell)
       divisionPlayer.appendChild(globalPosCell)
+      divisionPlayer.appendChild(globalPctCell)
       divisionPlayer.appendChild(rankCell)
       
       tbody.appendChild(divisionPlayer)
@@ -428,25 +433,36 @@ const populateFieldsGlobal = (data, playerData) => {
   }
 
   let margin
+  let percentageFromTop
+
+  let bracketsTraversed = 0
+  let percentageFromTopBracketScore = NaN
+
   for (let i = 0; i < bracketValues.length; i++) {
     if (playerData["player"]["globalPosition"] < bracketValues[i]) {
-      let percentageFromTop = (playerData["player"]["globalPosition"] - bracketValues[i-1]) / (bracketValues[i] - 1 - bracketValues[i-1])
+      percentageFromTop = (playerData["player"]["globalPosition"] - bracketValues[i-1]) / (bracketValues[i] - 1 - bracketValues[i-1])
+      percentageFromTopBracketScore = (playerData["player"]["globalPosition"] - bracketValues[i-1] + 1) / (bracketValues[i] - bracketValues[i-1])
+
       margin = 41 + 80 * (i + percentageFromTop)
       break
     }
+    bracketsTraversed++
   }
-
-  let bracketScore = bracketValues.length - ((margin - 41) / 80)
 
   if (isNaN(margin)) {
     // 1st place
     margin = 40
-    bracketScore = bracketValues.length
   } else if (window.getComputedStyle(document.querySelector('#moveUpTrophies')).getPropertyValue('height') === '65px') {
     // trophies to move up row spans two lines
     margin += 24
   }
-  
+
+  if (isNaN(percentageFromTopBracketScore)) {
+    bracketScore = bracketValues.length - 1
+  } else {
+    bracketScore = bracketValues.length - (percentageFromTopBracketScore + bracketsTraversed)
+  }
+
   document.querySelector('#bracketScore').innerText = bracketScore.toFixed(4)
 
   if (playerData["player"]["globalPosition"] < 100) {
