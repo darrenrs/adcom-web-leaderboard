@@ -232,7 +232,7 @@ const populateSharedDivisions = (data) => {
   for (j of Object.keys(keys)) {
     if (keys[j].length > 1) {
       const element = document.createElement('li')
-      element.innerText = `${expandPlayerList(keys[j])} shared a division!`
+      element.innerHTML = `${expandPlayerList(keys[j])} shared a division!`
       listRoot.append(element)
     }
   }
@@ -245,10 +245,12 @@ const populateSharedDivisions = (data) => {
 }
 
 const expandPlayerList = (names) => {
-  if (names.length === 2) {
-    return `${names[0]} and ${names[1]}`
+  if (names.length < 2) {
+    return names[0]
+  } else if (names.length === 2) {
+    return `<em>${names[0]}</em> and <em>${names[1]}</em>`
   } else if (names.length > 2) {
-    return `${names.slice(0, -1).join(', ')}, and ${names.slice(-1)}`
+    return `<em>${names.slice(0, -1).join('</em>, <em>')}</em>, and <em>${names.slice(-1)}</em>`
   }
 }
 

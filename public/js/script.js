@@ -56,30 +56,6 @@ const postFormEventList = async() => {
     }
 
     eventSelectorListener = nestedEventSelector(eventList.filter(element => element["status"]), selectList, selectButton)
-
-    // const templateOption = document.querySelector('option')
-    // templateOption.remove()
-
-    // for (let i of eventList) {
-    //   if (i["status"]) {
-    //     // the player participated in this event
-    //     const newOption = document.createElement('option')
-    //     newOption.innerText = `${getEventDetails(i["eventName"])["short"]} (${new Date(i["startDate"]).toDateString().substring(4)} to ${new Date(i["endDate"]).toDateString().substring(4)})`
-    //     newOption.value = i["eventId"]
-        
-    //     selectList.appendChild(newOption)
-    //   }
-    // }
-
-    // if (selectList.childElementCount < 1) {
-    //   // if after all this there have been no events found, we will restore the template message
-    //   // it is possible for a PlayFab account to exist but no events to have been participated in
-    //   const newOption = document.createElement('option')
-    //   newOption.innerText = 'No event participation'
-    //   selectList.appendChild(newOption)
-    //   selectList.setAttribute('disabled', 'disabled')
-    //   selectButton.setAttribute('disabled', 'disabled')
-    // }
   }
 }
 
@@ -259,7 +235,7 @@ const populateFieldsGeneral = (data) => {
   document.querySelector('#rank').innerText = `${data["rankString"]["rank"]}/${data["rankString"]["mission"]}`
   document.querySelector('#joinDate').innerText = new Date(data["player"]["dateJoined"]).toLocaleString()
   document.querySelector('#updateDate').innerText = new Date(data["player"]["dateUpdated"]).toLocaleString()
-  document.querySelector('#divisionId').innerText = data["player"]["divisionId"] ? data["player"]["divisionId"] : "No division (ultra rare bug)"
+  document.querySelector('#divisionId').innerText = data["player"]["divisionId"] ? data["player"]["divisionId"] : "No division"
   document.querySelector('#divisionType').innerText = getSpendingCategory(data["player"]["divisionId"])
   document.querySelector('#leaderboardType').innerText = getLeaderboardType(data["player"]["divisionRoot"])
   document.querySelector('#leaderboardId').innerText = data["event"]["eventGuid"]
