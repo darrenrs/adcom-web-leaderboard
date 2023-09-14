@@ -303,8 +303,7 @@ const getEventTypeName = (eventType) => {
 
 const getSpendingCategory = (b) => {
   if (!b) {
-    console.warn("The requested player has no division. If this is you, please let Enigma#2989 know on Discord.")
-    return 'No division (ultra rare bug)'
+    return 'No division'
   }
 
   const re = /[A-Z_\d]+/g
@@ -335,7 +334,7 @@ const getLeaderboardType = (t) => {
       return 'Cheater'
     case 'dev':
     case 'qa':
-      return 'Dev'
+      return 'Developer'
     default:
       return 'Unknown'
   }

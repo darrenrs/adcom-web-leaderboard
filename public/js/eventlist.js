@@ -35,7 +35,7 @@ const populateScheduleTable = (eventSchedule) => {
       nameCell.innerText = `NEW EVENT "${eventSchedule[i]["eventName"]}"`
     }
     nameCell.addEventListener('click', () => {
-      let archiveString = 'active event'
+      let archiveString = 'N/A'
       const createDate = new Date(eventSchedule[i]["createdAt"])
       const archiveDate = new Date(eventSchedule[i]["archivedAt"])
 

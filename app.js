@@ -524,6 +524,14 @@ const dbPlayerDiscordRecords = async() => {
   return data
 }
 
+const dbPlayerDiscordRecordsNDC = async() => {
+  const dbHandler = new db()
+  const data = await dbHandler.getAllPlayerDiscordRecordsNoDateConstraint()
+
+  dbHandler.close()
+  return data
+}
+
 const fsIconStatus = async() => {
   const iconDirectory = path.join(__dirname, hhcfg["iconRelativePath"])
   let icons = []
@@ -1495,7 +1503,7 @@ app.post('/api/admin', async(req, res) => {
       "dbPlayerEventRecords": null
     }
 
-    returnStruct["discordLeaderboard"] = await dbPlayerDiscordRecords()
+    returnStruct["discordLeaderboard"] = await dbPlayerDiscordRecordsNDC()
     returnStruct["discordLeaderboardIcons"] = await fsIconStatus()
     returnStruct["dbPlayerList"] = await dbPlayerList()
     returnStruct["dbPlayerEventRecords"] = await dbPlayerEventRecords()
