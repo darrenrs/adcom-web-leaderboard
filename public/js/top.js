@@ -190,7 +190,7 @@ const populateFieldsTop = (data) => {
         moveUp.classList.add('fw-bold')
         let moveUpCell = document.createElement('td')
         moveUpCell.setAttribute('colspan', 4)
-        moveUpCell.classList.add('text-center')
+        moveUpCell.classList.add('text-center', 'trophy-delta')
         moveUpCell.innerText = `▲ ${trophyDelta.toLocaleString()} trophies needed to move up ▲`
 
         moveUp.appendChild(moveUpCell)
