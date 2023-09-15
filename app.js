@@ -575,7 +575,7 @@ app.get('/api/list', async (req, res) => {
 
     res.send(allEvents)
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
 
     res.sendStatus(502)
   }
@@ -591,7 +591,7 @@ app.get('/api/list/all', async (req, res) => {
 
     res.send(allEvents)
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
 
     res.sendStatus(502)
   }
@@ -629,7 +629,7 @@ app.post('/api/discord/account', async(req, res) => {
     dbHandler.close()
     return
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
 
     res.sendStatus(500)
     
@@ -699,7 +699,7 @@ app.put('/api/discord/account', async(req, res) => {
     dbHandler.close()
     return
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
 
     if (e.includes("UNIQUE constraint failed")) {
       res.sendStatus(409)
@@ -773,7 +773,7 @@ app.patch('/api/discord/account', async(req, res) => {
     dbHandler.close()
     return
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
 
     if (e.includes("no records found")) {
       res.sendStatus(404)
@@ -819,7 +819,7 @@ app.delete('/api/discord/account', async(req, res) => {
     dbHandler.close()
     return
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
 
     if (e.includes("no records found")) {
       res.sendStatus(404)
@@ -946,7 +946,7 @@ app.get('/api/discord/:event', async(req, res) => {
     res.status(200).send(playerFinalRecords)
     return
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
     res.sendStatus(502)
   }
 })
@@ -968,7 +968,7 @@ app.get('/api/player/:id', async (req, res) => {
       res.status(404).end()
     }
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
 
     res.sendStatus(502)
   }
@@ -1049,7 +1049,7 @@ app.get('/api/player/:id/all', async (req, res) => {
     
     res.status(200).send(playerEventRecords)
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
 
     res.sendStatus(502)
   }
@@ -1072,7 +1072,7 @@ app.get('/api/list/:id', async (req, res) => {
       res.status(404).end()
     }
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
 
     res.sendStatus(502)
   }
@@ -1135,7 +1135,7 @@ app.get('/api/event/:event/balance', async (req, res) => {
 
     res.send(currentEventData)
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
 
     res.sendStatus(500).end()
   }
@@ -1200,7 +1200,7 @@ app.get('/api/event/:event/rank-estimator', async (req, res) => {
       res.json(rankString)
     }
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
 
     res.sendStatus(502).end()
   }
@@ -1261,7 +1261,7 @@ app.get('/api/event/:event/:id', async (req, res) => {
     
     res.status(200).json(returnStruct)
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
 
     res.sendStatus(502)
   }
@@ -1296,7 +1296,7 @@ app.get('/api/event/:event/:id/position', async (req, res) => {
       res.status(200).send(playerLeaderboard["results"]["rootResults"]["offsetResults"]["archivedEntry"]["rootPosition"]["position"].toString())
     }
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
 
     res.sendStatus(502)
   }
@@ -1342,7 +1342,7 @@ app.get('/api/event/:event/:id/brackets', async (req, res) => {
 
     res.status(200).json(returnStruct)
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
 
     res.sendStatus(502)
   }
@@ -1400,7 +1400,7 @@ app.get('/api/event/:event/:id/top/:count', async (req, res) => {
 
     res.status(200).json(returnStruct)
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
 
     res.sendStatus(502)
   }
@@ -1415,11 +1415,8 @@ app.get('/api/event/:event/:id/finished', async(req, res) => {
     const id = req.params.id
     const eventId = req.params.event
 
-    const stepCount = 100
-    let lastPlayerId = undefined
-    let currentPlayerId = `${id}`
-
     const allEventData = await getAllEvents()
+    let topSample = 2**10
     let eventName
     let startTime
     let endTime
@@ -1438,7 +1435,7 @@ app.get('/api/event/:event/:id/finished', async(req, res) => {
       // don't even bother continuing if we know the ID has no record
       log(`${req.method} ${req.originalUrl} - no record found.`, remoteAddress)
 
-      res.status(404).end()
+      res.sendStatus(404)
       return
     }
 
@@ -1448,26 +1445,17 @@ app.get('/api/event/:event/:id/finished', async(req, res) => {
     const requiredTrophies = await balanceHandler.getThreshold()
     let finalPlayersFinished = -1
 
-    currentPlayerId = playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"][0]["playerId"]
-    if (playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"][0]["score"] < requiredTrophies) {
-      finalPlayersFinished = 0
-    }
-
     while (finalPlayersFinished === -1) {
-      playerLeaderboard = await getPlayerLeaderboard(currentPlayerId, eventId, stepCount, 1, true)
+      playerLeaderboard = await getPlayerLeaderboard(id, eventId, 1, topSample, true)
       
-      for (let i of playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]) {
-        lastPlayerId = `${currentPlayerId}`
-        currentPlayerId = i["playerId"]
+      for (let i of playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"]) {
         if (i["score"] < requiredTrophies) {
           finalPlayersFinished = i["position"]["position"]
           break
         }
       }
-
-      if (lastPlayerId === currentPlayerId) {
-        break
-      }
+      
+      topSample *= 2
     }
     
     if (finalPlayersFinished === -1) {
@@ -1484,9 +1472,14 @@ app.get('/api/event/:event/:id/finished', async(req, res) => {
     }
 
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}.`, remoteAddress, true)
+    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
 
-    res.sendStatus(502)
+    // hacky fix
+    if (e.response.status === 404) {
+      res.sendStatus(404)
+    } else {
+      res.sendStatus(502)
+    }
   }
 })
 

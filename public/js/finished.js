@@ -172,7 +172,7 @@ const init = async() => {
 
   const finishedData = await getEventFinishers(eventSchedule[0]["eventId"], cachedPlayFab)
 
-  if (finishedData === 400) {
+  if (finishedData === 404) {
     document.querySelector('#eventFinisherLoadError').innerText = 'You need to join the current event to continue'
     document.querySelector('#eventFinisherLoadError').classList.remove('d-none')
     return
