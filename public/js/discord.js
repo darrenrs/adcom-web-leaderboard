@@ -223,10 +223,13 @@ const populateSharedDivisions = (data) => {
 
   document.querySelector('#sharedDivisions').innerHTML = ''
   for (i of data) {
-    if (Object.keys(keys).includes(i["divisionId"])) {
-      keys[i["divisionId"]].push(i["name"])
+    let cheaterLabel = i["isMainBoard"] ? "main" : "cheater"
+    let divisionExtendedKey = `${i["divisionId"]}~${cheaterLabel}`
+
+    if (Object.keys(keys).includes(divisionExtendedKey)) {
+      keys[divisionExtendedKey].push(i["name"])
     } else {
-      keys[i["divisionId"]] = [i["name"]]
+      keys[divisionExtendedKey] = [i["name"]]
     }
   }
   
