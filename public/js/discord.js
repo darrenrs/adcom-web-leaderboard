@@ -143,7 +143,7 @@ const populateDiscordLeaderboardTable = (discordLb, discordId) => {
         let moveUp = document.createElement('tr')
         moveUp.classList.add('fw-bold')
         let moveUpCell = document.createElement('td')
-        moveUpCell.setAttribute('colspan', 10)
+        moveUpCell.setAttribute('colspan', 11)
         moveUpCell.classList.add('text-center', 'trophy-delta')
         moveUpCell.innerText = `▲ ${trophyDelta.toLocaleString()} trophies needed to move up ▲`
         moveUpCell.id = 'moveUpTrophies'
