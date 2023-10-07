@@ -197,6 +197,9 @@ const populateDiscordLeaderboardTable = (discordLb, discordId) => {
     let lastUpdatedCell = document.createElement('td')
     lastUpdatedCell.innerText = new Date(discordLb[i]["lastUpdated"]).toLocaleString()
 
+    let amountSpentCell = document.createElement('td')
+    amountSpentCell.innerText = amountSpentDollars(discordLb[i]["divisionId"])
+
     discordLbRow.append(idCell)
     discordLbRow.append(imageCell)
     discordLbRow.append(nameCell)
@@ -207,6 +210,7 @@ const populateDiscordLeaderboardTable = (discordLb, discordId) => {
     discordLbRow.append(trophiesCell)
     discordLbRow.append(rankCell)
     discordLbRow.append(lastUpdatedCell)
+    discordLbRow.append(amountSpentCell)
     
     tbody.appendChild(discordLbRow)
   }
