@@ -287,7 +287,7 @@ module.exports = class BalanceParser {
 
   freeCapsuleEstimate(data, rankStructure, totalSeconds, currentMission) {
     const MISSION_EXP = 1.03
-    const AVG_SEC_BETWEEN_FREE = 8100
+    const AVG_SEC_BETWEEN_FREE = this.getAvgSecondsEstimate(totalSeconds)
 
     let trophies = 0
     let freeIndex = -1
@@ -353,5 +353,9 @@ module.exports = class BalanceParser {
     }
     
     return trophies
+  }
+
+  getAvgSecondsEstimate(s) {
+    return 720 * Math.pow(s/10800 + 100, 0.5)
   }
 }

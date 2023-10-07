@@ -326,6 +326,26 @@ const getSpendingCategory = (b) => {
   }
 }
 
+
+const amountSpentDollars = (b) => {
+  if (!b) {
+    return ''
+  }
+
+  const re = /[A-Z_\d]+/g
+  
+  switch (re.exec(b)[0]) {
+    case 'SPEND_GT_500':
+      return '$$$'
+    case 'SPEND_100_TO_500':
+      return '$$'
+    case 'SPEND_2_TO_100':
+      return '$'
+    default:
+      return ''
+  }
+}
+
 const getLeaderboardType = (t) => {
   switch (t) {
     case 'global':

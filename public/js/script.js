@@ -442,16 +442,19 @@ const populateFieldsGlobal = (data, playerData) => {
 
   document.querySelector('#bracketScore').innerText = bracketScore.toFixed(4)
 
-  if (playerData["player"]["globalPosition"] < 100) {
-    document.querySelector('#leaderboardMarker').innerHTML = getPositionHTMLFormat(playerData["player"]["globalPosition"] + 1)
-  } else {
-    document.querySelector('#leaderboardMarker').innerText = `${((playerData["player"]["globalPosition"] + 1) / data["totalPlayers"] * 100).toFixed(1)}%`
+  let anteriorMarkerText = getPositionHTMLFormat(playerData["player"]["globalPosition"] + 1)
+  let posteriorMarkerText = getPositionHTMLFormat(playerData["player"]["globalPosition"] + 1)
+
+  if (playerData["player"]["globalPosition"] >= 100) {
+    anteriorMarkerText = `${((playerData["player"]["globalPosition"] + 1) / data["totalPlayers"] * 100).toFixed(1)}%`
   }
 
-  if (document.querySelector('#leaderboardMarker').innerText.slice(-3) === ".0%") {
-    document.querySelector('#leaderboardMarker').innerText = document.querySelector('#leaderboardMarker').innerText.slice(0, -3) + "%"
+  if (anteriorMarkerText.slice(-3) === ".0%") {
+    anteriorMarkerText = anteriorMarkerText.slice(0, -3) + "%"
   }
 
+  document.querySelector('#leaderboardMarker').innerHTML = anteriorMarkerText
+  document.querySelector('#leaderboardMarker').setAttribute('inverse', posteriorMarkerText)
   document.querySelector('#leaderboardMarkerContainer').style = `margin-top: ${margin}px !important;`
 }
 
@@ -465,6 +468,14 @@ document.querySelector('#formSubmitPlayFab').addEventListener('click', function(
 
 document.querySelector('#formSubmitEvent').addEventListener('click', function() {
   postFormEvent()
+})
+
+document.querySelector('#leaderboardMarker').addEventListener('click', function() {
+  let posteriorMarkerText = this.getAttribute('inverse')
+  let anteriorMarkerText = this.innerHTML
+
+  this.innerHTML = posteriorMarkerText
+  this.setAttribute('inverse', anteriorMarkerText)
 })
 
 if (localStorage.getItem('playerId')) {
