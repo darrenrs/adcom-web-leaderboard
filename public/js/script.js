@@ -245,7 +245,7 @@ const populateFieldsGeneral = (data) => {
   if (data["player"]["divisionId"]) {
     if (data["division"]["top"] && data["division"]["top"].length > 0) {
       const joinTimestamps = data["division"]["top"].map(x => x["dateJoined"]).sort()
-      document.querySelector('#divisionTime').innerText = getFastTimedeltaFormat((new Date(joinTimestamps[joinTimestamps.length-1]) - new Date(joinTimestamps[0]))/1000)
+      document.querySelector('#divisionTime').innerHTML = getFastTimedeltaFormat((new Date(joinTimestamps[joinTimestamps.length-1]) - new Date(joinTimestamps[0]))/1000)
     } else {
       document.querySelector('#divisionTime').innerText = 'unavailable'
     }
@@ -299,7 +299,7 @@ const populateFieldsGeneral = (data) => {
       globalPosCell.innerHTML = getPositionHTMLFormat(lbp_parsed)
 
       let globalPctCell = document.createElement('td')
-      if (lbp_parsed > 100) {
+      if (lbp_parsed / (data["global"]["count"]-1) >= 5e-4) {
         globalPctCell.innerHTML = `${(lbp_parsed / (data["global"]["count"]-1) * 100).toFixed(1)}%`
       }
 
@@ -447,6 +447,10 @@ const populateFieldsGlobal = (data, playerData) => {
 
   if (playerData["player"]["globalPosition"] >= 100) {
     anteriorMarkerText = `${((playerData["player"]["globalPosition"] + 1) / data["totalPlayers"] * 100).toFixed(1)}%`
+  } else if (playerData["player"]["globalPosition"] / data["totalPlayers"] >= 5e-4) {
+    posteriorMarkerText = `${((playerData["player"]["globalPosition"] + 1) / data["totalPlayers"] * 100).toFixed(1)}%`
+  } else {
+    posteriorMarkerText = '🐳'  // easter egg!
   }
 
   if (anteriorMarkerText.slice(-3) === ".0%") {

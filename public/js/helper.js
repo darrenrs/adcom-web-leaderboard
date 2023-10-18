@@ -379,13 +379,13 @@ const getTimedeltaFormat = (timestamp) => {
 
 const getFastTimedeltaFormat = (sec) => {
   if (sec < 10) {
-    return `${(sec).toFixed(3)} sec`
+    return `${(sec).toFixed(3)}<span class="time-suffix">s</span>`
   } else if (sec < 60) {
-    return `${(sec).toFixed(2)} sec`
+    return `${(sec).toFixed(2)}<span class="time-suffix">s</span>`
   } else if (sec < 3600) {
-    return `${Math.floor(sec / 60)} min ${Math.floor(sec % 60)} sec`
+    return `${Math.floor(sec / 60)}<span class="time-suffix">m</span> ${Math.floor(sec % 60)}<span class="time-suffix">s</span>`
   } else {
-    return `${Math.floor(sec / 3600)} hr ${Math.floor((sec / 60) % 60)} min ${Math.floor(sec % 60)} sec`
+    return `${Math.floor(sec / 3600)}<span class="time-suffix">h</span> ${Math.floor((sec / 60) % 60)}<span class="time-suffix">m</span> ${Math.floor(sec % 60)}<span class="time-suffix">s</span>`
   }
 }
 

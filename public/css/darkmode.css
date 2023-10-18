@@ -100,3 +100,7 @@ input[type="text"] {
 .font-monospace {
   font-size: 15px;
 }
+
+.time-suffix {
+  font-variant: small-caps;
+}
