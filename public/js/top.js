@@ -189,7 +189,7 @@ const populateFieldsTop = (data) => {
         let moveUp = document.createElement('tr')
         moveUp.classList.add('fw-bold')
         let moveUpCell = document.createElement('td')
-        moveUpCell.setAttribute('colspan', 4)
+        moveUpCell.setAttribute('colspan', 7)
         moveUpCell.classList.add('text-center', 'trophy-delta')
         moveUpCell.innerText = `▲ ${trophyDelta.toLocaleString()} trophies needed to move up ▲`
 
@@ -220,10 +220,22 @@ const populateFieldsTop = (data) => {
     let trophyCell = document.createElement('td')
     trophyCell.innerText = data["top"]["list"][i]["trophies"].toLocaleString()
 
+    let rankCell = document.createElement('td')
+    rankCell.innerText = `${data["top"]["list"][i]["estimatedRank"]["rank"]}/${data["top"]["list"][i]["estimatedRank"]["mission"]}`
+
+    let amountSpentCell = document.createElement('td')
+    amountSpentCell.innerText = getSpendingCategory(data["top"]["list"][i]["divisionId"])
+    
+    let timeElapsedCell = document.createElement('td')
+    timeElapsedCell.innerHTML = getFastTimedeltaFormat((new Date(data["top"]["list"][i]["endTime"]) - new Date(data["top"]["list"][i]["startTime"]))/1000)
+
     topPlayer.appendChild(positionCell)
     topPlayer.appendChild(imageCell)
     topPlayer.appendChild(nameCell)
     topPlayer.appendChild(trophyCell)
+    topPlayer.appendChild(rankCell)
+    topPlayer.appendChild(amountSpentCell)
+    topPlayer.appendChild(timeElapsedCell)
     
     tbody.appendChild(topPlayer)
   }
