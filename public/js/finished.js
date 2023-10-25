@@ -72,11 +72,11 @@ const populateFinishers = (data) => {
 
   if (currentDate > endTimeDate) {
     // display "static" values after event ends
-    document.querySelector("#timeDeltaRemaining").innerText = getTimedeltaFormat(currentDate)
-    document.querySelector("#timeDeltaElapsed").innerText = getTimedeltaFormat(new Date(Date.now() + Math.abs(startTimeDate - endTimeDate)))
+    document.querySelector("#timeDeltaRemaining").innerHTML = getTimedeltaFormat(currentDate)
+    document.querySelector("#timeDeltaElapsed").innerHTML = getTimedeltaFormat(new Date(Date.now() + Math.abs(startTimeDate - endTimeDate)))
   } else {
-    document.querySelector("#timeDeltaRemaining").innerText = getTimedeltaFormat(endTimeDate)
-    document.querySelector("#timeDeltaElapsed").innerText = getTimedeltaFormat(startTimeDate)
+    document.querySelector("#timeDeltaRemaining").innerHTML = getTimedeltaFormat(endTimeDate)
+    document.querySelector("#timeDeltaElapsed").innerHTML = getTimedeltaFormat(startTimeDate)
   }
 }
 

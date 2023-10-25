@@ -369,11 +369,11 @@ const getTimedeltaFormat = (timestamp) => {
   let minutes = Math.floor(timeSeconds / 60) % 60
   
   if (timeSeconds < 3600) {
-    return `${minutes}m`
+    return `${minutes}<span class="time-suffix">m</span>`
   } else if (timeSeconds < 24 * 3600) {
-    return `${hours}h ${minutes}m`
+    return `${hours}<span class="time-suffix">h</span> ${minutes}<span class="time-suffix">m</span>`
   } else {
-    return `${days}d ${hours}h`
+    return `${days}<span class="time-suffix">d</span> ${hours}<span class="time-suffix">h</span>`
   }
 }
 
@@ -384,8 +384,10 @@ const getFastTimedeltaFormat = (sec) => {
     return `${(sec).toFixed(2)}<span class="time-suffix">s</span>`
   } else if (sec < 3600) {
     return `${Math.floor(sec / 60)}<span class="time-suffix">m</span> ${Math.floor(sec % 60)}<span class="time-suffix">s</span>`
-  } else {
+  } else if (sec < 86400) {
     return `${Math.floor(sec / 3600)}<span class="time-suffix">h</span> ${Math.floor((sec / 60) % 60)}<span class="time-suffix">m</span> ${Math.floor(sec % 60)}<span class="time-suffix">s</span>`
+  } else {
+    return `${Math.floor(sec / 86400)}<span class="time-suffix">d</span> ${Math.floor((sec / 3600) % 24)}<span class="time-suffix">h</span> ${Math.floor((sec / 60) % 60)}<span class="time-suffix">m</span>`
   }
 }
 

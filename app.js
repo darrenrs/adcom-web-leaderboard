@@ -524,7 +524,7 @@ const dbPlayerDiscordRecords = async() => {
   return data
 }
 
-const dbPlayerDiscordRecordsNDC = async() => {
+const dbPlayerDiscordRecordsNoDateConstraint = async() => {
   const dbHandler = new db()
   const data = await dbHandler.getAllPlayerDiscordRecordsNoDateConstraint()
 
@@ -1363,6 +1363,7 @@ app.get('/api/event/:event/:id/top/:count', async (req, res) => {
       res.status(400).end()
       return
     } else if (topPlayers < 1 || topPlayers > 1000) {
+      // server can return more than 1000 players but this ability should not be given to the client
       log(`${req.method} ${req.originalUrl} - invalid request`, remoteAddress)
       res.status(403).end()
       return
@@ -1379,9 +1380,27 @@ app.get('/api/event/:event/:id/top/:count', async (req, res) => {
 
     let proximalPlayerHashMap = {}
     for (let i of playerLeaderboard["resolvedPlayers"]["objectArray"]) {
-      // generate a list of players from the "resolvedPlayers" key, so we can obtain metadata such as ordinal ID (yields nickname) and custom name/icon (planned implementation in 2023)
+      // generate a list of players from the "resolvedPlayers" key, so we can obtain metadata such as ordinal ID (yields nickname) and custom name/icon (planned implementation in 2024)
       proximalPlayerHashMap[i["playerId"]] = i["sequence"]
     }
+
+    const allEventData = await getAllEvents()
+    let currentEventData
+
+    for (let i of allEventData) {
+      if (i["eventId"] == eventId) {
+        currentEventData = i
+        break
+      }
+    }
+
+    if (!currentEventData) {
+      res.sendStatus(404)
+      return
+    }
+
+    const balanceHandler = new balance(currentEventData["eventName"], currentEventData["startDate"], currentEventData["endDate"])
+    await balanceHandler.loadBalanceData()
 
     const returnStruct = {}
     returnStruct["count"] = playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"][0]["position"]["count"]
@@ -1395,7 +1414,52 @@ app.get('/api/event/:event/:id/top/:count', async (req, res) => {
         "ordinal": proximalPlayerHashMap[i["playerId"]],
         "position": i["position"]["position"],
         "trophies": i["score"],
+        "divisionId": null,
+        "startTime": null,
+        "endTime": null,
+        "estimatedRank": null
       })
+    }
+
+    const playerEventDivisionsPromises = playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"].map(async (record) => {
+      const id = record["playerId"]
+      
+      const returnStruct = {
+        "playerId": id,
+        "divisionId": null,
+        "startTime": null,
+        "endTime": null,
+        "estimatedRank": null
+      }
+      const playerEventInfo = await getPlayerEventInfo(id, eventId)
+      
+      if (!playerEventInfo) {
+        return returnStruct
+      }
+
+      returnStruct["divisionId"] = playerEventInfo["segmentId"]
+      returnStruct["startTime"] = playerEventInfo["created"]
+      returnStruct["endTime"] = playerEventInfo["updated"]
+      
+      const rankString = await balanceHandler.getRankFromTrophies(playerEventInfo["score"], playerEventInfo["created"], playerEventInfo["updated"])
+      returnStruct["estimatedRank"] = rankString
+      
+      return returnStruct
+    })
+
+    const playerEventDivisions = (await Promise.allSettled(playerEventDivisionsPromises)).filter(
+      (result) => result.status === 'fulfilled' && result.value !== null
+    ).map(result => result.value)
+
+    for (let i in returnStruct["top"]["list"]) {
+      for (let j in playerEventDivisions) {
+        if (playerEventDivisions[j]["playerId"] == returnStruct["top"]["list"][i]["playerId"]) {
+          returnStruct["top"]["list"][i]["divisionId"] = playerEventDivisions[j]["divisionId"]
+          returnStruct["top"]["list"][i]["startTime"] = playerEventDivisions[j]["startTime"]
+          returnStruct["top"]["list"][i]["endTime"] = playerEventDivisions[j]["endTime"]
+          returnStruct["top"]["list"][i]["estimatedRank"] = playerEventDivisions[j]["estimatedRank"]
+        }
+      }
     }
 
     res.status(200).json(returnStruct)
@@ -1496,7 +1560,7 @@ app.post('/api/admin', async(req, res) => {
       "dbPlayerEventRecords": null
     }
 
-    returnStruct["discordLeaderboard"] = await dbPlayerDiscordRecordsNDC()
+    returnStruct["discordLeaderboard"] = await dbPlayerDiscordRecordsNoDateConstraint()
     returnStruct["discordLeaderboardIcons"] = await fsIconStatus()
     returnStruct["dbPlayerList"] = await dbPlayerList()
     returnStruct["dbPlayerEventRecords"] = await dbPlayerEventRecords()
