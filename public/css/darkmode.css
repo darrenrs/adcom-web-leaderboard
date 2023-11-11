@@ -104,3 +104,7 @@ input[type="text"] {
 .time-suffix {
   font-variant: small-caps;
 }
+
+.navbar-brand:nth-child(2) {
+  font-size: 9px;
+}

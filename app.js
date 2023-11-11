@@ -1610,6 +1610,11 @@ app.post('/api/admin/icon', async(req, res) => {
   })
 })
 
+app.get('/api/build', async(req, res) => {
+  const buildn = require('child_process').execSync('git rev-list --count HEAD').toString().trim()
+  res.status(200).send(buildn.toString())
+})
+
 app.listen(port, () => {
   log(`Server listening on port ${port}.`, 'internal')
 })

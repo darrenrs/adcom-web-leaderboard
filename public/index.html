@@ -11,6 +11,7 @@
     <script src="js/script.js" defer></script>
     <script src="js/helper.js" defer></script>
     <script src="js/eventselector.js" defer></script>
+    <script src="js/build.js" defer></script>
     <title>AdVenture Communist Leaderboard</title>
   </head>
   <body>
@@ -21,7 +22,9 @@
           Player Leaderboards
         </a>
         <a class="navbar-brand" href="https://github.com/darrenrs/adcom-web-leaderboard">
-          <img src="img/github.png" width="40" height="40" class="d-inline-block align-text-top" alt="GitHub">
+          <img src="img/github.png" width="30" height="30" class="d-inline-block align-text-top" alt="GitHub">
+          <br>
+          <span id="buildId">&nbsp;</span>
         </a>
       </div>
     </nav>
@@ -147,7 +150,7 @@
           <div class="col-lg">
             <h3>Global Leaderboard</h3>
             <div>
-              <span class="fw-bold">Global ID: </span>
+              <span class="fw-bold">Event ID: </span>
               <span class="font-monospace" id="leaderboardId"></span>
             </div>
             <div class="container">
