@@ -72,13 +72,17 @@
     background-size: 50px 50px;
   }
   
-  /* .boxPlotLabel {
-    border-bottom-color: white !important;
+  .label, .player-dot {
+    background-color: #111 !important;
   }
-  
+
+  .line-border {
+    border-top-color: white !important;
+  }
+
   #boxPlotContent {
     border-left-color: white !important;
-  } */
+  }
 }
 
 @media (prefers-color-scheme: light) {

@@ -254,12 +254,12 @@ const populateSharedDivisions = (data) => {
 }
 
 const populateBoxPlot = (data, playerId) => {
-  // Stage 1: Get proper length of flexbox width (not possible to get grandparent width in CSS)
-  const lineWidth = window.getComputedStyle(document.querySelector('#leaderboardBoxPlotView')).width
-  document.querySelectorAll('.line-border').forEach((element) => element.style.width = lineWidth)
-
-  if (data.length < 1) {
-    return
+  while (document.querySelector('#boxPlotLabelContainer').childElementCount > 0) {
+    document.querySelector('#boxPlotLabelContainer').children[0].remove()
+  }
+  
+  while (document.querySelector('#boxPlotContent').childElementCount > 0) {
+    document.querySelector('#boxPlotContent').children[0].remove()
   }
 
   let brackets = [
@@ -276,11 +276,40 @@ const populateBoxPlot = (data, playerId) => {
     {"relativeThreshold": 1.00, "label": "Top 100%"}
   ]
 
+  for (let i in brackets) {
+    const bracketLabelContainer = document.createElement('div')
+    bracketLabelContainer.classList.add('box-plot-label')
+
+    const bracketLabel = document.createElement('span')
+    bracketLabel.classList.add('label')
+    bracketLabel.innerText = brackets[i]["label"]
+
+    const bracketLine = document.createElement('span')
+    bracketLine.classList.add('line-border')
+
+    bracketLabelContainer.appendChild(bracketLabel)
+    bracketLabelContainer.appendChild(bracketLine)
+
+    document.querySelector('#boxPlotLabelContainer').appendChild(bracketLabelContainer)
+  }
+
+  // We need to be visible to place the dots correctly, if this is not the case, we will temporarily toggle visibility
+  const isCurrentlyHidden = document.querySelector('#leaderboardBoxPlotView').classList.contains('d-none')
+  document.querySelector('#leaderboardBoxPlotView').classList.remove('d-none')
+
+  // Get proper length of flexbox width (not possible to get grandparent width in CSS)
+  const lineWidth = window.getComputedStyle(document.querySelector('#leaderboardBoxPlotView')).width
+  document.querySelectorAll('.line-border').forEach((element) => element.style.width = lineWidth)
+
+  if (data.length < 1) {
+    return
+  }
+
   const totalPlayerCount = data[0]["positionOf"]
+  const minTopMargin = -10
   const minLeftMargin = 25
-  const minTopMargin = 30
-  const lineLength = 100
-  const totalHeight = brackets.length * lineLength
+  const minVerticalDistanceOnSameHorizontalPos = 20
+  const lineLength = 200
 
   for (let i = brackets.length - 1; i >= 0; i--) {
     if (!brackets[i]["relativeThreshold"]) {
@@ -295,25 +324,57 @@ const populateBoxPlot = (data, playerId) => {
   }
 
   let activeBracket = 0
+  let lastLeftLockedPlayer = 0
 
   for (let i in data) {
+    const playerDot = document.createElement('span')
+    playerDot.classList.add('player-dot')
+    playerDot.innerText = `${data[i]["name"]}`
+    
+    if (data[i]["discordId"] === playerId) {
+      playerDot.style.fontWeight = 'bold'
+    }
+
     while (brackets[activeBracket]["absoluteThreshold"] < data[i]["position"]) {
       activeBracket++
-      console.log("Advancing to bracket", brackets[activeBracket]["label"])
     }
 
     if (activeBracket == 0) {
-      document.querySelector('#boxPlotContent').innerHTML += `<div class="player-dot" style="top: ${minTopMargin}px; left: ${minLeftMargin}px;">${data[i]["name"]}</div>`
-    } else if (activeBracket == brackets.length - 1) {
-      document.querySelector('#boxPlotContent').innerHTML += `<div class="player-dot" style="top: ${minTopMargin + totalHeight}px; left: ${minLeftMargin}px;">${data[i]["name"]}</div>`
+      // champion
+      playerDot.style.top = `${minTopMargin}`
+      playerDot.style.left = `${minLeftMargin}px`
     } else {
-      const prevBracketMargin = activeBracket * lineLength 
-      const currBracketMargin = (1-((brackets[activeBracket]["absoluteThreshold"]-data[i]["position"])/(brackets[activeBracket]["absoluteThreshold"]-brackets[activeBracket-1]["absoluteThreshold"]))) * lineLength
+      // all other players
+      const prevBracketMargin = (activeBracket - 1) * lineLength 
+      const currBracketMargin = (1 - ((brackets[activeBracket]["absoluteThreshold"] - data[i]["position"]) / (brackets[activeBracket]["absoluteThreshold"] - brackets[activeBracket - 1]["absoluteThreshold"]))) * lineLength
+      const actualTopPosition = minTopMargin + prevBracketMargin + currBracketMargin
+      playerDot.style.top = `${actualTopPosition}px`
+
+      const playerDotCount = document.querySelector('#boxPlotContent').childElementCount
+      let antiOverlapLeftOffset = minLeftMargin + 0
       
-      document.querySelector('#boxPlotContent').innerHTML += `<div class="player-dot" style="top: ${minTopMargin + prevBracketMargin + currBracketMargin}px; left: ${minLeftMargin + (i*125 % 1000)}px;">${data[i]["name"]}</div>`
+      if (playerDotCount > 0) {
+        // DP algorithm to assure no labels overlap
+        const lastPlayerDot = document.querySelector('#boxPlotContent').children[playerDotCount - 1]
+        const lastLeftLockedPlayerDot = document.querySelector('#boxPlotContent').children[lastLeftLockedPlayer]
+        
+        if (parseFloat(lastPlayerDot.style.top.replace('px', '')) + minVerticalDistanceOnSameHorizontalPos > actualTopPosition &&
+            parseFloat(lastLeftLockedPlayerDot.style.top.replace('px', '')) + minVerticalDistanceOnSameHorizontalPos > actualTopPosition) {
+          antiOverlapLeftOffset += parseFloat(window.getComputedStyle(lastPlayerDot).width.replace('px', '')) + parseFloat(lastPlayerDot.style.left.replace('px', '')) + 15
+        } else {
+          lastLeftLockedPlayer = i
+        }
+      }
+      playerDot.style.left = `${antiOverlapLeftOffset}px`
     }
+
+    document.querySelector('#boxPlotContent').appendChild(playerDot)
   }
 
+  // hide at the end if we were not on that view
+  if (isCurrentlyHidden) {
+    document.querySelector('#leaderboardBoxPlotView').classList.add('d-none')
+  }
 }
 
 const expandPlayerList = (names) => {
@@ -341,9 +402,13 @@ const init = async() => {
     if (document.querySelector('#leaderboardBoxPlotView').classList.contains('d-none')) {
       document.querySelector('#leaderboardBoxPlotView').classList.remove('d-none')
       document.querySelector('#leaderboardTabularView').classList.add('d-none')
+      document.querySelector('#toggleLbViewState').innerText = 'View Leaderboard'
+      document.querySelector('#contentHeader').innerText = 'Chart Plot'
     } else {
       document.querySelector('#leaderboardBoxPlotView').classList.add('d-none')
       document.querySelector('#leaderboardTabularView').classList.remove('d-none')
+      document.querySelector('#toggleLbViewState').innerText = 'View Chart Plot'
+      document.querySelector('#contentHeader').innerText = 'Leaderboard'
     }
   })
 }
