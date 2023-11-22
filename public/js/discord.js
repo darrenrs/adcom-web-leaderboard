@@ -28,7 +28,10 @@ const postFormDiscordLeaderboard = async() => {
   document.querySelector('#discordLeaderboardLoadError').classList.add('d-none')
 
   const discordId = await getDiscordId()
+
   populateDiscordLeaderboardTable(playerData, discordId)
+  populateSharedDivisions(playerData)
+  populateBoxPlot(playerData, discordId)
 }
 
 const getEventSchedule = async() => {
@@ -215,8 +218,6 @@ const populateDiscordLeaderboardTable = (discordLb, discordId) => {
     tbody.appendChild(discordLbRow)
   }
 
-  populateSharedDivisions(discordLb)
-
   document.querySelector('table').classList.remove('d-none')
   document.querySelector('#discordLeaderboardLoadError').classList.add('d-none')
 }
@@ -252,6 +253,69 @@ const populateSharedDivisions = (data) => {
   }
 }
 
+const populateBoxPlot = (data, playerId) => {
+  // Stage 1: Get proper length of flexbox width (not possible to get grandparent width in CSS)
+  const lineWidth = window.getComputedStyle(document.querySelector('#leaderboardBoxPlotView')).width
+  document.querySelectorAll('.line-border').forEach((element) => element.style.width = lineWidth)
+
+  if (data.length < 1) {
+    return
+  }
+
+  let brackets = [
+    {"absoluteThreshold":    1, "label": "Champion"},
+    {"absoluteThreshold":    5, "label": "Top 5"},
+    {"absoluteThreshold":   25, "label": "Top 25"},
+    {"absoluteThreshold":  100, "label": "Top 100"},
+    {"relativeThreshold": 0.01, "label": "Top 1%"},
+    {"relativeThreshold": 0.05, "label": "Top 5%"},
+    {"relativeThreshold": 0.10, "label": "Top 10%"},
+    {"relativeThreshold": 0.25, "label": "Top 25%"},
+    {"relativeThreshold": 0.50, "label": "Top 50%"},
+    {"relativeThreshold": 0.75, "label": "Top 75%"},
+    {"relativeThreshold": 1.00, "label": "Top 100%"}
+  ]
+
+  const totalPlayerCount = data[0]["positionOf"]
+  const minLeftMargin = 25
+  const minTopMargin = 30
+  const lineLength = 100
+  const totalHeight = brackets.length * lineLength
+
+  for (let i = brackets.length - 1; i >= 0; i--) {
+    if (!brackets[i]["relativeThreshold"]) {
+      break
+    }
+
+    if (Math.floor(brackets[i]["relativeThreshold"] * totalPlayerCount) <= 100) {
+      brackets.splice(i, 1)
+    } else {
+      brackets[i]["absoluteThreshold"] = Math.floor(brackets[i]["relativeThreshold"] * totalPlayerCount)
+    }
+  }
+
+  let activeBracket = 0
+
+  for (let i in data) {
+    while (brackets[activeBracket]["absoluteThreshold"] < data[i]["position"]) {
+      activeBracket++
+      console.log("Advancing to bracket", brackets[activeBracket]["label"])
+    }
+
+    if (activeBracket == 0) {
+      document.querySelector('#boxPlotContent').innerHTML += `<div class="player-dot" style="top: ${minTopMargin}px; left: ${minLeftMargin}px;">${data[i]["name"]}</div>`
+    } else if (activeBracket == brackets.length - 1) {
+      document.querySelector('#boxPlotContent').innerHTML += `<div class="player-dot" style="top: ${minTopMargin + totalHeight}px; left: ${minLeftMargin}px;">${data[i]["name"]}</div>`
+    } else {
+      const prevBracketMargin = activeBracket * lineLength 
+      const currBracketMargin = (1-((brackets[activeBracket]["absoluteThreshold"]-data[i]["position"])/(brackets[activeBracket]["absoluteThreshold"]-brackets[activeBracket-1]["absoluteThreshold"]))) * lineLength
+      
+      document.querySelector('#boxPlotContent').innerHTML += `<div class="player-dot" style="top: ${minTopMargin + prevBracketMargin + currBracketMargin}px; left: ${minLeftMargin + (i*125 % 1000)}px;">${data[i]["name"]}</div>`
+    }
+  }
+
+}
+
 const expandPlayerList = (names) => {
   if (names.length < 2) {
     return names[0]
@@ -272,6 +336,16 @@ const init = async() => {
   }
 
   document.querySelector('#earliestPossibleDate').innerText = new Date((new Date() - 56*86400*1000)).toLocaleString()
+
+  document.querySelector('#toggleLbViewState').addEventListener('click', function() {
+    if (document.querySelector('#leaderboardBoxPlotView').classList.contains('d-none')) {
+      document.querySelector('#leaderboardBoxPlotView').classList.remove('d-none')
+      document.querySelector('#leaderboardTabularView').classList.add('d-none')
+    } else {
+      document.querySelector('#leaderboardBoxPlotView').classList.add('d-none')
+      document.querySelector('#leaderboardTabularView').classList.remove('d-none')
+    }
+  })
 }
 
 document.addEventListener('DOMContentLoaded', function() {

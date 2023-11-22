@@ -1,0 +1,49 @@
+#leaderboardBoxPlotView {
+  display: flex;
+  margin-top: 20px;
+}
+
+.box-plot-label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100px;
+}
+
+.box-plot-label:first-child {
+  height: 80px;
+  margin-bottom: 10px;
+}
+
+.box-plot-label:last-child {
+  height: 0px;
+  margin-top: 50px;
+}
+
+.label {
+  background-color: #111;
+  z-index: 1;
+  margin-left: 10px;
+  margin-right: 10px;
+  padding-left: 3px;
+  padding-right: 3px;
+}
+
+.line-border {
+  border-top: 2px dotted white;
+  position: absolute;
+}
+
+#boxPlotContent {
+  border-left: 2px solid white;
+  flex: 1;
+  position: relative;
+  min-height: 100%;
+}
+
+.player-dot {
+  position: absolute;
+  display: list-item;
+  background-color: #111;
+  font-size: 14px;
+}
