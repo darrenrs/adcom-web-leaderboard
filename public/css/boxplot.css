@@ -1,27 +1,30 @@
 #leaderboardBoxPlotView {
   display: flex;
-  margin-top: 20px;
+  padding-top: 50px;
+  padding-bottom: 50px;
+  overflow-y: visible;
+  overflow-x: scroll;
 }
 
 .box-plot-label {
   position: relative;
   display: flex;
   align-items: center;
-  height: 100px;
+  height: 200px;
 }
 
 .box-plot-label:first-child {
-  height: 80px;
-  margin-bottom: 10px;
+  height: 0px;
+  margin-bottom: 100px;
 }
 
 .box-plot-label:last-child {
   height: 0px;
-  margin-top: 50px;
+  margin-top: 100px;
 }
 
 .label {
-  background-color: #111;
+  background-color: white;
   z-index: 1;
   margin-left: 10px;
   margin-right: 10px;
@@ -30,12 +33,13 @@
 }
 
 .line-border {
-  border-top: 2px dotted white;
+  border-top: 2px dotted black;
   position: absolute;
+  /* width set by JS */
 }
 
 #boxPlotContent {
-  border-left: 2px solid white;
+  border-left: 2px solid black;
   flex: 1;
   position: relative;
   min-height: 100%;
@@ -44,6 +48,6 @@
 .player-dot {
   position: absolute;
   display: list-item;
-  background-color: #111;
+  background-color: white;
   font-size: 14px;
 }
