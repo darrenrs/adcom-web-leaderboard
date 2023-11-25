@@ -276,6 +276,20 @@ const populateBoxPlot = (data, playerId) => {
     {"relativeThreshold": 1.00, "label": "Top 100%"}
   ]
 
+  const totalPlayerCount = data[0]["positionOf"]
+
+  for (let i = brackets.length - 1; i >= 0; i--) {
+    if (!brackets[i]["relativeThreshold"]) {
+      break
+    }
+
+    if (Math.floor(brackets[i]["relativeThreshold"] * totalPlayerCount) <= 100) {
+      brackets.splice(i, 1)
+    } else {
+      brackets[i]["absoluteThreshold"] = Math.floor(brackets[i]["relativeThreshold"] * totalPlayerCount)
+    }
+  }
+
   for (let i in brackets) {
     const bracketLabelContainer = document.createElement('div')
     bracketLabelContainer.classList.add('box-plot-label')
@@ -304,29 +318,20 @@ const populateBoxPlot = (data, playerId) => {
   if (data.length < 1) {
     return
   }
-
-  const totalPlayerCount = data[0]["positionOf"]
   const minTopMargin = -10
   const minLeftMargin = 25
   const minVerticalDistanceOnSameHorizontalPos = 20
   const lineLength = 200
 
-  for (let i = brackets.length - 1; i >= 0; i--) {
-    if (!brackets[i]["relativeThreshold"]) {
-      break
-    }
-
-    if (Math.floor(brackets[i]["relativeThreshold"] * totalPlayerCount) <= 100) {
-      brackets.splice(i, 1)
-    } else {
-      brackets[i]["absoluteThreshold"] = Math.floor(brackets[i]["relativeThreshold"] * totalPlayerCount)
-    }
-  }
-
   let activeBracket = 0
   let lastLeftLockedPlayer = 0
 
   for (let i in data) {
+    // can't place cheaters on main board
+    if (!data[i]["isMainBoard"]) {
+      continue
+    }
+
     const playerDot = document.createElement('span')
     playerDot.classList.add('player-dot')
     playerDot.innerText = `${data[i]["name"]}`
