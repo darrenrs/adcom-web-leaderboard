@@ -1089,12 +1089,20 @@ app.get('/api/event/:event/lb-invalid', async(req, res) => {
   
     reader.on('line', (line) => {
       if (line.includes(req.params.event)) {
-        resolve(true)
+        if (line.includes('UA')) {
+          // UA: Unfair Advantage
+          resolve('1')
+        } else if (line.includes('DF')) {
+          // DF: Data Fidelity Error
+          resolve('2')
+        } else {
+          resolve('0')
+        }
       }
     })
   
     reader.on('close', () => {
-      resolve(false)
+      resolve('-1')
     })
   
     readStream.on('error', (err) => {

@@ -87,10 +87,17 @@ const postFormEventLeaderboard = async() => {
 
     const invalidBanner = await getInvalidState(selectedEventId)
 
-    if (invalidBanner && invalidBanner === "true") {
-      document.querySelector('#exploitWarning').classList.remove('d-none')
+    if (invalidBanner && invalidBanner !== "-1") {
+      if (invalidBanner === '1') {
+        document.querySelector('#exploitWarning').classList.remove('d-none')
+        document.querySelector('#dataFidelityWarning').classList.add('d-none')
+      } else if (invalidBanner === '2') {
+        document.querySelector('#exploitWarning').classList.add('d-none')
+        document.querySelector('#dataFidelityWarning').classList.remove('d-none')
+      }
     } else {
       document.querySelector('#exploitWarning').classList.add('d-none')
+      document.querySelector('#dataFidelityWarning').classList.add('d-none')
     }
   } else {
     // general failure
