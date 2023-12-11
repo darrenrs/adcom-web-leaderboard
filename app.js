@@ -3,7 +3,6 @@ const fs = require('fs')
 const axios = require('axios')
 const db = require('./db')
 const balance = require('./balance')
-const parse = require('csv-parse')
 const readline = require('readline')
 const formidable = require('formidable')
 const path = require('path')
@@ -30,7 +29,7 @@ fs.readFile(__dirname + '/hh-config.json', 'utf8', (err, data) => {
 
 // load static content
 app.use(express.json())
-app.use(express.static('public', {extensions: ['html', 'html']}))
+app.use(express.static('public', {extensions: ['html']}))
 app.use(express.static(__dirname + '/node_modules/bootstrap/dist/'))
 
 const log = async (message, remoteAddress, error=false) => {
@@ -666,7 +665,8 @@ app.put('/api/discord/account', async(req, res) => {
     username = username.toString().trim().toLowerCase()
     iconDesc = iconDesc.toString().trim()
 
-    if (id.length > 16) {
+    // 1 in 4 billion chance of ID length being less than 8; almost certainly user input error
+    if (id.length > 16 || id.length < 8) {
       res.sendStatus(400)
       return
     }
@@ -681,10 +681,10 @@ app.put('/api/discord/account', async(req, res) => {
       return
     }
 
-    if (!username.match(/^(?!.*\.\.)[a-z0-9_.]{2,32}$/)) {
-      res.sendStatus(400)
-      return
-    }
+    // if (!username.match(/^(?!.*\.\.)[a-z0-9_.]{2,32}$/)) {
+    //   res.sendStatus(400)
+    //   return
+    // }
 
     if (iconDesc.length > 1024) {
       res.sendStatus(400)
@@ -739,8 +739,9 @@ app.patch('/api/discord/account', async(req, res) => {
     displayName = displayName.toString().trim()
     username = username.toString().trim().toLowerCase()
     iconDesc = iconDesc.toString().trim()
-
-    if (id.length > 16) {
+    
+    // 1 in 4 billion chance of ID length being less than 8; almost certainly user input error
+    if (id.length > 16 || id.length < 8) {
       res.sendStatus(400)
       return
     }
@@ -755,10 +756,10 @@ app.patch('/api/discord/account', async(req, res) => {
       return
     }
 
-    if (!username.match(/^(?!.*\.\.)[a-z0-9_.]{2,32}$/)) {
-      res.sendStatus(400)
-      return
-    }
+    // if (!username.match(/^(?!.*\.\.)[a-z0-9_.]{2,32}$/)) {
+    //   res.sendStatus(400)
+    //   return
+    // }
 
     if (iconDesc.length > 1024) {
       res.sendStatus(400)
@@ -827,6 +828,77 @@ app.delete('/api/discord/account', async(req, res) => {
       res.sendStatus(500)
     }
 
+    return
+  }
+})
+
+// discord OAuth2 callback
+app.get('/api/discord/oauth', async (req, res) => {
+  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const originFull = `${req.protocol}://${req.headers.host}`
+
+  let HTML_RESPONSE = `<!DOCTYPE html>
+<head>
+  <title>Discord API Callback</title>
+</head>
+<body>
+  <p>Please close this window.</p>
+  <script>
+  const userData = {
+      discordId: "$DISCORD_ID",
+      username: "$DISCORD_USERNAME"
+  }
+  
+  window.opener.postMessage(userData, '${originFull}')
+  window.close()
+  </script>
+</body>
+  `
+  const code = req.query.code
+
+  if (code) {
+    try {
+      const tokenResponse = await axios.post('https://discord.com/api/oauth2/token', 
+        new URLSearchParams({
+          client_id: hhcfg["discordClientId"],
+          client_secret: hhcfg["discordSecretId"],
+          code: code,
+          grant_type: 'authorization_code',
+          redirect_uri: `${originFull}/api/discord/oauth`,
+          scope: 'identify',
+        }).toString(), {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            "Accept-Encoding": '*'
+          }
+        })
+
+      const userResult = await axios.get('https://discord.com/api/users/@me', {
+        headers: {
+          authorization: `${tokenResponse.data.token_type} ${tokenResponse.data.access_token}`,
+        },
+      })
+
+      let username
+      
+      if (userResult.data.discriminator !== '0') {
+        username = `${userResult.data.username}#${userResult.data.discriminator}`
+      } else {
+        username = userResult.data.username
+      }
+      
+      HTML_RESPONSE = HTML_RESPONSE.replace('$DISCORD_ID', userResult.data.id)
+      HTML_RESPONSE = HTML_RESPONSE.replace('$DISCORD_USERNAME', username)
+
+      res.send(HTML_RESPONSE)
+      return
+    } catch (e) {
+      log(`OAuth error ${e}`, remoteAddress, true)
+      res.sendStatus(500)
+      return
+    }
+  } else {
+    res.sendStatus(400)
     return
   }
 })

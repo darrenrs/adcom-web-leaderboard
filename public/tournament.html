@@ -9,14 +9,14 @@
     <script src="js/account.js" defer></script>
     <script src="js/helper.js" defer></script>
     <script src="js/build.js" defer></script>
-    <title>AdVenture Communist Account Management</title>
+    <title>AdVenture Communist Discord Tournament</title>
   </head>
   <body>
     <nav class="navbar navbar-dark bg-dark sticky-top">
       <div class="container-fluid">
         <a class="navbar-brand" href="./">
           <img src="img/icon.png" width="30" height="40" class="d-inline-block align-self-center" alt="AdCom icon">
-          Account Management
+          Tournament Registration
         </a>
         <a class="navbar-brand" href="https://github.com/darrenrs/adcom-web-leaderboard">
           <img src="img/github.png" width="30" height="30" class="d-inline-block align-text-top" alt="GitHub">
@@ -26,21 +26,19 @@
       </div>
     </nav>
     <div class="container pt-2">
-      <h2>Account Management</h2>
+      <h2>Tournament Registration</h2>
       <div class="mb-3">
         <form onsubmit="return false">
           <div class="mb-3">
-            <label for="playFabIdInitCheck">PlayFab ID <span class="text-danger">*</span></label>
-            <input id="playFabIdInitCheck" class="form-control" type="text" aria-describedby="playFabDescInitCheck" maxlength="16" required>
-            <div id="playFabDescInitCheck" class="form-text">You can find this in-game in the Settings.</div>
+            <label for="eventSelect">Tournament</label>
+            <select id="eventSelect" class="form-select" disabled>
+              <option>There are no active tournaments.</option>
+            </select>
           </div>
-          <div class="mb-3 form-check">
-            <input type="checkbox" class="form-check-input" id="playFabSetDefault">
-            <label class="form-check-label" for="playFabSetDefault">Set as default</label>
-            <div id="playFabStorage" class="form-text">Your PlayFab ID will be stored locally on your device.</div>
+          <div class="mb-3">
+            <button id="formSubmitEvent" type="submit" class="btn btn-primary" disabled>Load Event</button>
+            <span id="activeEventId" class="d-none"></span>
           </div>
-          <button id="formInitAccount" type="submit" class="btn btn-primary">Load Account</button>
-          <span id="accountCheckStatus" class="p-2 text-danger"></span>
         </form>
       </div>
       <div id="mainContent" class="d-none">
@@ -49,26 +47,21 @@
           <form onsubmit="return false">
             <div class="mb-3">
               <label for="playFabId">PlayFab ID <span class="text-danger">*</span></label>
-              <input id="playFabId" class="form-control" type="text" aria-describedby="playFabDesc" maxlength="16" required disabled>
+              <input id="playFabId" class="form-control" type="text" aria-describedby="playFabDesc" maxlength="16" required>
               <div id="playFabDesc" class="form-text">This field is autofilled from the input box above.</div>
             </div>
             <div class="mb-3">
               <label for="displayName">Preferred Display Name <span class="text-danger">*</span></label>
               <input id="displayName" class="form-control" type="text" aria-describedby="displayNameDesc" maxlength="32" required>
-              <div id="displayNameDesc" class="form-text">What would you like to be called on the website?</div>
-            </div>
-            <div class="mb-3">
-              <label for="iconQualitativeDesc">Visual Description of your Leaderboard Icon</label>
-              <textarea id="iconQualitativeDesc" class="form-control" type="textarea" aria-describedby="iconQualitativeDescDesc" rows="3" maxlength="1024"></textarea>
-              <div id="iconQualitativeDescDesc" class="form-text">Please describe with as much detail as possible what you want your leaderboard icon to look like. You can choose the actual symbol and <strong>exactly one</strong> color. Overly fancy requests may be rejected and/or modified.</div>
+              <div id="displayNameDesc" class="form-text">What would you like to be called on the tournament?</div>
             </div>
             <input id="username" class="form-control d-none" type="text" maxlength="32" required disabled>
             <input id="discordId" class="form-control d-none" type="text" maxlength="19" required disabled>
             <input id="accountOperation" class="form-control d-none" type="text" disabled>
-            <button id="formSubmitAccount" type="submit" class="btn btn-primary">Create Account</button>
-            <button id="formPatchAccount" type="submit" class="btn btn-primary">Update Account</button>
-            <button id="formDeleteAccount" type="submit" class="btn btn-primary">Delete Account</button>
-            <span id="accountManagementStatus" class="p-2 text-danger"></span>
+            <button id="formSubmitAccount" type="submit" class="btn btn-primary">Add Registration</button>
+            <button id="formPatchAccount" type="submit" class="btn btn-primary">Update Registration</button>
+            <button id="formDeleteAccount" type="submit" class="btn btn-primary">Delete Registration</button>
+            <span id="tournamentRegistrationStatus" class="p-2 text-danger"></span>
           </form>
         </div>
       </div>
