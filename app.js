@@ -31,6 +31,7 @@ fs.readFile(__dirname + '/hh-config.json', 'utf8', (err, data) => {
 app.use(express.json())
 app.use(express.static('public', {extensions: ['html']}))
 app.use(express.static(__dirname + '/node_modules/bootstrap/dist/'))
+app.enable('trust proxy')
 
 const log = async (message, remoteAddress, error=false) => {
   const currentTime = (new Date()).toISOString()
@@ -835,7 +836,8 @@ app.delete('/api/discord/account', async(req, res) => {
 // discord OAuth2 callback
 app.get('/api/discord/oauth', async (req, res) => {
   const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
-  const originFull = `${req.protocol}://${req.headers.host}`
+  const origin = `${req.protocol}://${req.headers.host}`
+  const basePath = req.headers['x-original-base-path'] || '' // Apache custom configuration
 
   let HTML_RESPONSE = `<!DOCTYPE html>
 <head>
@@ -849,7 +851,7 @@ app.get('/api/discord/oauth', async (req, res) => {
       username: "$DISCORD_USERNAME"
   }
   
-  window.opener.postMessage(userData, '${originFull}')
+  window.opener.postMessage(userData, '${origin}')
   window.close()
   </script>
 </body>
@@ -864,7 +866,7 @@ app.get('/api/discord/oauth', async (req, res) => {
           client_secret: hhcfg["discordSecretId"],
           code: code,
           grant_type: 'authorization_code',
-          redirect_uri: `${originFull}/api/discord/oauth`,
+          redirect_uri: `${basePath}${origin}/api/discord/oauth`,
           scope: 'identify',
         }).toString(), {
           headers: {
