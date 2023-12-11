@@ -866,7 +866,7 @@ app.get('/api/discord/oauth', async (req, res) => {
           client_secret: hhcfg["discordSecretId"],
           code: code,
           grant_type: 'authorization_code',
-          redirect_uri: `${basePath}${origin}/api/discord/oauth`,
+          redirect_uri: `${origin}${basePath}/api/discord/oauth`,
           scope: 'identify',
         }).toString(), {
           headers: {
