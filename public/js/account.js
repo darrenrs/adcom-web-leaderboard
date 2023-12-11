@@ -1,3 +1,5 @@
+const CALLBACK_LINK_FRAGMENT = 'https://discord.com/api/oauth2/authorize?client_id=1181700019166920774&response_type=code&redirect_uri=$BASE%2Fapi%2Fdiscord%2Foauth&scope=identify'
+
 const postFormInit = async() => {
   const playerId = document.querySelector('#playFabIdInitCheck').value
   
@@ -151,6 +153,11 @@ const createAccount = async(playFabId, displayName, username, discordId, iconQua
     "iconQualitativeDesc": iconQualitativeDesc
   }
 
+  if (!discordId || !username) {
+    document.querySelector('#accountManagementStatus').innerText = `Discord authentication is mandatory!`
+    return
+  }
+
   return await fetch('api/discord/account', {
     method: 'PUT',
     headers: {
@@ -188,6 +195,11 @@ const patchAccount = async(playFabId, displayName, username, discordId, iconQual
     "username": username,
     "discordId": discordId,
     "iconQualitativeDesc": iconQualitativeDesc
+  }
+
+  if (!discordId || !username) {
+    document.querySelector('#accountManagementStatus').innerText = `Discord authentication is mandatory!`
+    return
   }
 
   return await fetch('api/discord/account', {
@@ -271,6 +283,22 @@ function overrideDefaultEnter(event) {
   }
 }
 
+const oauthCallback = () => {
+  const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/'))
+  const callbackLinkFull = CALLBACK_LINK_FRAGMENT.replace('$BASE', encodeURIComponent(baseUrl))
+
+  const oauthWindow = window.open(callbackLinkFull)
+  const oauthInterval = setInterval(() => {
+    try {
+      if (oauthWindow.location.origin === window.location.origin && oauthWindow.location.pathname.includes('/api/discord/oauth')) {
+        clearInterval(oauthInterval)
+      }
+    } catch (e) {
+      // still on Discord window
+    }
+  }, 1);
+}
+
 document.querySelector('#playFabIdInitCheck').addEventListener('keyup', function() {
   this.value = this.value.toUpperCase()
 })
@@ -288,11 +316,13 @@ document.querySelector('#mainContent form').addEventListener('keypress', functio
 })
 
 document.querySelector('#formSubmitAccount').addEventListener('click', function() {
-  postFormCreate()
+  oauthCallback()
+  document.querySelector('#accountOperation').innerText = 'create'
 })
 
 document.querySelector('#formPatchAccount').addEventListener('click', function() {
-  postFormUpdate()
+  oauthCallback()
+  document.querySelector('#accountOperation').innerText = 'update'
 })
 
 document.querySelector('#formDeleteAccount').addEventListener('click', function() {
@@ -304,3 +334,21 @@ if (localStorage.getItem('playerId')) {
   document.querySelector('#playFabIdInitCheck').value = playerId
   document.querySelector('#playFabSetDefault').checked = true
 }
+
+window.addEventListener('message', function(event) {
+  if (event.origin === window.location.origin) {
+    const discordData = event.data
+    
+    document.querySelector('#discordId').value = discordData.discordId
+    document.querySelector('#username').value = discordData.username
+
+    if (document.querySelector('#accountOperation').innerText === 'create') {
+      postFormCreate()
+    } else if (document.querySelector('#accountOperation').innerText === 'update') {
+      postFormUpdate()
+    }
+
+    // if the accountOperation is missing, then we can't do anything.
+    document.querySelector('#accountManagementStatus').innerText = 'Invalid/missing account operation'
+  }
+});
