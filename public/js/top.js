@@ -47,7 +47,8 @@ const postFormEventList = async() => {
   selectButton.setAttribute('disabled', 'disabled')
 
   const playerId = document.querySelector('#activePlayFabId').innerText
-  const eventList = await getPlayerEventList(playerId)
+  const eventListNoFilter = await getPlayerEventList(playerId)
+  const eventList = eventListNoFilter.filter(x => x["eventStatus"] != 'archived')
 
   if (eventList) {
     selectList.removeAttribute('disabled')

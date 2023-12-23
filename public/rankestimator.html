@@ -44,7 +44,11 @@
             <input id="endTimeInput" class="form-control" type="datetime-local" aria-describedby="endTimeInput" required>
             <div id="trophyInputDesc" class="form-text">Time of last capsule opening</div>
           </div>
-          <input id="activeEventId" class="form-control d-none" type="text">
+          <div class="mb-3">
+            <label for="activeEventId">Active Event ID <span class="text-danger">*</span></label>
+            <input id="activeEventId" class="form-control" aria-describedby="activeEventInput" type="text">
+            <div id="activeEventInput" class="form-text">(do not change)</div>
+          </div>
           <button id="formCheckRank" type="submit" class="btn btn-primary">Check Rank</button>
           <span id="checkRankStatus" class="p-2 text-danger"></span>
         </form>
