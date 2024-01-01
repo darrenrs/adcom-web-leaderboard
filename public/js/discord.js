@@ -170,9 +170,12 @@ const populateDiscordLeaderboardTable = (discordLb, discordId) => {
     imageCell.style = 'padding-top: 0 !important; padding-bottom: 0 !important'
 
     let image = document.createElement('img')
-    image.src = `img/users/${discordLb[i]["discordId"]}.png`
-    image.style = 'width: 40px;'
+    if (discordLb[i]["discordPfpId"] !== null) {
+      image.src = `https://cdn.discordapp.com/avatars/${discordLb[i]["discordId"]}/${discordLb[i]["discordPfpId"]}.png?size=256`
+    }
+    image.width = 40
     image.alt = '' // don't add a value to this or it'll look ugly
+    image.classList.add('rounded-circle')
     imageCell.appendChild(image)
 
     let nameCell = document.createElement('td')

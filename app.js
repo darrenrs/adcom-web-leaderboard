@@ -652,7 +652,8 @@ app.put('/api/discord/account', async(req, res) => {
     let discordId = req.body.discordId
     let displayName = req.body.displayName
     let username = req.body.username
-    let iconDesc = req.body.iconQualitativeDesc
+    let iconDesc = req.body.iconQualitativeDesc  // deprecated as of 2024-01-01
+    let discordPfpId = req.body.discordProfilePictureId
 
     if (!id || !displayName || !username) {
       res.sendStatus(400)
@@ -663,8 +664,9 @@ app.put('/api/discord/account', async(req, res) => {
     id = id.toString().trim()
     discordId = discordId.toString().trim()
     displayName = displayName.toString().trim()
-    username = username.toString().trim().toLowerCase()
+    username = username.toString().trim()
     iconDesc = iconDesc.toString().trim()
+    discordPfpId = discordPfpId.toString().trim()
 
     // 1 in 4 billion chance of ID length being less than 8; almost certainly user input error
     if (id.length > 16 || id.length < 8) {
@@ -682,10 +684,10 @@ app.put('/api/discord/account', async(req, res) => {
       return
     }
 
-    // if (!username.match(/^(?!.*\.\.)[a-z0-9_.]{2,32}$/)) {
-    //   res.sendStatus(400)
-    //   return
-    // }
+    if (discordPfpId.length !== 32) {
+      res.sendStatus(400)
+      return
+    }
 
     if (iconDesc.length > 1024) {
       res.sendStatus(400)
@@ -693,7 +695,7 @@ app.put('/api/discord/account', async(req, res) => {
     }
 
     const dbHandler = new db()
-    await dbHandler.addPlayerDiscord(id, discordId, displayName, username, iconDesc)
+    await dbHandler.addPlayerDiscord(id, discordId, displayName, username, iconDesc, discordPfpId)
 
     res.sendStatus(201)
 
@@ -727,7 +729,8 @@ app.patch('/api/discord/account', async(req, res) => {
     let discordId = req.body.discordId
     let displayName = req.body.displayName
     let username = req.body.username
-    let iconDesc = req.body.iconQualitativeDesc
+    let iconDesc = req.body.iconQualitativeDesc  // deprecated as of 2024-01-01
+    let discordPfpId = req.body.discordProfilePictureId
 
     if (!id || !displayName || !username) {
       res.sendStatus(400)
@@ -738,8 +741,9 @@ app.patch('/api/discord/account', async(req, res) => {
     id = id.toString().trim()
     discordId = discordId.toString().trim()
     displayName = displayName.toString().trim()
-    username = username.toString().trim().toLowerCase()
+    username = username.toString().trim()
     iconDesc = iconDesc.toString().trim()
+    discordPfpId = discordPfpId.toString().trim()
     
     // 1 in 4 billion chance of ID length being less than 8; almost certainly user input error
     if (id.length > 16 || id.length < 8) {
@@ -757,10 +761,10 @@ app.patch('/api/discord/account', async(req, res) => {
       return
     }
 
-    // if (!username.match(/^(?!.*\.\.)[a-z0-9_.]{2,32}$/)) {
-    //   res.sendStatus(400)
-    //   return
-    // }
+    if (discordPfpId.length !== 32) {
+      res.sendStatus(400)
+      return
+    }
 
     if (iconDesc.length > 1024) {
       res.sendStatus(400)
@@ -768,7 +772,7 @@ app.patch('/api/discord/account', async(req, res) => {
     }
 
     const dbHandler = new db()
-    await dbHandler.updatePlayerDiscord(id, discordId, displayName, username, iconDesc)
+    await dbHandler.updatePlayerDiscord(id, discordId, displayName, username, iconDesc, discordPfpId)
 
     res.sendStatus(204)
 
@@ -839,18 +843,34 @@ app.get('/api/discord/oauth', async (req, res) => {
   const origin = `${req.protocol}://${req.headers.host}`
   const basePath = req.headers['x-original-base-path'] || '' // Apache custom configuration
 
-  let HTML_RESPONSE = `<!DOCTYPE html>
+  let HTML_RESPONSE_SUCCESS = `<!DOCTYPE html>
 <head>
   <title>Discord API Callback</title>
 </head>
-<body>
-  <p>Please close this window.</p>
+<body style="font-family: sans-serif;">
+  <p>The operation completed successfully. Please close this window.</p>
   <script>
   const userData = {
       discordId: "$DISCORD_ID",
-      username: "$DISCORD_USERNAME"
+      username: "$DISCORD_USERNAME",
+      profilePictureId: $DISCORD_AVATAR_ID
   }
   
+  window.opener.postMessage(userData, '${origin}')
+  window.close()
+  </script>
+</body>
+  `
+
+  let HTML_RESPONSE_ERROR = `<!DOCTYPE html>
+<head>
+  <title>Discord API Callback</title>
+</head>
+<body style="font-family: sans-serif;">
+  <p>There was a problem authenticating with Discord. Please close this window and try again.</p>
+  <script>
+  const userData = null
+
   window.opener.postMessage(userData, '${origin}')
   window.close()
   </script>
@@ -889,18 +909,24 @@ app.get('/api/discord/oauth', async (req, res) => {
         username = userResult.data.username
       }
       
-      HTML_RESPONSE = HTML_RESPONSE.replace('$DISCORD_ID', userResult.data.id)
-      HTML_RESPONSE = HTML_RESPONSE.replace('$DISCORD_USERNAME', username)
+      HTML_RESPONSE_SUCCESS = HTML_RESPONSE_SUCCESS.replace('$DISCORD_ID', userResult.data.id)
+      HTML_RESPONSE_SUCCESS = HTML_RESPONSE_SUCCESS.replace('$DISCORD_USERNAME', username)
 
-      res.send(HTML_RESPONSE)
+      if (userResult.data.avatar) {
+        HTML_RESPONSE_SUCCESS = `"${HTML_RESPONSE_SUCCESS.replace('$DISCORD_AVATAR_ID', (userResult.data.avatar).replace('a_', ''))}"`
+      } else {
+        HTML_RESPONSE_SUCCESS = HTML_RESPONSE_SUCCESS.replace('$DISCORD_AVATAR_ID', 'null')
+      }
+
+      res.send(HTML_RESPONSE_SUCCESS)
       return
     } catch (e) {
       log(`OAuth error ${e}`, remoteAddress, true)
-      res.sendStatus(500)
+      res.status(500).send(HTML_RESPONSE_ERROR)
       return
     }
   } else {
-    res.sendStatus(400)
+    res.status(400).send(HTML_RESPONSE_ERROR)
     return
   }
 })
@@ -1001,6 +1027,7 @@ app.get('/api/discord/:event', async(req, res) => {
             "name": k["displayName"],
             "discordId": k["discordId"],
             "discordName": k["username"],
+            "discordPfpId": k["discordProfilePictureId"],
             "primaryKeySeq": j["player"]["playerOrdinal"],
             "position": j["player"]["globalPosition"] + 1,
             "positionOf": currentKnownMaxPlayers,

@@ -120,3 +120,7 @@ input[type="text"] {
 .navbar-brand:nth-child(2) {
   font-size: 9px;
 }
+
+table {
+  white-space: nowrap;
+}

@@ -29,8 +29,9 @@ const postFormCreate = async() => {
   const username = document.querySelector('#username').value
   const discordId = document.querySelector('#discordId').value
   const iconDesc = document.querySelector('#iconQualitativeDesc').value
+  const discordPfpId = document.querySelector('#discordProfilePictureId').value
   
-  const createAccountStatus = await createAccount(playerId, displayName, username, discordId, iconDesc)
+  const createAccountStatus = await createAccount(playerId, displayName, username, discordId, iconDesc, discordPfpId)
   
   if (createAccountStatus) {
     // success
@@ -57,8 +58,9 @@ const postFormUpdate = async() => {
   const username = document.querySelector('#username').value
   const discordId = document.querySelector('#discordId').value
   const iconDesc = document.querySelector('#iconQualitativeDesc').value
+  const discordPfpId = document.querySelector('#discordProfilePictureId').value
   
-  const patchAccountStatus = await patchAccount(playerId, displayName, username, discordId, iconDesc)
+  const patchAccountStatus = await patchAccount(playerId, displayName, username, discordId, iconDesc, discordPfpId)
   
   if (patchAccountStatus) {
     // success
@@ -115,6 +117,7 @@ const checkAccount = async(playFabId) => {
         document.querySelector('#username').value = data["username"]
         document.querySelector('#discordId').value = data["discordId"]
         document.querySelector('#iconQualitativeDesc').value = data["iconQualitativeDesc"]
+        document.querySelector('#discordProfilePictureId').value = data["discordProfilePictureId"]
         document.querySelector('#formSubmitAccount').classList.add('d-none')
         document.querySelector('#formPatchAccount').classList.remove('d-none')
         document.querySelector('#formDeleteAccount').classList.remove('d-none')
@@ -144,13 +147,14 @@ const checkAccount = async(playFabId) => {
   })
 }
 
-const createAccount = async(playFabId, displayName, username, discordId, iconQualitativeDesc) => {
+const createAccount = async(playFabId, displayName, username, discordId, iconQualitativeDesc, discordPfpId) => {
   const data = {
     "playFabId": playFabId,
     "displayName": displayName,
     "username": username,
     "discordId": discordId,
-    "iconQualitativeDesc": iconQualitativeDesc
+    "iconQualitativeDesc": iconQualitativeDesc,
+    "discordProfilePictureId": discordPfpId
   }
 
   if (!discordId || !username) {
@@ -188,13 +192,14 @@ const createAccount = async(playFabId, displayName, username, discordId, iconQua
   })
 }
 
-const patchAccount = async(playFabId, displayName, username, discordId, iconQualitativeDesc) => {
+const patchAccount = async(playFabId, displayName, username, discordId, iconQualitativeDesc, discordPfpId) => {
   const data = {
     "playFabId": playFabId,
     "displayName": displayName,
     "username": username,
     "discordId": discordId,
-    "iconQualitativeDesc": iconQualitativeDesc
+    "iconQualitativeDesc": iconQualitativeDesc,
+    "discordProfilePictureId": discordPfpId
   }
 
   if (!discordId || !username) {
@@ -338,17 +343,29 @@ if (localStorage.getItem('playerId')) {
 window.addEventListener('message', function(event) {
   if (event.origin === window.location.origin) {
     const discordData = event.data
+
+    if (discordData === null) {
+      document.querySelector('#accountManagementStatus').classList.remove('d-none')
+      document.querySelector('#accountManagementStatus').classList.add('text-danger')
+      document.querySelector('#accountManagementStatus').innerText = 'Operation cancelled or server error'
+      return
+    }
     
     document.querySelector('#discordId').value = discordData.discordId
     document.querySelector('#username').value = discordData.username
+    document.querySelector('#discordProfilePictureId').value = discordData.profilePictureId
 
     if (document.querySelector('#accountOperation').innerText === 'create') {
       postFormCreate()
+      return
     } else if (document.querySelector('#accountOperation').innerText === 'update') {
       postFormUpdate()
+      return
     }
 
     // if the accountOperation is missing, then we can't do anything.
+    document.querySelector('#accountManagementStatus').classList.remove('d-none')
+    document.querySelector('#accountManagementStatus').classList.add('text-danger')
     document.querySelector('#accountManagementStatus').innerText = 'Invalid/missing account operation'
   }
 });
