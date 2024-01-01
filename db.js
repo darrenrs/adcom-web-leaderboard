@@ -7,9 +7,9 @@ module.exports = class SQLiteInterface {
     this.db.serialize(() => {
       this.db.run('CREATE TABLE IF NOT EXISTS "players" ("id" NOT NULL UNIQUE, "addDate" INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY ("id"))')
       this.db.run('CREATE TABLE IF NOT EXISTS "players-events" ("id" NOT NULL, "eventId" NOT NULL, "exists" INTEGER NOT NULL, "addDate" INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY ("id", "eventId"))')
-      this.db.run('CREATE TABLE IF NOT EXISTS "players-discord" ("id" NOT NULL UNIQUE, "discordId", "displayName" NOT NULL, "username" NOT NULL, "lastCheckDate" INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP, "iconQualitativeDesc" TEXT, "displayDiscordLb" INTEGER NOT NULL, PRIMARY KEY ("id"))')
-      this.db.run('CREATE TABLE IF NOT EXISTS "tournaments" ("id" INTEGER PRIMARY KEY AUTOINCREMENT, "eventId" NOT NULL, "addDate" INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP)')
-      this.db.run('CREATE TABLE IF NOT EXISTS "tournaments-records" ("id" NOT NULL UNIQUE, "eventId" NOT NULL, "addDate" INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY ("id", "eventId"))')
+      this.db.run('CREATE TABLE IF NOT EXISTS "players-discord" ("id" NOT NULL UNIQUE, "discordId", "displayName" NOT NULL, "username" NOT NULL, "lastCheckDate" INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP, "iconQualitativeDesc" TEXT, "discordProfilePictureId" INTEGER, PRIMARY KEY ("id"))')
+      // this.db.run('CREATE TABLE IF NOT EXISTS "tournaments" ("id" INTEGER PRIMARY KEY AUTOINCREMENT, "eventId" NOT NULL, "addDate" INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP)')
+      // this.db.run('CREATE TABLE IF NOT EXISTS "tournaments-records" ("id" NOT NULL UNIQUE, "eventId" NOT NULL, "addDate" INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY ("id", "eventId"))')
     })
   }
 
@@ -32,11 +32,11 @@ module.exports = class SQLiteInterface {
   }
 
   // add player record to Discord leaderboard
-  addPlayerDiscord = async (id, discordId, displayName, username, iconQualitativeDesc) => {
+  addPlayerDiscord = async (id, discordId, displayName, username, iconQualitativeDesc, discordProfilePictureId) => {
     return new Promise((resolve, reject) => {
       this.db.run(
-        'INSERT INTO "players-discord" (id, discordId, displayName, username, iconQualitativeDesc) VALUES (?, ?, ?, ?, ?)', 
-        [id, discordId, displayName, username, iconQualitativeDesc],
+        'INSERT INTO "players-discord" (id, discordId, displayName, username, iconQualitativeDesc, discordProfilePictureId) VALUES (?, ?, ?, ?, ?, ?)', 
+        [id, discordId, displayName, username, iconQualitativeDesc, discordProfilePictureId],
         (err) => {
           if (err) {
             console.error(`${(new Date()).toISOString()} [internal] - Unable to add Discord record to database: ${err.message}.`)
@@ -50,11 +50,11 @@ module.exports = class SQLiteInterface {
   }
 
   // update player record in Discord leaderboard
-  updatePlayerDiscord = async (id, discordId, displayName, username, iconQualitativeDesc) => {
+  updatePlayerDiscord = async (id, discordId, displayName, username, iconQualitativeDesc, discordProfilePictureId) => {
     return new Promise((resolve, reject) => {
       this.db.run(
-        'UPDATE "players-discord" SET discordId=?, displayName=?, username=?, iconQualitativeDesc=?, lastCheckDate=CURRENT_TIMESTAMP WHERE id=?', 
-        [discordId, displayName, username, iconQualitativeDesc, id],
+        'UPDATE "players-discord" SET discordId=?, displayName=?, username=?, iconQualitativeDesc=?, discordProfilePictureId=?, lastCheckDate=CURRENT_TIMESTAMP WHERE id=?', 
+        [discordId, displayName, username, iconQualitativeDesc, discordProfilePictureId, id],
         async function (err) {
           if (err) {
             console.error(`${(new Date()).toISOString()} [internal] - Unable to update Discord record in database: ${err.message}.`)
