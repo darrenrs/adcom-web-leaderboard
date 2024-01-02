@@ -28,6 +28,15 @@ const populateScheduleTable = (eventSchedule) => {
     let idCell = document.createElement('td')
     idCell.innerText = eventSchedule.length - i
 
+    let imageCell = document.createElement('td')
+    imageCell.style = 'padding-top: 0 !important; padding-bottom: 0 !important'
+
+    let image = document.createElement('img')
+    image.src = `img/adcom/icon/${eventSchedule[i]["eventName"]}.png`
+    image.style = 'height: 40px; width: 40px; background-color: rgba(0, 0, 0, 0) !important'
+    image.alt = '' // don't add a value to this or it'll look ugly
+    imageCell.appendChild(image)
+
     let nameCell = document.createElement('td')
     if (eventRecord) {
       nameCell.innerText = eventRecord["name"]
@@ -84,6 +93,7 @@ const populateScheduleTable = (eventSchedule) => {
     }
 
     eventRow.append(idCell)
+    eventRow.append(imageCell)
     eventRow.append(nameCell)
     eventRow.append(dateFromCell)
     eventRow.append(dateToCell)

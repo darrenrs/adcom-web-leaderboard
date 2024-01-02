@@ -913,7 +913,7 @@ app.get('/api/discord/oauth', async (req, res) => {
       HTML_RESPONSE_SUCCESS = HTML_RESPONSE_SUCCESS.replace('$DISCORD_USERNAME', username)
 
       if (userResult.data.avatar) {
-        HTML_RESPONSE_SUCCESS = `"${HTML_RESPONSE_SUCCESS.replace('$DISCORD_AVATAR_ID', (userResult.data.avatar).replace('a_', ''))}"`
+        HTML_RESPONSE_SUCCESS = HTML_RESPONSE_SUCCESS.replace('$DISCORD_AVATAR_ID', `"${(userResult.data.avatar).replace('a_', '')}"`)
       } else {
         HTML_RESPONSE_SUCCESS = HTML_RESPONSE_SUCCESS.replace('$DISCORD_AVATAR_ID', 'null')
       }
