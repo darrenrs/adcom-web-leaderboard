@@ -436,9 +436,6 @@ const populateFieldsGlobal = (data, playerData) => {
   if (isNaN(margin)) {
     // 1st place
     margin = 40
-  } else if (window.getComputedStyle(document.querySelector('#moveUpTrophies')).getPropertyValue('height') === '65px') {
-    // trophies to move up row spans two lines
-    margin += 24
   }
 
   if (isNaN(percentageFromTopBracketScore)) {
