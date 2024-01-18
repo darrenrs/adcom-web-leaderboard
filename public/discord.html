@@ -41,6 +41,8 @@
               <option>Loading ...</option>
             </select>
             <a href="eventlist" class="link-primary">View full event schedule</a>
+            <!-- Query all players; only intended for debug usage so do not show this to the user -->
+            <input id="noDateCheck" class="d-none" name="noDateCheck" type="checkbox">
           </div>
           <div class="mb-3">
             <button id="formSubmitEvent" type="submit" class="btn btn-primary" disabled>Load Event</button>
@@ -74,7 +76,7 @@
                   <tr>
                     <th>#</th>
                     <th colspan=2>Name</th>
-                    <th>Discord Tag</th>
+                    <th>Discord Username</th>
                     <th colspan=2>Position</th>
                     <th>Division</th>
                     <th>Trophies</th>
