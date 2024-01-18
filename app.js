@@ -952,8 +952,14 @@ app.get('/api/discord/:event', async(req, res) => {
       res.sendStatus(404)
       return
     }
+    
+    let playerRecords
 
-    let playerRecords = await dbPlayerDiscordRecords()
+    if (req.query.allQuery && req.query.allQuery === 'true') {
+      playerRecords = await dbPlayerDiscordRecordsNoDateConstraint()
+    } else {
+      playerRecords = await dbPlayerDiscordRecords()
+    }
 
     const balanceHandler = new balance(currentEventData["eventName"], currentEventData["startDate"], currentEventData["endDate"])
     let currentKnownMaxPlayers = 0

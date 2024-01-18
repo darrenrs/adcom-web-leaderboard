@@ -8,8 +8,10 @@ const postFormDiscordLeaderboard = async() => {
   document.querySelector('#discordLeaderboardLoadError').classList.remove('d-none')
   document.querySelector('#discordLeaderboardLoadError').innerText = 'Loading ...'
 
+  const noDateCheckSwitch = document.querySelector('#noDateCheck').checked
+
   const selectedEventId = document.querySelector('option:checked').value
-  const playerData = await getDiscordLeaderboard(selectedEventId)
+  const playerData = await getDiscordLeaderboard(selectedEventId, noDateCheckSwitch)
 
   if (!playerData) {
     document.querySelector('#discordLeaderboardLoadError').classList.remove('d-none')
@@ -98,8 +100,14 @@ const getDiscordId = async() => {
   })
 }
 
-const getDiscordLeaderboard = async(eventId) => {
-  return await fetch(`api/discord/${eventId}`)
+const getDiscordLeaderboard = async(eventId, noDateCheckSwitch) => {
+  let queryUrl = `api/discord/${eventId}`
+
+  if (noDateCheckSwitch) {
+    queryUrl += '?allQuery=true'
+  }
+
+  return await fetch(queryUrl)
   .then((response) => {
     if (response.status === 200) {
       return response.json()
