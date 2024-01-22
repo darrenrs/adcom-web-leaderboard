@@ -684,10 +684,10 @@ app.put('/api/discord/account', async(req, res) => {
       return
     }
 
-    if (discordPfpId.length !== 32) {
-      res.sendStatus(400)
-      return
-    }
+    // if (discordPfpId.length !== 32) {
+    //   res.sendStatus(400)
+    //   return
+    // }
 
     if (iconDesc.length > 1024) {
       res.sendStatus(400)
@@ -761,10 +761,10 @@ app.patch('/api/discord/account', async(req, res) => {
       return
     }
 
-    if (discordPfpId.length !== 32) {
-      res.sendStatus(400)
-      return
-    }
+    // if (discordPfpId.length !== 32) {
+    //   res.sendStatus(400)
+    //   return
+    // }
 
     if (iconDesc.length > 1024) {
       res.sendStatus(400)
