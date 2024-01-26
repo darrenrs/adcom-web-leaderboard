@@ -68,8 +68,9 @@ const parseAllEvents = async (eventListReq, future) => {
   // iterate through all leaderboards exposed by the API
   for (let i of eventListReq["data"]["data"]) {
     // some "template" events should be ignored
+    console.log(i)
     
-    if (!i["instance"]["definition"]["requirements"] || !i["instance"]["definition"]["segmentDefinition"]) {
+    if (!i["instance"]["definition"]["requirements"] || !i["instance"]["definition"]["segmentDefinition"] || i["instance"]["definition"]["project"] !== hhcfg["application"]) {
       continue
     }
 
@@ -88,7 +89,7 @@ const parseAllEvents = async (eventListReq, future) => {
       playerCount += i["instance"]["statistics"]["rootCounts"]["archive"]
     }
     
-    if (i["instance"]["definition"]["project"] === 'adcom' && !(startDate < currentDate && playerCount === 0) && !(!future && startDate > currentDate)) {
+    if (!(startDate < currentDate && playerCount === 0) && !(!future && startDate > currentDate)) {
       // found a valid event
       const eventStruct = {
         "eventId": eventId,
