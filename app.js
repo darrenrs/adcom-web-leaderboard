@@ -65,10 +65,13 @@ const getAllEvents = async (future=false) => {
 const parseAllEvents = async (eventListReq, future) => {
   const eventList = []
 
+  // some events might have no way to tell that it's a test event, so we specify the IDs here to hide them
+  const EVENT_OVERRIDE = ['3b788292-787f-4c60-9f8d-fee2f1216847']
+
   // iterate through all leaderboards exposed by the API
   for (let i of eventListReq["data"]["data"]) {
     // some "template" events should be ignored
-    if (!i["instance"]["definition"]["requirements"] || !i["instance"]["definition"]["segmentDefinition"] || i["instance"]["definition"]["project"] !== hhcfg["application"]) {
+    if (!i["instance"]["definition"]["requirements"] || !i["instance"]["definition"]["segmentDefinition"] || i["instance"]["definition"]["project"] !== hhcfg["application"] || EVENT_OVERRIDE.includes(i["instance"]["guid"])) {
       continue
     }
 
