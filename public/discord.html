@@ -41,8 +41,12 @@
               <option>Loading ...</option>
             </select>
             <a href="eventlist" class="link-primary">View full event schedule</a>
-            <!-- Query all players; only intended for debug usage so do not show this to the user -->
-            <input id="noDateCheck" class="d-none" name="noDateCheck" type="checkbox">
+            <!-- Query all players; only render if a debug key is enabled -->
+            <div id="noDateCheckContainer" class="d-none">
+              <br>
+              <span>Override date constraint</span>
+              <input id="noDateCheck" name="noDateCheck" type="checkbox">
+            </div>
           </div>
           <div class="mb-3">
             <button id="formSubmitEvent" type="submit" class="btn btn-primary" disabled>Load Event</button>

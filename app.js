@@ -328,7 +328,7 @@ const getBrackets = async(id, eventId, brackets, totalPlayers) => {
 const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboard, id, returnGlobalForDivision=false) => {
   let proximalPlayerHashMap = {}
   for (let i of playerLeaderboard["resolvedPlayers"]["objectArray"]) {
-    // generate a list of players from the "resolvedPlayers" key, so we can obtain metadata such as ordinal ID (yields nickname) and custom name/icon (planned implementation in 2023)
+    // generate a list of players from the "resolvedPlayers" key, so we can obtain metadata such as ordinal ID (yields nickname) and custom name/icon (may be added sometime in the far future)
     proximalPlayerHashMap[i["playerId"]] = i["sequence"]
   }
 

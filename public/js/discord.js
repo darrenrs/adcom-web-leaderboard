@@ -16,6 +16,9 @@ const postFormDiscordLeaderboard = async() => {
   if (!playerData) {
     document.querySelector('#discordLeaderboardLoadError').classList.remove('d-none')
     return
+  } else if (playerData.length === 0) {
+    document.querySelector('#discordLeaderboardLoadError').innerText = 'No player records found for the specified query'
+    return
   }
 
   const invalidBanner = await getInvalidState(selectedEventId)
@@ -344,12 +347,10 @@ const populateBoxPlot = (data, playerId) => {
   let activeBracket = 0
   let lastLeftLockedPlayer = 0
 
-  for (let i in data) {
-    // can't place cheaters on main board
-    if (!data[i]["isMainBoard"]) {
-      continue
-    }
+  // remove all records that are not on main board
+  data = data.filter(x => x["isMainBoard"])
 
+  for (let i in data) {
     const playerDot = document.createElement('span')
     playerDot.classList.add('player-dot')
     playerDot.innerText = `${data[i]["name"]}`
@@ -412,11 +413,16 @@ const expandPlayerList = (names) => {
 
 const init = async() => {
   const eventSchedule = await getEventSchedule()
+  const overrideDateConstraintDOMRender = window.localStorage.getItem('dateConstraintDbgSwitch')
 
   if (eventSchedule) {
     const selectElement = document.querySelector('#eventSelect')
     const selectButton = document.querySelector('#formSubmitEvent')
     nestedEventSelector(eventSchedule, selectElement, selectButton)
+  }
+
+  if (overrideDateConstraintDOMRender !== null) {
+    document.querySelector('#noDateCheckContainer').classList.remove('d-none')
   }
 
   document.querySelector('#earliestPossibleDate').innerText = new Date((new Date() - 56*86400*1000)).toLocaleString()
