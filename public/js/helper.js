@@ -346,6 +346,15 @@ const amountSpentDollars = (b) => {
   }
 }
 
+const getDivisionSuffix = (b) => {
+  if (!b) {
+    return ''
+  }
+
+  const re = /:(\d*)/g
+  return re.exec(b)[0].slice(1)
+}
+
 const getLeaderboardType = (t) => {
   switch (t) {
     case 'global':
