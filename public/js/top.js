@@ -234,6 +234,10 @@ const populateFieldsTop = (data) => {
     let amountSpentCell = document.createElement('td')
     amountSpentCell.innerText = getSpendingCategory(data["top"]["list"][i]["divisionId"])
     
+    let divisionOrdinalIdCell = document.createElement('td')
+    divisionOrdinalIdCell.innerText = getDivisionSuffix(data["top"]["list"][i]["divisionId"])
+    divisionOrdinalIdCell.classList.add('table-value-quant')
+
     let timeElapsedCell = document.createElement('td')
     timeElapsedCell.innerHTML = getFastTimedeltaFormat((new Date(data["top"]["list"][i]["endTime"]) - new Date(data["top"]["list"][i]["startTime"]))/1000)
 
@@ -243,6 +247,7 @@ const populateFieldsTop = (data) => {
     topPlayer.appendChild(trophyCell)
     topPlayer.appendChild(rankCell)
     topPlayer.appendChild(amountSpentCell)
+    topPlayer.appendChild(divisionOrdinalIdCell)
     topPlayer.appendChild(timeElapsedCell)
     
     tbody.appendChild(topPlayer)
