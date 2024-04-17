@@ -306,6 +306,10 @@ const getSpendingCategory = (b) => {
     return 'No division'
   }
 
+  if (b.includes("default")) {
+    return 'Spending-agnostic bracket'
+  }
+
   const re = /[A-Z_\d]+/g
   
   switch (re.exec(b)[0]) {
