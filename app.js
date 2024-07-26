@@ -1482,7 +1482,7 @@ app.get('/api/event/:event/:id/top/:count', async (req, res) => {
     } else if (topPlayers < 1 || topPlayers > 1000) {
       // server can return more than 1000 players but this ability should not be given to the client
       log(`${req.method} ${req.originalUrl} - invalid request`, remoteAddress)
-      res.status(403).end()
+      res.status(400).end()
       return
     }
 
