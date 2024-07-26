@@ -63,7 +63,7 @@ const nestedEventSelector = (data, selectList, selectButton) => {
     selectList.appendChild(optionBalance)
 
     const optionType = document.createElement('option')
-    optionType.innerText = 'Select by Event Length'
+    optionType.innerText = 'Select by Event Class'
     optionType.value = 'type'
     optionType.setAttribute('level', 1)
     selectList.appendChild(optionType)

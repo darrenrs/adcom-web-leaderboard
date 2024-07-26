@@ -110,14 +110,14 @@ const getAllEventDetails = () => {
       "short": "Vacation",
       "desc": "When it's time to get away, the best (and only) place for Comrades is the Great Motherland Resort and Supreme State Spa!",
       "commonBalance": "legacysanta",
-      "eventType": "special"
+      "eventType": "supreme"
     },
     "cockatrice": {
       "name": "Comrades & Cockatrices",
       "short": "C&C",
       "desc": "It's game night, Comrade! Grab some snacks, your dice set and character sheet, because it's time for an adventure party!",
       "commonBalance": "legacysanta",
-      "eventType": "special"
+      "eventType": "supreme"
     },
     "cowboy": {
       "name": "Comrade Cowboys",
@@ -180,7 +180,7 @@ const getAllEventDetails = () => {
       "short": "Motherland Games",
       "desc": "Cheer on our Comrades as the world's best athletes compete in the Motherland's greatest farming competition! Let's go, Comrades!",
       "commonBalance": "newsanta",
-      "eventType": "special"
+      "eventType": "supreme"
     },
     "ninja": {
       "name": "Ninja Union",
@@ -194,7 +194,7 @@ const getAllEventDetails = () => {
       "short": "Potato Factory",
       "desc": "Grow your Communist food empire from humble beginnings and become the pride of the glorious Motherland!",
       "commonBalance": "newsanta",
-      "eventType": "special"
+      "eventType": "supreme"
     },
     "power": {
       "name": "Power Underwhelming",
@@ -208,7 +208,7 @@ const getAllEventDetails = () => {
       "short": "Santa",
       "desc": "Conquer the North Pole in the name of the Motherland! Build a new Great State in a frozen landscape and celebrate the gift of Communism with all your comrades!",
       "commonBalance": "legacysanta",
-      "eventType": "special"
+      "eventType": "supreme"
     },
     "space": {
       "name": "Space Force",
@@ -222,7 +222,7 @@ const getAllEventDetails = () => {
       "short": "Spooky",
       "desc": "Collect candy and conjure Comrades to seize the means of trick or treating season!",
       "commonBalance": "legacysanta",
-      "eventType": "special"
+      "eventType": "supreme"
     },
     "stone": {
       "name": "Stone State",
@@ -236,7 +236,7 @@ const getAllEventDetails = () => {
       "short": "Supervillain",
       "desc": "Build your villainous base and prepare your monolog! It's time to show our Capitalist nemesis the greatness of Communism!",
       "commonBalance": "newsanta",
-      "eventType": "special"
+      "eventType": "supreme"
     },
     "winter": {
       "name": "Winter Motherland",
@@ -292,8 +292,8 @@ const getEventTypeName = (eventType) => {
       return 'Weekend Event (4 days 4 hours)'
     case 'mini':
       return 'Mini Event (1 day 4 hours)'
-    case 'special':
-      return 'Special Event (11 days 4 hours)'
+    case 'supreme':
+      return 'Supreme Event (11 days 4 hours)'
     case 'fusion':
       return 'Fusion Event (2 days 4 hours)'
     default:

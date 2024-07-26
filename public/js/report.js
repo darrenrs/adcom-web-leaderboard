@@ -85,7 +85,7 @@ const populateUserData = (data) => {
   let bestPositionsByType = {
     "weekend": null,
     "mini": null,
-    "special": null,
+    "supreme": null,
     "fusion": null
   }
 
@@ -154,8 +154,8 @@ const populateUserData = (data) => {
 
     // EVENT TYPE BEST OVERALL PERFORMANCE
 
-    // Skip currently active event or the "bugged" stone event
-    if ((new Date()).toISOString() < data[i]["event"]["endDate"] || data[i]["global"]["count"] < 1) {
+    // Skip currently active event or some bugged events
+    if ((new Date()).toISOString() < data[i]["event"]["endDate"] || data[i]["global"]["count"] < 1 || data[i]["event"]["eventGuid"] === 'c4b9f245-a2c5-4967-817f-93eb45ffa4e2' || data[i]["event"]["eventGuid"] === '922fc5f1-aafc-4e73-bd08-8ce2cd2ae2c9') {
       continue
     }
 
