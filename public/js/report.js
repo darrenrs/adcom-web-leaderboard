@@ -189,15 +189,6 @@ const populateUserData = (data) => {
     document.querySelector('#medianDivPos').innerText = '?'
   }
 
-  if (eventCountWithCheaterFlag > 0) {
-    document.querySelector('#cheaterExclusion').classList.remove('d-none')
-    document.querySelector('#eventPositionApexByClass').parentElement.classList.add('d-none')
-    return
-  } else {
-    document.querySelector('#cheaterExclusion').classList.add('d-none')
-    document.querySelector('#eventPositionApexByClass').parentElement.classList.remove('d-none')
-  }
-
   let missingEventTypes = 0
   let bracketScoreSum = 0
 
@@ -251,6 +242,16 @@ const populateUserData = (data) => {
     document.querySelector('#eventPositionApexByClass').appendChild(eventPositionApexRow)
 
     bracketScoreSum += bestPositionsByType[i]["bracketScore"]
+  }
+
+  // if cheater, it will still be written to the DOM for a developer to check
+  if (eventCountWithCheaterFlag > 0) {
+    document.querySelector('#cheaterExclusion').classList.remove('d-none')
+    document.querySelector('#eventPositionApexByClass').parentElement.classList.add('d-none')
+    return
+  } else {
+    document.querySelector('#cheaterExclusion').classList.add('d-none')
+    document.querySelector('#eventPositionApexByClass').parentElement.classList.remove('d-none')
   }
 
   if (missingEventTypes === 0) {

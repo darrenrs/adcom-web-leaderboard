@@ -567,6 +567,108 @@ const fsIconStatus = async() => {
   return icons
 }
 
+// must have an iOS device; not known how to acquire Android-equivalent token
+const getPlayerAccountValueFromPlayFab = async(id) => {
+  try {
+    // login with hardcoded iOS device ID
+    const sessionGenesisReq = await axios.post(`https://${hhcfg["loginPlayFabTitleId"]}.playfabapi.com/Client/LoginWithIOSDeviceID`,
+      data={
+        "AuthenticationContext": null,
+        "CreateAccount": false,
+        "CustomTags": null,
+        "DeviceId": hhcfg["loginTokenIOSDeviceId"],
+        "DeviceModel": null,
+        "EncryptedRequest": null,
+        "InfoRequestParameters": {
+            "GetCharacterInventories": false,
+            "GetCharacterList": false,
+            "GetPlayerProfile": true,
+            "GetPlayerStatistics": false,
+            "GetTitleData": true,
+            "GetUserAccountInfo": true,
+            "GetUserData": true,
+            "GetUserInventory": true,
+            "GetUserReadOnlyData": true,
+            "GetUserVirtualCurrency": true,
+            "PlayerStatisticNames": null,
+            "ProfileConstraints": {
+                "ShowAvatarUrl": false,
+                "ShowBannedUntil": false,
+                "ShowCampaignAttributions": false,
+                "ShowContactEmailAddresses": false,
+                "ShowCreated": true,
+                "ShowDisplayName": false,
+                "ShowExperimentVariants": false,
+                "ShowLastLogin": false,
+                "ShowLinkedAccounts": false,
+                "ShowLocations": true,
+                "ShowMemberships": false,
+                "ShowOrigination": false,
+                "ShowPushNotificationRegistrations": false,
+                "ShowStatistics": false,
+                "ShowTags": false,
+                "ShowTotalValueToDateInUsd": true,
+                "ShowValuesToDate": false
+            },
+            "TitleDataKeys": [
+                "HardCurrencyCap",
+                "SoftCurrencyCap",
+                "TrophyCurrencyCap",
+                "EnableSzTransitionSdk",
+                "EnableIDFA",
+                "YoutubeUrl",
+                "WappierIosEnable",
+                "CrashlyticsUserIdCollected",
+                "FeatureFlags",
+                "ForceDataVersion"
+            ],
+            "UserDataKeys": null,
+            "UserReadOnlyDataKeys": null
+        },
+        "OS": null,
+        "PlayerSecret": null,
+        "TitleId": hhcfg["loginPlayFabTitleId"]
+      }
+    )
+    
+    const sessionToken = sessionGenesisReq["data"]["data"]["SessionTicket"]
+
+    const playerAccountValueReq = await axios.post(`https://${hhcfg["loginPlayFabTitleId"]}.playfabapi.com/Client/GetPlayerProfile`,
+      data={
+        "AuthenticationContext": null,
+        "CustomTags": null,
+        "PlayFabId": id,
+        "ProfileConstraints": {
+            "ShowCreated": true,
+            "ShowDisplayName": true,
+            "ShowLastLogin": true,
+            "ShowLocations": true,
+            "ShowTotalValueToDateInUsd": true
+        }
+      },
+      {
+        headers: {
+          'X-Authorization': sessionToken
+        }
+      }
+    )
+
+    const accountValueUSD = playerAccountValueReq["data"]["data"]["PlayerProfile"]["TotalValueToDateInUSD"] / 100 || 0
+    const dateAccountGenesis = playerAccountValueReq["data"]["data"]["PlayerProfile"]["Created"]
+    const dateAccountLastLogin = playerAccountValueReq["data"]["data"]["PlayerProfile"]["LastLogin"]
+
+    return {
+      "accountValueUSD": accountValueUSD,
+      "dateAccountGenesis": dateAccountGenesis,
+      "dateAccountLastLogin": dateAccountLastLogin
+    }
+
+  } catch (e) {
+    // console.error(e)
+    return Promise.reject(e)
+  }
+}
+
 // get event list
 app.get('/api/list', async (req, res) => {
   const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
@@ -1157,6 +1259,30 @@ app.get('/api/player/:id/all', async (req, res) => {
     ).map(result => result.value)
     
     res.status(200).send(playerEventRecords)
+  } catch (e) {
+    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
+
+    res.sendStatus(502)
+  }
+})
+
+// get lifetime amount spent for player
+app.get('/api/player/:id/accountvalue', async (req, res) => {
+  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  try {
+    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+
+    const id = req.params.id
+    let output = await getPlayerAccountValueFromPlayFab(id)
+
+    // let output = {
+    //   "playFabId": req.params.id,
+    //   "accountValueUSD": 1234.56,
+    //   "dateAccountGenesis": "2023-04-12T00:15:17Z",
+    //   "dateAccountLastLogin": "2024-08-02T06:02:01Z"
+    // }
+
+    res.json(output)
   } catch (e) {
     log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
 

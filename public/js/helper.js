@@ -377,6 +377,7 @@ const getTimedeltaFormat = (timestamp) => {
   let current = new Date()
   let timeSeconds = Math.abs((timestamp - current) / 1000)
 
+  let years = Math.floor(timeSeconds / (60 * 60 * 24 * 365))
   let days = Math.floor(timeSeconds / (60 * 60 * 24)) % 365
   let hours = Math.floor(timeSeconds / (60 * 60)) % 24
   let minutes = Math.floor(timeSeconds / 60) % 60
@@ -385,8 +386,10 @@ const getTimedeltaFormat = (timestamp) => {
     return `${minutes}<span class="time-suffix">m</span>`
   } else if (timeSeconds < 24 * 3600) {
     return `${hours}<span class="time-suffix">h</span> ${minutes}<span class="time-suffix">m</span>`
-  } else {
+  } else if (timeSeconds < 24 * 3600 * 365) {
     return `${days}<span class="time-suffix">d</span> ${hours}<span class="time-suffix">h</span>`
+  } else {
+    return `${years}<span class="time-suffix">y</span> ${days}<span class="time-suffix">d</span> ${hours}<span class="time-suffix">h</span>`
   }
 }
 
@@ -431,4 +434,11 @@ const getPositionHTMLFormat = (n) => {
   const formattedNum = n.toLocaleString()
 
   return `${formattedNum}<sup>${ordinal}</sup>`
+}
+
+const getUsdValueFmt = (v) => {
+  return `$${v.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`
 }
