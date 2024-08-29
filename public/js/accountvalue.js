@@ -74,6 +74,7 @@ const populateAccountValue = (data) => {
   const dateAccountLastLogin = new Date(data["dateAccountLastLogin"])
 
   document.querySelector('#accountValueUSD').innerText = getUsdValueFmt(data["accountValueUSD"])
+  document.querySelector('#accountValueQualitativeDescriptor').innerHTML = `(${getUsdValueQualitativeDescriptor(data["accountValueUSD"])})`
   document.querySelector('#dateAccountGenesis').innerText = dateAccountGenesis.toLocaleString()
   document.querySelector('#timeSinceAccountGenesis').innerHTML = `(${getTimedeltaFormat(dateAccountGenesis)} ago)`
   document.querySelector('#dateAccountLastLogin').innerText = dateAccountLastLogin.toLocaleString()

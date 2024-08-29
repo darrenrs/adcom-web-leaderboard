@@ -442,3 +442,27 @@ const getUsdValueFmt = (v) => {
     maximumFractionDigits: 2
   })}`
 }
+
+const getUsdValueQualitativeDescriptor = (v) => {
+  if (v === 0) {
+    return 'Free-to-play / <code>SPEND_LTE_2</code> bracket'
+  } else if (v <= 2) {
+    return 'Pseudo-free-to-play / <code>SPEND_LTE_2</code> bracket'
+  } else if (v <= 10) {
+    return 'Fish / <code>SPEND_2_TO_100</code> bracket'
+  } else if (v <= 100) {
+    return 'Dolphin / <code>SPEND_2_TO_100</code> bracket'
+  } else if (v <= 250) {
+    return 'Minor whale / <code>SPEND_100_TO_500</code> bracket'
+  } else if (v <= 500) {
+    return 'Moderate whale / <code>SPEND_100_TO_500</code> bracket'
+  } else if (v <= 1000) {
+    return 'Major whale / <code>SPEND_GT_500</code> bracket'
+  } else if (v <= 3000) {
+    return 'Massive whale / <code>SPEND_GT_500</code> bracket'
+  } else if (v <= 10000) {
+    return 'Colossal whale / <code>SPEND_GT_500</code> bracket'
+  } else {
+    return 'Gargantuan whale / <code>SPEND_GT_500</code> bracket'
+  }
+}
