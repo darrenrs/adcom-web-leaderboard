@@ -350,6 +350,12 @@ window.addEventListener('message', function(event) {
       document.querySelector('#accountManagementStatus').innerText = 'Operation cancelled or server error'
       return
     }
+
+    if (!discordData.discordId || !discordData.username || !discordData.profilePictureId) {
+      // some extensions e.g., "React Developer Tools" may fire
+      // faux events which are irrelevant and should be ignored
+      return
+    }
     
     document.querySelector('#discordId').value = discordData.discordId
     document.querySelector('#username').value = discordData.username
