@@ -182,6 +182,13 @@ const getAllEventDetails = () => {
       "commonBalance": "newsanta",
       "eventType": "supreme"
     },
+    "minicockatrice": {
+      "name": "Comrades & Cockatrices (Short)",
+      "short": "C&C",
+      "desc": "It's game night, Comrade! Grab some snacks, your dice set and character sheet, because it's time for an adventure party!",
+      "commonBalance": "legacysanta",
+      "eventType": "supreme"
+    },
     "ninja": {
       "name": "Ninja Union",
       "short": "Ninja",

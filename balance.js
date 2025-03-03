@@ -5,16 +5,9 @@ module.exports = class BalanceParser {
     this.eventName = eventName
     this.startTime = startTime
     this.endTime = endTime
-    this.rankCalculationMasterSwitch = false
-
-    fs.readFile(__dirname + '/hh-config.json', 'utf8', (err, data) => {
-      const hhcfg = JSON.parse(data)
-      this.rankCalculationMasterSwitch = hhcfg["rankCalculationMasterSwitch"]
-    })
   }
 
   async loadBalanceData() {
-    const fs = require('fs')
     const fileName = await fs.promises.readFile(__dirname + '/balance/_DataConfig.json', 'utf8')
     .then((data) => {
       const dc = JSON.parse(data)
@@ -73,10 +66,6 @@ module.exports = class BalanceParser {
     let trophyCheck = 0
     let trophyStep = 10000
 
-    if (!this.rankCalculationMasterSwitch) {
-      return Infinity
-    }
-
     while (true) {
       let rank = await this.getRankFromTrophies(trophyCheck)
       if (!rank['isMaxRank']) {
@@ -94,10 +83,6 @@ module.exports = class BalanceParser {
     let realStartTime
     let realEndTime
     let duration
-
-    if (!this.rankCalculationMasterSwitch) {
-      return {"rank": 0, "mission": 0, "isMaxRank": false}
-    }
 
     if (startTime) {
       realStartTime = startTime

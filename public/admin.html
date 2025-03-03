@@ -19,8 +19,7 @@
           Admin Frontend
         </a>
         <a class="navbar-brand" href="https://github.com/darrenrs/adcom-web-leaderboard">
-          <img src="img/github.png" width="30" height="30" class="d-inline-block align-text-top" alt="GitHub">
-          <br>
+          <img src="img/github.png" width="30" height="30" style="display: flex; margin: 0 auto;" alt="GitHub">
           <span id="buildId">&nbsp;</span>
         </a>
       </div>
@@ -57,9 +56,8 @@
         <div class="row pt-3">
           <h3>Record Count</h3>
           <ul style="list-style-type: none;">
-            <li><strong>Discord Leaderboard Players: </strong><span id="discordLeaderboardCount">...</span></li>
-            <li><strong>Player Icons: </strong><span id="discordLeaderboardIconCount">...</span></li>
-            <li><strong>Database Players: </strong><span id="dbPlayerCount">...</span></li>
+            <li><strong>Discord Leaderboard Player Count: </strong><span id="discordLeaderboardCount">...</span></li>
+            <li><strong>Database Player Count: </strong><span id="dbPlayerCount">...</span></li>
             <li><strong>Database Player Event Records: </strong><span id="dbPlayerEventRecordCount">...</span></li>
           </ul>
         </div>
@@ -80,20 +78,6 @@
               <tbody id="discordLeaderboardRaw" class="table-group-divider"></tbody>
             </table>
           </div>
-        </div>
-        <div class="row pt-3 d-none">
-          <h3>Discord Leaderboard Icon Status</h3>
-          <table class="table table-striped table-hover">
-            <thead>
-              <tr>
-                <th>Discord ID</th>
-                <th>Linked Name</th>
-                <th>Provided Description</th>
-                <th>Icon Status</th>
-              </tr>
-            </thead>
-            <tbody id="discordLeaderboardIconDesc" class="table-group-divider"></tbody>
-          </table>
         </div>
         <div class="row pt-3">
           <h3>Database Player Entries</h3>

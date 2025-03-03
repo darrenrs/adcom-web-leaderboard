@@ -8,8 +8,6 @@ module.exports = class SQLiteInterface {
       this.db.run('CREATE TABLE IF NOT EXISTS "players" ("id" NOT NULL UNIQUE, "addDate" INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY ("id"))')
       this.db.run('CREATE TABLE IF NOT EXISTS "players-events" ("id" NOT NULL, "eventId" NOT NULL, "exists" INTEGER NOT NULL, "addDate" INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY ("id", "eventId"))')
       this.db.run('CREATE TABLE IF NOT EXISTS "players-discord" ("id" NOT NULL UNIQUE, "discordId", "displayName" NOT NULL, "username" NOT NULL, "lastCheckDate" INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP, "iconQualitativeDesc" TEXT, "discordProfilePictureId" INTEGER, PRIMARY KEY ("id"))')
-      // this.db.run('CREATE TABLE IF NOT EXISTS "tournaments" ("id" INTEGER PRIMARY KEY AUTOINCREMENT, "eventId" NOT NULL, "addDate" INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP)')
-      // this.db.run('CREATE TABLE IF NOT EXISTS "tournaments-records" ("id" NOT NULL UNIQUE, "eventId" NOT NULL, "addDate" INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY ("id", "eventId"))')
     })
   }
 

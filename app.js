@@ -1,31 +1,20 @@
 const express = require('express')
 const fs = require('fs')
 const axios = require('axios')
-const db = require('./db')
-const balance = require('./balance')
 const readline = require('readline')
 const formidable = require('formidable')
 const path = require('path')
+require('dotenv').config()
+
+const db = require('./db')
+const balance = require('./balance')
 
 const app = express({
   strict: true
 })
-const port = 3000
-
-let hhcfg
-
-// load HH API endpoint and API key
-// this information cannot be made public to minimize abuse against HH's systems
-fs.readFile(__dirname + '/hh-config.json', 'utf8', (err, data) => {
-  if (err) {
-    log('Unable to load API config. This server will not work until an API config file is added.', 'internal')
-  } else {
-    log('Successfully loaded API config.', 'internal')
-    hhcfg = JSON.parse(data)
-    hhcfg["fullBaseLeaderboard"] = hhcfg["baseLeaderboard"] + '/project/' + hhcfg["application"]
-    hhcfg["fullBasePlayerMeta"] = hhcfg["basePlayerMeta"] + '/project/' + hhcfg["application"]
-  }
-})
+const port = process.env.PORT
+const fullBaseLeaderboard = `${process.env.API_URL_LEADERBOARD}/project/${process.env.API_APPLICATION_ID}`
+const fullBasePlayerMeta = `${process.env.API_URL_PLAYERMETA}/project/${process.env.API_APPLICATION_ID}`
 
 // load static content
 app.use(express.json())
@@ -47,9 +36,9 @@ const log = async (message, remoteAddress, error=false) => {
 // returns a list of every event since the inception of v3 leaderboard service up until either now or all scheduled
 const getAllEvents = async (future=false) => {
   try {
-    const eventListReq = await axios.get(`${hhcfg["fullBaseLeaderboard"]}/leaderboards`, config={
+    const eventListReq = await axios.get(`${fullBaseLeaderboard}/leaderboards`, config={
       "headers": {
-        "_token": hhcfg["token"],
+        "_token": process.env.API_GCLOUD_TOKEN,
         "User-agent": "Axios"
       }
     })
@@ -71,7 +60,10 @@ const parseAllEvents = async (eventListReq, future) => {
   // iterate through all leaderboards exposed by the API
   for (let i of eventListReq["data"]["data"]) {
     // some "template" events should be ignored
-    if (!i["instance"]["definition"]["requirements"] || !i["instance"]["definition"]["segmentDefinition"] || i["instance"]["definition"]["project"] !== hhcfg["application"] || EVENT_OVERRIDE.includes(i["instance"]["guid"])) {
+    if (!i["instance"]["definition"]["requirements"] ||
+        !i["instance"]["definition"]["segmentDefinition"] ||
+        i["instance"]["definition"]["project"] !== process.env.API_APPLICATION_ID ||
+        EVENT_OVERRIDE.includes(i["instance"]["guid"])) {
       continue
     }
 
@@ -124,9 +116,9 @@ const getPlayerState = async(id) => {
       return true
     }
 
-    await axios.get(`${hhcfg["fullBasePlayerMeta"]}/players/${id}`, config={
+    await axios.get(`${fullBasePlayerMeta}/players/${id}`, config={
       "headers": {
-        "_token": hhcfg["token"],
+        "_token": process.env.API_GCLOUD_TOKEN,
         "User-agent": "Axios"
       }
     })
@@ -160,9 +152,9 @@ const getPlayerEventState = async(id, eventId, isCurrent) => {
       }
     }
 
-    const playerEventRecord = await axios.get(`${hhcfg["fullBaseLeaderboard"]}/leaderboards/${eventId}/players/${id}`, config={
+    const playerEventRecord = await axios.get(`${fullBaseLeaderboard}/leaderboards/${eventId}/players/${id}`, config={
       "headers": {
-        "_token": hhcfg["token"],
+        "_token": process.env.API_GCLOUD_TOKEN,
         "User-agent": "Axios"
       }
     })
@@ -242,9 +234,9 @@ const parseKnownPlayerEvents = async(id, allEvents) => {
 // return information about individual player event registration
 const getPlayerEventInfo = async(id, eventId) => {
   try {
-    const playerEventReq = await axios.get(`${hhcfg["fullBaseLeaderboard"]}/leaderboards/${eventId}/players/${id}`, config={
+    const playerEventReq = await axios.get(`${fullBaseLeaderboard}/leaderboards/${eventId}/players/${id}`, config={
       "headers": {
-        "_token": hhcfg["token"],
+        "_token": process.env.API_GCLOUD_TOKEN,
         "User-agent": "Axios"
       }
     })
@@ -264,9 +256,9 @@ const getPlayerLeaderboard = async(id, eventId, adjacentCount, topCount, indirec
       dbHandler.updatePlayerDiscordTimestamp(id)
     }
 
-    const playerLeaderboardReq = await axios.get(`${hhcfg["fullBaseLeaderboard"]}/leaderboards/${eventId}/players/${id}/results?offset=${adjacentCount}&resolvePlayers=true&topCount=${topCount}`, config={
+    const playerLeaderboardReq = await axios.get(`${fullBaseLeaderboard}/leaderboards/${eventId}/players/${id}/results?offset=${adjacentCount}&resolvePlayers=true&topCount=${topCount}`, config={
       "headers": {
-        "_token": hhcfg["token"],
+        "_token": process.env.API_GCLOUD_TOKEN,
         "User-agent": "Axios"
       }
     })
@@ -281,9 +273,9 @@ const getPlayerLeaderboard = async(id, eventId, adjacentCount, topCount, indirec
 // returns the trophies at an exact position
 const getPosition = async(id, eventId, n) => {
   try {
-    const positionReq = await axios.get(`${hhcfg["fullBaseLeaderboard"]}/leaderboards/${eventId}/players/${id}/score/position?position=${n}`, config={
+    const positionReq = await axios.get(`${fullBaseLeaderboard}/leaderboards/${eventId}/players/${id}/score/position?position=${n}`, config={
       "headers": {
-        "_token": hhcfg["token"],
+        "_token": process.env.API_GCLOUD_TOKEN,
         "User-agent": "Axios"
       }
     })
@@ -534,49 +526,16 @@ const dbPlayerDiscordRecordsNoDateConstraint = async() => {
   return data
 }
 
-const fsIconStatus = async() => {
-  const iconDirectory = path.join(__dirname, hhcfg["iconRelativePath"])
-  let icons = []
-
-  fs.readdir(iconDirectory, async(err, files) => {
-    files.forEach(file => {
-      icons.push({
-        "id": file.replace('.png', ''),
-        "exists": true
-      })
-    })
-
-    // now get a list of Discord IDs without an icon
-    const dbHandler = new db()
-    const data = await dbHandler.getAllPlayerDiscordRecordsNoDateConstraint()
-    const iconsIdl = icons.map(a => a["id"])
-
-    for (let i of data) {
-      if (!iconsIdl.includes(i["discordId"]) && i["discordId"] !== "") {
-        icons.push({
-          "id": i["discordId"],
-          "exists": false
-        })
-      }
-    }
-    
-    icons.sort((a, b) => a["id"] - b["id"])
-  })
-
-
-  return icons
-}
-
 // must have an iOS device; not known how to acquire Android-equivalent token
 const getPlayerAccountValueFromPlayFab = async(id) => {
   try {
     // login with hardcoded iOS device ID
-    const sessionGenesisReq = await axios.post(`https://${hhcfg["loginPlayFabTitleId"]}.playfabapi.com/Client/LoginWithIOSDeviceID`,
+    const sessionGenesisReq = await axios.post(`https://${process.env.PLAYFAB_TITLE_ID}.playfabapi.com/Client/LoginWithIOSDeviceID`,
       data={
         "AuthenticationContext": null,
         "CreateAccount": false,
         "CustomTags": null,
-        "DeviceId": hhcfg["loginTokenIOSDeviceId"],
+        "DeviceId": process.env.GC_DEVICE_ID,
         "DeviceModel": null,
         "EncryptedRequest": null,
         "InfoRequestParameters": {
@@ -627,13 +586,13 @@ const getPlayerAccountValueFromPlayFab = async(id) => {
         },
         "OS": null,
         "PlayerSecret": null,
-        "TitleId": hhcfg["loginPlayFabTitleId"]
+        "TitleId": process.env.PLAYFAB_TITLE_ID
       }
     )
     
     const sessionToken = sessionGenesisReq["data"]["data"]["SessionTicket"]
 
-    const playerAccountValueReq = await axios.post(`https://${hhcfg["loginPlayFabTitleId"]}.playfabapi.com/Client/GetPlayerProfile`,
+    const playerAccountValueReq = await axios.post(`https://${process.env.PLAYFAB_TITLE_ID}.playfabapi.com/Client/GetPlayerProfile`,
       data={
         "AuthenticationContext": null,
         "CustomTags": null,
@@ -986,8 +945,8 @@ app.get('/api/discord/oauth', async (req, res) => {
     try {
       const tokenResponse = await axios.post('https://discord.com/api/oauth2/token', 
         new URLSearchParams({
-          client_id: hhcfg["discordClientId"],
-          client_secret: hhcfg["discordSecretId"],
+          client_id: process.env.DISCORD_CLIENT_ID,
+          client_secret: process.env.DISCORD_SECRET,
           code: code,
           grant_type: 'authorization_code',
           redirect_uri: `${origin}${basePath}/api/discord/oauth`,
@@ -1342,7 +1301,7 @@ app.get('/api/event/:event/lb-invalid', async(req, res) => {
   
     readStream.on('error', (err) => {
       // fs emitted error
-      reject('fs emitted error')
+      reject('-1')
     })
   })
   
@@ -1794,17 +1753,15 @@ app.post('/api/admin', async(req, res) => {
   const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
 
   // not the best solution, but hashes aren't necessary for this
-  if (req.body && req.body.password == hhcfg["localAdminPassword"]) {
+  if (req.body && req.body.password == process.env.ADMIN_PWD) {
     log(`${req.method} ${req.originalUrl} - successful admin login`, remoteAddress)
     const returnStruct = {
       "discordLeaderboard": null,
-      "discordLeaderboardIcons": null,
       "dbPlayerList": null,
       "dbPlayerEventRecords": null
     }
 
     returnStruct["discordLeaderboard"] = await dbPlayerDiscordRecordsNoDateConstraint()
-    returnStruct["discordLeaderboardIcons"] = await fsIconStatus()
     returnStruct["dbPlayerList"] = await dbPlayerList()
     returnStruct["dbPlayerEventRecords"] = await dbPlayerEventRecords()
 
@@ -1817,47 +1774,11 @@ app.post('/api/admin', async(req, res) => {
   return
 })
 
-app.post('/api/admin/icon', async(req, res) => {
-  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
-  const form = formidable({ multiples: true })
-
-  form.parse(req, (err, fields, files) => {
-    if (err) {
-      console.error('Error parsing form data: ', err)
-      res.sendStatus(500)
-      return
-    }
-
-    if (fields.password === hhcfg["localAdminPassword"]) {
-      log(`${req.method} ${req.originalUrl} - successful icon upload authentication`, remoteAddress)
-      const uploadedFile = files.file
-      const uploadDirectory = path.join(__dirname, hhcfg["iconRelativePath"])
-      const newFilePath = path.join(uploadDirectory, uploadedFile.originalFilename)
-
-      fs.rename(uploadedFile.filepath, newFilePath, (err) => {
-        if (err) {
-          console.error('Error moving the file:', err)
-          res.status(500).send('Error moving the file.')
-          return
-        }
-
-        console.log('File saved as:', newFilePath)
-
-        // Send response
-        res.sendStatus(200)
-      })
-    } else {
-      log(`${req.method} ${req.originalUrl} - failed icon upload authentication`, remoteAddress)
-      res.sendStatus(401)
-    }
-  })
-})
-
 app.get('/api/build', async(req, res) => {
-  const buildn = require('child_process').execSync('git rev-list --count HEAD').toString().trim()
-  res.status(200).send(buildn.toString())
+  const buildId = process.env.COMMIT_HASH || "????";
+  res.status(200).send(buildId)
 })
 
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
   log(`Server listening on port ${port}.`, 'internal')
 })
