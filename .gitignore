@@ -9,6 +9,7 @@ nohup.out
 node_modules/
 
 # config/db files
+.env
 hh-config.json
 players.db
 players.db-journal

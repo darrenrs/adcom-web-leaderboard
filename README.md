@@ -1,5 +1,5 @@
 # AdVenture Communist Web Leaderboard
-A freely accessible fullstack Node.js server that enables players of the idle game AdVenture Communist to gain insights into its competitive leaderboards. Currently live on my [personal website](https://darrenskidmore.com/adcom-leaderboard/).
+A freely accessible fullstack Node.js server that enables players of the idle game AdVenture Communist to gain insights into its competitive events. Currently live on my [personal website](https://darrenskidmore.com/adcom-leaderboard/).
 
 ## Technical Background
 The website is built in Node.js/Express with a SQLite database. It is far from cutting-edge and reflects technical quality from 2022-23.
@@ -19,10 +19,37 @@ Although events were added to AdVenture Communist on May 9, 2019, the original l
 - Event Rank Estimator (`/rankestimator`) - Estimate the rank associated with a given timestamp and trophy count.
 - Number of Players at MAX Rank (`/finished`) - See an estimate of how many players have finished the current event, and how much they might have spent (hint: it's probably way too much.) This leverages the regression-computed figures derived in the Rank Estimator.
 
-## Additional Usages
+## Build Instructions
+As of March 2025 the website runs on a Docker container. With Docker Compose installed on a Linux/macOS system, run `build.sh` to start the server. Several directories and files which are not present by default are required. Please contact the developer if you are unsure what should go in here.
+
+### .env File
+The `.env` file should be structured as follows:
+
+```
+# App settings
+PORT=
+ADMIN_PWD=
+
+# HH API settings
+API_APPLICATION_ID=
+API_URL_LEADERBOARD=
+API_URL_PLAYERMETA=
+API_GCLOUD_TOKEN=
+
+# Discord settings
+DISCORD_CLIENT_ID=
+DISCORD_SECRET=
+
+# PlayFab settings
+GC_DEVICE_ID=
+PLAYFAB_TITLE_ID=
+```
+The Git Commit ID is passed in by the build script and exposed as an environment variable by Docker itself.
+
+## Additional Uses
 The public API is used as the primary data source by [Catster's visual leaderboard](https://github.com/KittyCatGamer123/adcom-discordleaderboard-visual).
 
 ## Disclaimer
 This material is not official and is not endorsed by Hyper Hippo. For more information, see [Hyper Hippo’s Fan Content Policy.](https://hyperhippo.com/fan-content-policy/)
 
-Copyright (C) 2022-24 Darren R. Skidmore ("Enigma"). All rights reserved.
+Copyright (C) 2022-25 Darren R. Skidmore ("Enigma"). All rights reserved.

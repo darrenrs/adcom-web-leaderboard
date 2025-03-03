@@ -15,7 +15,7 @@ const getBuildNumber = async() => {
 }
 
 const init2 = async() => {
-  document.querySelector('#buildId').innerText = `SB: ${await getBuildNumber()}`
+  document.querySelector('#buildId').innerText = await getBuildNumber()
 }
 
 document.addEventListener('DOMContentLoaded', function() {

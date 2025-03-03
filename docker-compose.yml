@@ -1,0 +1,15 @@
+services:
+  app:
+    build:
+      context: .
+      args:
+        COMMIT_HASH: ${COMMIT_HASH}  # Passing COMMIT_HASH as an argument
+    volumes:
+      - ./balance:/usr/src/app/balance  # Dynamic files
+      - ./afflicted-events.txt:/usr/src/app/afflicted-events.txt  # Dynamic file
+      - ./players.db:/usr/src/app/players.db  # Database file
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    restart: unless-stopped
