@@ -183,11 +183,32 @@ const getAllEventDetails = () => {
       "eventType": "supreme"
     },
     "minicockatrice": {
-      "name": "Comrades & Cockatrices (Short)",
-      "short": "C&C",
+      "name": "C&C: Mini Edition",
+      "short": "Mini C&C",
       "desc": "It's game night, Comrade! Grab some snacks, your dice set and character sheet, because it's time for an adventure party!",
-      "commonBalance": "legacysanta",
-      "eventType": "supreme"
+      "commonBalance": "minisanta",
+      "eventType": "minisupreme"
+    },
+    "minipotatofactory": {
+      "name": "Mini Tater Factory",
+      "short": "Mini GPF",
+      "desc": "Welcome to the Glorious Potato Factory event, Comrade! With a little starch and imagination, create your Comrade candies and become the Supreme Confectioner!",
+      "commonBalance": "minisanta",
+      "eventType": "minisupreme"
+    },
+    "minisanta": {
+      "name": "Mini Santa",
+      "short": "Mini Santa",
+      "desc": "Welcome to the Mini Santa event! Spread Communism in the North Pole and earn gifts for the Motherland.",
+      "commonBalance": "minisanta",
+      "eventType": "minisupreme"
+    },
+    "minivacation": {
+      "name": "Comrade's Mini Vacation!",
+      "short": "Mini Vacation",
+      "desc": "Welcome to Comrade's Communist Vacation event! Have some fun in the sun and enjoy your time off at the State's best and only vacation destination!",
+      "commonBalance": "minisanta",
+      "eventType": "minisupreme"
     },
     "ninja": {
       "name": "Ninja Union",
@@ -281,9 +302,11 @@ const getEventCommonBalanceName = (commonBalanceId) => {
     case 'industrymini':
       return 'Export/Shield Mini'
     case 'legacysanta':
-      return 'Original Santa Balances'
+      return 'Classic Special Balance'
     case 'newsanta':
-      return 'New Santa Balances'
+      return 'New Special Balance'
+    case 'minisanta':
+      return 'Mini Special Balance'
     case 'fusionages':
       return 'Ages Fusions'
     case 'fusionnew':
@@ -296,13 +319,15 @@ const getEventCommonBalanceName = (commonBalanceId) => {
 const getEventTypeName = (eventType) => {
   switch (eventType) {
     case 'weekend':
-      return 'Weekend Event (4 days 4 hours)'
+      return 'Weekend Event (~4–5 days)'
     case 'mini':
-      return 'Mini Event (1 day 4 hours)'
+      return 'Mini Event (~1–2 days)'
     case 'supreme':
-      return 'Supreme Event (11 days 4 hours)'
+      return 'Supreme Event (~11–12 days)'
+    case 'minisupreme':
+      return 'Mini Supreme Event (~7 days)'
     case 'fusion':
-      return 'Fusion Event (2 days 4 hours)'
+      return 'Fusion Event (~2 days)'
     default:
       return 'Unknown event type'
   }
@@ -472,4 +497,24 @@ const getUsdValueQualitativeDescriptor = (v) => {
   } else {
     return 'Gargantuan whale / <code>SPEND_GT_500</code> bracket'
   }
+}
+
+const getIconListFetch = async() => {
+  return await fetch('api/icons')
+  .then((response) => {
+    if (response.status === 200) {
+      return response.json()
+    } else {
+      console.error(`Server error (${response.status})`)
+      document.querySelector('#eventListLoadError').innerText = `Server error (${response.status}).`
+      document.querySelector('#eventListLoadError').classList.remove('d-none')
+      return false
+    }
+  })
+  .catch((error) => {
+    console.error(error)
+    document.querySelector('#eventListLoadError').innerText = 'Please check your internet connection.'
+    document.querySelector('#eventListLoadError').classList.remove('d-none')
+    return false
+  })
 }

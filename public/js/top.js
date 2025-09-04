@@ -84,7 +84,6 @@ const postFormEventLeaderboard = async() => {
     document.querySelector('#noAccountFound').classList.add('d-none')
     document.querySelector('#eventLoadConnectionError').classList.add('d-none')
     document.querySelector('#mainContent').classList.remove('d-none')
-    populateFieldsTop(topPlayers)
 
     const invalidBanner = await getInvalidState(selectedEventId)
 
@@ -100,6 +99,10 @@ const postFormEventLeaderboard = async() => {
       document.querySelector('#exploitWarning').classList.add('d-none')
       document.querySelector('#dataFidelityWarning').classList.add('d-none')
     }
+
+    const iconList = await getIconListFetch()
+
+    populateFieldsTop(topPlayers, iconList)
   } else {
     // general failure
     document.querySelector('#eventLoadConnectionError').classList.remove('d-none')
@@ -182,7 +185,7 @@ const getInvalidState = async(eventId) => {
 }
 
 
-const populateFieldsTop = (data) => {
+const populateFieldsTop = (data, iconList) => {
   let tbody = document.querySelector('#topGlobalPlayers')
   tbody.innerHTML = ''
   for (let i in data["top"]["list"]) {
@@ -215,11 +218,13 @@ const populateFieldsTop = (data) => {
     const playerNameProperties = getPlayerNameFromOrdinal(data["top"]["list"][i]["ordinal"])
 
     let image = document.createElement('img')
-    image.src = playerNameProperties["imagePath"]
-    image.style = 'width: 40px;'
-    image.alt = `${playerNameProperties["defaultName"]} (${playerNameProperties["color"]} ${playerNameProperties["texture"]})`
-    image.classList.add('tinted-image')
-    image.classList.add(playerNameProperties["color"])
+    
+    image.src = `img/icons/v2/${iconList[data["top"]["list"][i]["avatarId"]]}.png`
+    image.style = 'width: 40px; max-height: 40px;'
+    image.alt = playerNameProperties["defaultName"]
+    // Deprecated as of 2025-09-04
+    // image.classList.add('tinted-image')
+    // image.classList.add(playerNameProperties["color"])
     imageCell.appendChild(image)
 
     let nameCell = document.createElement('td')
