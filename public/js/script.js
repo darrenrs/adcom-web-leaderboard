@@ -90,7 +90,9 @@ const postFormEvent = async() => {
       document.querySelector('#dataFidelityWarning').classList.add('d-none')
     }
 
-    populateFieldsGeneral(eventData)
+    const iconList = await getIconListFetch()
+
+    populateFieldsGeneral(eventData, iconList)
   } else {
     // general failure
     document.querySelector('#eventLoadConnectionError').classList.remove('d-none')
@@ -219,7 +221,7 @@ const getInvalidState = async(eventId) => {
     })
 }
 
-const populateFieldsGeneral = (data) => {
+const populateFieldsGeneral = (data, iconList) => {
   const eventDetails = getEventDetails(data["event"]["eventName"])
   document.querySelector('#eventImage').classList.remove('d-none')
   document.querySelector('#eventImage').setAttribute('src', `img/adcom/banner/${data["event"]["eventName"]}.png`)
@@ -227,7 +229,7 @@ const populateFieldsGeneral = (data) => {
   document.querySelector('#eventDescription').innerText = eventDetails["desc"]
   document.querySelector('#eventStartDate').innerText = new Date(data["event"]["startDate"]).toLocaleString()
   document.querySelector('#eventEndDate').innerText = new Date(data["event"]["endDate"]).toLocaleString()
-  document.querySelector('#eventDuration').innerText = `${(new Date(data["event"]["endDate"]) - new Date(data["event"]["startDate"])) / (60 * 60 * 1000)} hours`
+  document.querySelector('#eventDuration').innerText = `${Math.ceil((new Date(data["event"]["endDate"]) - new Date(data["event"]["startDate"])) / (60 * 60 * 1000))} hours`
 
   if (data["status"] === 'archived') {
     document.querySelector('#eventArchivedWarning').classList.remove('d-none')
@@ -286,13 +288,14 @@ const populateFieldsGeneral = (data) => {
       imageCell.style = 'padding-top: 0 !important; padding-bottom: 0 !important; width: 0;'
   
       const playerNameProperties = getPlayerNameFromOrdinal(data["division"]["top"][i]["ordinal"])
-  
+      
       let image = document.createElement('img')
-      image.src = playerNameProperties["imagePath"]
-      image.style = 'width: 40px;'
-      image.alt = `${playerNameProperties["defaultName"]} (${playerNameProperties["color"]} ${playerNameProperties["texture"]})`
-      image.classList.add('tinted-image')
-      image.classList.add(playerNameProperties["color"])
+      image.src = `img/icons/v2/${iconList[data["division"]["top"][i]["avatarId"]]}.png`
+      image.style = 'width: 40px; max-height: 40px;'
+      image.alt = playerNameProperties["defaultName"]
+      // Deprecated as of 2025-09-04
+      // image.classList.add('tinted-image')
+      // image.classList.add(playerNameProperties["color"])
       imageCell.appendChild(image)
 
       let nameCell = document.createElement('td')

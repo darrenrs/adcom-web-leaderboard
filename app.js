@@ -320,8 +320,12 @@ const getBrackets = async(id, eventId, brackets, totalPlayers) => {
 const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboard, id, returnGlobalForDivision=false) => {
   let proximalPlayerHashMap = {}
   for (let i of playerLeaderboard["resolvedPlayers"]["objectArray"]) {
-    // generate a list of players from the "resolvedPlayers" key, so we can obtain metadata such as ordinal ID (yields nickname) and custom name/icon (may be added sometime in the far future)
-    proximalPlayerHashMap[i["playerId"]] = i["sequence"]
+    // generate a list of players from the "resolvedPlayers" key, so we can obtain metadata such as ordinal ID (yields nickname) and icon
+    proximalPlayerHashMap[i["playerId"]] = {
+      "sequence": i["sequence"],
+      "avatarId": i["customData"] ? i["customData"]["avatarId"] : null,
+      "lteRank": i["customData"] ? i["customData"]["lteRank"] : null
+    }
   }
 
   let returnStruct = {}
@@ -337,12 +341,14 @@ const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboa
   returnStruct["player"] = {}
   returnStruct["player"]["leaderboardGuid"] = playerEventInfo["leaderboardGuid"]
   returnStruct["player"]["playerId"] = playerEventInfo["playerId"]
-  returnStruct["player"]["playerOrdinal"] = proximalPlayerHashMap[playerEventInfo["playerId"]]
+  returnStruct["player"]["playerOrdinal"] = proximalPlayerHashMap[playerEventInfo["playerId"]]["sequence"]
   returnStruct["player"]["divisionRoot"] = playerEventInfo["root"]
   returnStruct["player"]["divisionId"] = playerEventInfo["segmentId"]
   returnStruct["player"]["trophies"] = playerEventInfo["score"]
   returnStruct["player"]["dateJoined"] = playerEventInfo["created"]
   returnStruct["player"]["dateUpdated"] = playerEventInfo["updated"]
+  returnStruct["player"]["avatarId"] = proximalPlayerHashMap[playerEventInfo["playerId"]]["avatarId"]
+  returnStruct["player"]["knownRank"] = proximalPlayerHashMap[playerEventInfo["playerId"]]["lteRank"]
 
   returnStruct["global"] = {}
   returnStruct["global"]["count"] = playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"][0]["position"]["count"]
@@ -351,7 +357,8 @@ const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboa
   for (let i of playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"]) {
     returnStruct["global"]["top"].push({
       "playerId": i["playerId"],
-      "ordinal": proximalPlayerHashMap[i["playerId"]],
+      "ordinal": proximalPlayerHashMap[i["playerId"]]["sequence"],
+      "avatarId": proximalPlayerHashMap[i["playerId"]]["avatarId"],
       "position": i["position"]["position"],
       "trophies": i["score"],
     })
@@ -360,7 +367,8 @@ const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboa
   for (let i of playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]) {
     returnStruct["global"]["adjacent"].push({
       "playerId": i["playerId"],
-      "ordinal": proximalPlayerHashMap[i["playerId"]],
+      "ordinal": proximalPlayerHashMap[i["playerId"]]["sequence"],
+      "avatarId": proximalPlayerHashMap[i["playerId"]]["avatarId"],
       "position": i["position"]["position"],
       "trophies": i["score"],
     })
@@ -376,7 +384,8 @@ const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboa
   for (let i of playerLeaderboard["results"]["segmentResults"]["topResults"]["rankedEntry"]) {
     returnStruct["division"]["top"].push({
       "playerId": i["playerId"],
-      "ordinal": proximalPlayerHashMap[i["playerId"]],
+      "ordinal": proximalPlayerHashMap[i["playerId"]]["sequence"],
+      "avatarId": proximalPlayerHashMap[i["playerId"]]["avatarId"],
       "position": i["position"]["position"],
       "trophies": i["score"],
     })
@@ -385,7 +394,8 @@ const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboa
   for (let i of playerLeaderboard["results"]["segmentResults"]["offsetResults"]["rankedEntry"]) {
     returnStruct["division"]["adjacent"].push({
       "playerId": i["playerId"],
-      "ordinal": proximalPlayerHashMap[i["playerId"]],
+      "ordinal": proximalPlayerHashMap[i["playerId"]]["sequence"],
+      "avatarId": proximalPlayerHashMap[i["playerId"]]["avatarId"],
       "position": i["position"]["position"],
       "globalPosition": null,
       "trophies": i["score"],
@@ -1582,8 +1592,12 @@ app.get('/api/event/:event/:id/top/:count', async (req, res) => {
 
     let proximalPlayerHashMap = {}
     for (let i of playerLeaderboard["resolvedPlayers"]["objectArray"]) {
-      // generate a list of players from the "resolvedPlayers" key, so we can obtain metadata such as ordinal ID (yields nickname) and custom name/icon (planned implementation in 2024)
-      proximalPlayerHashMap[i["playerId"]] = i["sequence"]
+      // generate a list of players from the "resolvedPlayers" key, so we can obtain metadata such as ordinal ID (yields nickname) and icon
+      proximalPlayerHashMap[i["playerId"]] = {
+        "sequence": i["sequence"],
+        "avatarId": i["customData"] ? i["customData"]["avatarId"] : null,
+        "lteRank": i["customData"] ? i["customData"]["lteRank"] : null
+      }
     }
 
     const allEventData = await getAllEvents()
@@ -1613,13 +1627,15 @@ app.get('/api/event/:event/:id/top/:count', async (req, res) => {
     for (let i of playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"]) {
       returnStruct["top"]["list"].push({
         "playerId": i["playerId"],
-        "ordinal": proximalPlayerHashMap[i["playerId"]],
+        "ordinal": proximalPlayerHashMap[i["playerId"]]["sequence"],
         "position": i["position"]["position"],
         "trophies": i["score"],
         "divisionId": null,
         "startTime": null,
         "endTime": null,
-        "estimatedRank": null
+        "estimatedRank": null,
+        "avatarId": proximalPlayerHashMap[i["playerId"]]["avatarId"],
+        "knownRank": proximalPlayerHashMap[i["playerId"]]["lteRank"]
       })
     }
 
@@ -1747,6 +1763,53 @@ app.get('/api/event/:event/:id/finished', async(req, res) => {
       res.sendStatus(502)
     }
   }
+})
+
+app.get('/api/icons', async(req, res) => {
+  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  try {
+    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+    
+    const fileName = await fs.promises.readFile(__dirname + '/balance/_DataConfig.json', 'utf8')
+    .then((data) => {
+      const dc = JSON.parse(data)
+      for (let i in dc["Balance"]) {
+        if (i === 'common') {
+          // load balance with that name
+          const balUrl = dc["Balance"][i]
+          const balUrlSplit = balUrl.split('/')
+          return balUrlSplit[balUrlSplit.length - 1].slice(0, -3)
+        }
+      }
+
+      return Promise.reject('Balance file not found')
+    })
+    .catch((error) => {
+      console.error(`${(new Date()).toISOString()} [internal] - Unable to load balance master list: ${error}.`)
+    })
+
+    const commonData = await fs.promises.readFile(__dirname + '/balance/' + fileName, 'utf8')
+    .then((data) => {
+      const data1 = JSON.parse(data)
+      return data1
+    })
+    .catch((error) => {
+      console.error(`${(new Date()).toISOString()} [internal] - Unable to load data file ${fileName}: ${error}.`)
+    })
+
+    const avatarDataRaw = commonData["Avatars"]
+    const avatarData = {}
+    for (const avatar of avatarDataRaw) {
+      avatarData[avatar.ID] = avatar.VisualKey
+    }
+
+    res.status(200).json(avatarData)
+    
+  } catch (e) {
+    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
+  }
+
+  return
 })
 
 app.post('/api/admin', async(req, res) => {

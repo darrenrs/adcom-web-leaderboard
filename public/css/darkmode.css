@@ -19,7 +19,7 @@
   }
 
   /* event image */
-  img {
+  img#eventImage {
     background-color: #232323 !important;
     border-color: #454545 !important;
   }

@@ -70,7 +70,7 @@ const populateScheduleTable = (eventSchedule) => {
     dateToCell.innerText = new Date(eventSchedule[i]["endDate"]).toLocaleString()
 
     let durationCell = document.createElement('td')
-    durationCell.innerText = `${(new Date(eventSchedule[i]["endDate"]) - new Date(eventSchedule[i]["startDate"])) / 3600000} hours`
+    durationCell.innerText = `${Math.ceil((new Date(eventSchedule[i]["endDate"]) - new Date(eventSchedule[i]["startDate"])) / 3600000)} hours`
 
     let playerCountCell = document.createElement('td')
     if (new Date(eventSchedule[i]["startDate"]) < new Date()) {
