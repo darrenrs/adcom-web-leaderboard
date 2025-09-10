@@ -159,7 +159,8 @@ const populateUserData = (data) => {
       continue
     }
 
-    const eventType = getEventDetails(data[i]["event"]["eventName"])["eventType"]
+    // minisupreme should be counted as supreme
+    const eventType = getEventDetails(data[i]["event"]["eventName"])["eventType"] === "minisupreme" ? "supreme" : getEventDetails(data[i]["event"]["eventName"])["eventType"]
     const bracketScore = getBracketScoreFromPosition(data[i]["player"]["globalPosition"], data[i]["global"]["count"])
 
     if (bestPositionsByType[eventType] === null || bracketScore > bestPositionsByType[eventType]["bracketScore"]) {
