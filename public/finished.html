@@ -6,18 +6,20 @@
     <link rel="icon" type="image/png" href="img/icon.png">
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="css/darkmode.css">
+    <link rel="stylesheet" type="text/css" href="css/main.css">
     <script src="js/finished.js" defer></script>
     <script src="js/helper.js" defer></script>
     <script src="js/build.js" defer></script>
+    <script src="js/menu.js" defer></script>
     <title>AdVenture Communist Event Finishers</title>
   </head>
   <body>
     <nav class="navbar navbar-dark bg-dark sticky-top">
       <div class="container-fluid">
-        <a class="navbar-brand" href="./">
+        <div id="sideMenuBtn" class="navbar-brand open-btn">
           <img src="img/icon.png" width="30" height="40" class="d-inline-block align-self-center" alt="AdCom icon">
-          Event Finishers
-        </a>
+          Finished Players ☰
+        </div>
         <a class="navbar-brand" href="https://github.com/darrenrs/adcom-web-leaderboard">
           <img src="img/github.png" width="30" height="30" style="display: flex; margin: 0 auto;" alt="GitHub">
           <span id="buildId">&nbsp;</span>
@@ -25,7 +27,7 @@
       </div>
     </nav>
     <div class="container pt-2">
-      <span id="eventFinisherLoadError" class="text-danger">Please wait ... this process should take no longer than 2 seconds</span>
+      <span id="eventFinisherLoadError" class="text-danger">Please wait ... this process should take no longer than 5 seconds</span>
       <h3 class="text-end"><span id="heartbeatClock" class="text-danger d-none" role="button">...</span></h3>
       <div id="eventFinisherMaster" class="text-center d-none">
         <div id="exploitWarning" class="alert alert-warning d-none" role="alert">
@@ -36,15 +38,45 @@
         </div>
         <h1 id="giantPlayersFinished" class="display-1"></h1>
         <h2>players have finished this event</h2>
-        <div style="margin-top: 50px;">
-          <div>To finish this event by now, you would have needed to spend <span id="amountSpentUSD"></span> or <span id="amountSpentGold"></span> gold.</div>
-          <div class="fw-light fst-italic">(these figures are estimates)</div>
-        </div>
-        <div style="margin-top: 15px;" class="fw-light fst-italic">
+        <div style="margin-top: 50px;" class="fw-light fst-italic">
           <div>Time Elapsed: <span id="timeDeltaElapsed">...</span></div>
           <div>Time Remaining: <span id="timeDeltaRemaining">...</span></div>
         </div>
       </div>
     </div>
+      <div class="side-menu side-menu-inactive" id="sideMenu">
+        <ul>
+          <li class="menu-option">
+            <a href="./">Home</a>
+          </li>
+          <li class="menu-option">
+            <a href="event">Your Events</a>
+          </li>
+          <li class="menu-option">
+            <a href="discord">Discord Leaderboard</a>
+          </li>
+          <li class="menu-option">
+            <a href="eventlist">Event Schedule</a>
+          </li>
+          <li class="menu-option">
+            <a href="report">Event Report</a>
+          </li>
+          <li class="menu-option">
+            <a href="top">Top Players</a>
+          </li>
+          <li class="menu-option menu-option-selected">
+            <a href="finished">Finished Players</a>
+          </li>
+          <li class="menu-option">
+            <a href="playervalue">Account Value</a>
+          </li>
+          <li class="menu-option">
+            <a href="account">Identity Management</a>
+          </li>
+          <li class="menu-option">
+            &copy; 2022-25 Enigmaxim
+          </li>
+        </ul>
+      </div>
   </body>
 </html>

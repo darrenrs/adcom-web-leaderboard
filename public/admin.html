@@ -7,17 +7,19 @@
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="css/darkmode.css">
     <link rel="stylesheet" type="text/css" href="css/iconcolor.css">
+    <link rel="stylesheet" type="text/css" href="css/main.css">
     <script src="js/admin.js" defer></script>
     <script src="js/build.js" defer></script>
+    <script src="js/menu.js" defer></script>
     <title>AdVenture Communist Leaderboard Admin</title>
   </head>
   <body>
     <nav class="navbar navbar-dark bg-dark sticky-top">
       <div class="container-fluid">
-        <a class="navbar-brand" href="./">
+        <div id="sideMenuBtn" class="navbar-brand open-btn">
           <img src="img/icon.png" width="30" height="40" class="d-inline-block align-self-center" alt="AdCom icon">
-          Admin Frontend
-        </a>
+          Admin Frontend ☰
+        </div>
         <a class="navbar-brand" href="https://github.com/darrenrs/adcom-web-leaderboard">
           <img src="img/github.png" width="30" height="30" style="display: flex; margin: 0 auto;" alt="GitHub">
           <span id="buildId">&nbsp;</span>
@@ -93,6 +95,40 @@
           </table>
         </div>
       </div>
+    </div>
+    <div class="side-menu side-menu-inactive" id="sideMenu">
+      <ul>
+        <li class="menu-option">
+          <a href="./">Home</a>
+        </li>
+        <li class="menu-option">
+          <a href="event">Your Events</a>
+        </li>
+        <li class="menu-option">
+          <a href="discord">Discord Leaderboard</a>
+        </li>
+        <li class="menu-option">
+          <a href="eventlist">Event Schedule</a>
+        </li>
+        <li class="menu-option">
+          <a href="report">Event Report</a>
+        </li>
+        <li class="menu-option">
+          <a href="top">Top Players</a>
+        </li>
+        <li class="menu-option">
+          <a href="finished">Finished Players</a>
+        </li>
+        <li class="menu-option">
+          <a href="playervalue">Account Value</a>
+        </li>
+        <li class="menu-option">
+          <a href="account">Identity Management</a>
+        </li>
+        <li class="menu-option">
+          &copy; 2022-25 Enigmaxim
+        </li>
+      </ul>
     </div>
   </body>
 </html>

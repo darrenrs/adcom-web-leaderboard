@@ -11,10 +11,10 @@ module.exports = class BalanceParser {
     const fileName = await fs.promises.readFile(__dirname + '/balance/_DataConfig.json', 'utf8')
     .then((data) => {
       const dc = JSON.parse(data)
-      for (let i in dc["Balance"]) {
+      for (let i in dc["VersionSettings"]["Balance"]["Urls"]) {
         if (i.includes(this.eventName)) {
           // load balance with that name
-          const balUrl = dc["Balance"][i]
+          const balUrl = dc["VersionSettings"]["Balance"]["BaseURL"] + dc["VersionSettings"]["Balance"]["Urls"][i]
           const balUrlSplit = balUrl.split('/')
           return balUrlSplit[balUrlSplit.length - 1].slice(0, -3)
         }
@@ -179,6 +179,10 @@ module.exports = class BalanceParser {
     }
 
     return ranks
+  }
+  
+  getMaxRank() {
+    return this.balanceData["Ranks"].length
   }
 
   missionIdToRank(data, rankStructure, missionId) {

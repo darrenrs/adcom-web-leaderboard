@@ -7,20 +7,22 @@
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="css/eventlist.css">
     <link rel="stylesheet" type="text/css" href="css/darkmode.css">
+    <link rel="stylesheet" type="text/css" href="css/main.css">
     <script src="js/eventlist.js" defer></script>
     <script src="js/helper.js" defer></script>
     <script src="js/build.js" defer></script>
+    <script src="js/menu.js" defer></script>
     <script src="js/bootstrap.min.js" defer></script>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-    <title>AdVenture Communist Event Schedule</title>
+    <title>AdVenture Communist Web Leaderboard</title>
   </head>
   <body>
     <nav class="navbar navbar-dark bg-dark sticky-top">
       <div class="container-fluid">
-        <a class="navbar-brand" href="./">
+        <div id="sideMenuBtn" class="navbar-brand open-btn">
           <img src="img/icon.png" width="30" height="40" class="d-inline-block align-self-center" alt="AdCom icon">
-          Event Schedule
-        </a>
+          Event Schedule ☰
+        </div>
         <a class="navbar-brand" href="https://github.com/darrenrs/adcom-web-leaderboard">
           <img src="img/github.png" width="30" height="30" style="display: flex; margin: 0 auto;" alt="GitHub">
           <span id="buildId">&nbsp;</span>
@@ -29,6 +31,7 @@
     </nav>
     <div class="container pt-2">
       <h2>Event Schedule</h2>
+      <p>A quick reference to all events past, present, and future.</p>
       <p><strong>Note:</strong> Only events after August 25, 2022 are displayed due to API design limitations. Events marked with an "F" in the status column are susceptible to change at any time. Events marked with an "A" are archived and inaccessible.<br><small>* Player counts may fluctuate for the current event due to an unknown bug on Hyper Hippo's API. Events will not have the player number match up with the leaderboard viewer because this page includes cheaters in the total sum as well.</small></p>
       <div class="container pt-2">
         <div class="row pt-3">
@@ -68,5 +71,39 @@
         </div>
       </div>
     </div>
+      <div class="side-menu side-menu-inactive" id="sideMenu">
+        <ul>
+          <li class="menu-option">
+            <a href="./">Home</a>
+          </li>
+          <li class="menu-option">
+            <a href="event">Your Events</a>
+          </li>
+          <li class="menu-option">
+            <a href="discord">Discord Leaderboard</a>
+          </li>
+          <li class="menu-option menu-option-selected">
+            <a href="eventlist">Event Schedule</a>
+          </li>
+          <li class="menu-option">
+            <a href="report">Event Report</a>
+          </li>
+          <li class="menu-option">
+            <a href="top">Top Players</a>
+          </li>
+          <li class="menu-option">
+            <a href="finished">Finished Players</a>
+          </li>
+          <li class="menu-option">
+            <a href="playervalue">Account Value</a>
+          </li>
+          <li class="menu-option">
+            <a href="account">Identity Management</a>
+          </li>
+          <li class="menu-option">
+            &copy; 2022-25 Enigmaxim
+          </li>
+        </ul>
+      </div>
   </body>
 </html>

@@ -1,24 +1,18 @@
 const CALLBACK_LINK_FRAGMENT = 'https://discord.com/api/oauth2/authorize?client_id=1181700019166920774&response_type=code&redirect_uri=$BASE%2Fapi%2Fdiscord%2Foauth&scope=identify'
 
-const postFormInit = async() => {
-  const playerId = document.querySelector('#playFabIdInitCheck').value
+const postFormPlayFab = async() => {
+  const playerId = document.querySelector('#playfabSavedValue').innerText
   
   const checkAccountStatus = await checkAccount(playerId)
   
   if (checkAccountStatus) {
-    const saveCurrentId = document.querySelector('#playFabSetDefault')
+    localStorage.setItem('playerId', playerId)
 
-    if (saveCurrentId.checked) {
-      localStorage.setItem('playerId', playerId)
-    } else {
-      localStorage.removeItem('playerId')
-    }
-
-    document.querySelector('#accountCheckStatus').classList.add('d-none')
+    document.querySelector('#playfabLoadStatus').classList.add('d-none')
     document.querySelector('#mainContent').classList.remove('d-none')
   } else {
     // network failure
-    document.querySelector('#accountCheckStatus').classList.remove('d-none')
+    document.querySelector('#playfabLoadStatus').classList.remove('d-none')
     document.querySelector('#mainContent').classList.add('d-none')
   }
 }
@@ -124,7 +118,7 @@ const checkAccount = async(playFabId) => {
         document.querySelector('#accountManagementStatus').classList.add('d-none')
       })
     } else if (response.status === 404) {
-      document.querySelector('#playFabId').value = document.querySelector('#playFabIdInitCheck').value
+      document.querySelector('#playFabId').value = document.querySelector('#playfabQuery').value
       document.querySelector('#displayName').value = ""
       document.querySelector('#username').value = ""
       document.querySelector('#discordId').value = ""
@@ -304,16 +298,12 @@ const oauthCallback = () => {
   }, 1);
 }
 
-document.querySelector('#playFabIdInitCheck').addEventListener('keyup', function() {
-  this.value = this.value.toUpperCase()
-})
-
 document.querySelector('#username').addEventListener('keyup', function() {
   this.value = this.value.toLowerCase()
 })
 
-document.querySelector('#formInitAccount').addEventListener('click', function() {
-  postFormInit()
+document.querySelector('#playfabLoadButton').addEventListener('click', function() {
+  postFormPlayFab()
 })
 
 document.querySelector('#mainContent form').addEventListener('keypress', function(event) {
@@ -333,12 +323,6 @@ document.querySelector('#formPatchAccount').addEventListener('click', function()
 document.querySelector('#formDeleteAccount').addEventListener('click', function() {
   postFormDelete()
 })
-
-if (localStorage.getItem('playerId')) {
-  let playerId = localStorage.getItem('playerId')
-  document.querySelector('#playFabIdInitCheck').value = playerId
-  document.querySelector('#playFabSetDefault').checked = true
-}
 
 window.addEventListener('message', function(event) {
   if (event.origin === window.location.origin) {

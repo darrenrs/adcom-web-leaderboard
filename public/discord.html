@@ -7,19 +7,21 @@
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="css/darkmode.css">
     <link rel="stylesheet" type="text/css" href="css/boxplot.css">
+    <link rel="stylesheet" type="text/css" href="css/main.css">
     <script src="js/discord.js" defer></script>
     <script src="js/helper.js" defer></script>
     <script src="js/eventselector.js" defer></script>
     <script src="js/build.js" defer></script>
-    <title>AdVenture Communist Discord Leaderboard</title>
+    <script src="js/menu.js" defer></script>
+    <title>AdVenture Communist Web Leaderboard</title>
   </head>
   <body>
     <nav class="navbar navbar-dark bg-dark sticky-top">
       <div class="container-fluid">
-        <a class="navbar-brand" href="./">
+        <div id="sideMenuBtn" class="navbar-brand open-btn">
           <img src="img/icon.png" width="30" height="40" class="d-inline-block align-self-center" alt="AdCom icon">
-          Discord Leaderboard
-        </a>
+          Discord Leaderboard ☰
+        </div>
         <a class="navbar-brand" href="https://github.com/darrenrs/adcom-web-leaderboard">
           <img src="img/github.png" width="30" height="30" style="display: flex; margin: 0 auto;" alt="GitHub">
           <span id="buildId">&nbsp;</span>
@@ -39,13 +41,6 @@
             <select id="eventSelect" class="form-select" disabled>
               <option>Loading ...</option>
             </select>
-            <a href="eventlist" class="link-primary">View full event schedule</a>
-            <!-- Query all players -->
-            <div id="noDateCheckContainer">
-              <br>
-              <span>View all players (including those with potentially inactive records)</span>
-              <input id="noDateCheck" name="noDateCheck" type="checkbox">
-            </div>
           </div>
           <div class="mb-3">
             <button id="formSubmitEvent" type="submit" class="btn btn-primary" disabled>Load Event</button>
@@ -81,9 +76,9 @@
                     <th colspan=2>Name</th>
                     <th>Discord Username</th>
                     <th colspan=2>Position</th>
-                    <th>Division</th>
+                    <th>Board Rk.</th>
                     <th>Trophies</th>
-                    <th><strong>Est. </strong>Rank</th>
+                    <th class="live-lte">Rank</th>
                     <th colspan=2>Last Updated</th>
                   </tr>
                 </thead>
@@ -91,14 +86,48 @@
               </table> 
             </div>
           </div>
-          <h3>Shared Divisions</h3>
-          <p id="sharedDivisions">No players on the Discord leaderboard shared a division in this event.</p>
+          <h3>Shared Shortboard</h3>
+          <p id="sharedDivisions">No players on the Discord leaderboard shared a shortboard in this event.</p>
         </div>
         <div id="leaderboardBoxPlotView" class="d-none">
           <div id="boxPlotLabelContainer"></div>
           <div id="boxPlotContent"></div>
         </div>
       </div>
+    </div>
+    <div class="side-menu side-menu-inactive" id="sideMenu">
+      <ul>
+        <li class="menu-option">
+          <a href="./">Home</a>
+        </li>
+        <li class="menu-option">
+          <a href="event">Your Events</a>
+        </li>
+        <li class="menu-option menu-option-selected">
+          <a href="discord">Discord Leaderboard</a>
+        </li>
+        <li class="menu-option">
+          <a href="eventlist">Event Schedule</a>
+        </li>
+        <li class="menu-option">
+          <a href="report">Event Report</a>
+        </li>
+        <li class="menu-option">
+          <a href="top">Top Players</a>
+        </li>
+        <li class="menu-option">
+          <a href="finished">Finished Players</a>
+        </li>
+        <li class="menu-option">
+          <a href="playervalue">Account Value</a>
+        </li>
+        <li class="menu-option">
+          <a href="account">Identity Management</a>
+        </li>
+        <li class="menu-option">
+          &copy; 2022-25 Enigmaxim
+        </li>
+      </ul>
     </div>
   </body>
 </html>

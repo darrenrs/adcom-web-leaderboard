@@ -2,8 +2,6 @@ const express = require('express')
 const fs = require('fs')
 const axios = require('axios')
 const readline = require('readline')
-const formidable = require('formidable')
-const path = require('path')
 require('dotenv').config()
 
 const db = require('./db')
@@ -74,13 +72,15 @@ const parseAllEvents = async (eventListReq, future) => {
     const createdAt = new Date(i["instance"]["status"]["created"])
     const archivedAt = new Date(i["instance"]["status"]["archived"])
     const status = (i["instance"]["status"]["currentStatus"] === "Enabled") ? "active" : "archived"
-    let playerCount = i["instance"]["statistics"]["rootCounts"]["global"] + i["instance"]["statistics"]["rootCounts"]["sandbox"]
     const currentDate = new Date()
     const divisionSize = parseInt(i["instance"]["definition"]["segmentDefinition"]["configuration"]["MAX_ENTRIES"])
-
+    
+    let playerCount = i["instance"]["statistics"]["rootCounts"]["global"] + i["instance"]["statistics"]["rootCounts"]["sandbox"]
     if (!isNaN(i["instance"]["statistics"]["rootCounts"]["archive"])) {
       playerCount += i["instance"]["statistics"]["rootCounts"]["archive"]
     }
+
+    const isLteLive = Date.now() >= startDate && Date.now() < endDate
     
     if (!(startDate < currentDate && playerCount === 0) && !(!future && startDate > currentDate)) {
       // found a valid event
@@ -93,7 +93,8 @@ const parseAllEvents = async (eventListReq, future) => {
         "createdAt": createdAt,
         "archivedAt": archivedAt,
         "players": playerCount,
-        "divisionSize": divisionSize
+        "divisionSize": divisionSize,
+        "isLteLive": isLteLive
       }
       eventList.push(eventStruct)
     }
@@ -215,7 +216,8 @@ const parseKnownPlayerEvents = async(id, allEvents) => {
           "eventStatus": i["eventStatus"],
           "startDate": i["startDate"],
           "endDate": i["endDate"],
-          "status": status
+          "status": status,
+          "isLteLive": i["isLteLive"]
         }
 
         return eventStruct
@@ -337,6 +339,7 @@ const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboa
   returnStruct["event"]["eventName"] = currentEventData["eventName"]
   returnStruct["event"]["startDate"] = currentEventData["startDate"]
   returnStruct["event"]["endDate"] = currentEventData["endDate"]
+  returnStruct["event"]["isLteLive"] = currentEventData["isLteLive"]
 
   returnStruct["player"] = {}
   returnStruct["player"]["leaderboardGuid"] = playerEventInfo["leaderboardGuid"]
@@ -348,7 +351,7 @@ const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboa
   returnStruct["player"]["dateJoined"] = playerEventInfo["created"]
   returnStruct["player"]["dateUpdated"] = playerEventInfo["updated"]
   returnStruct["player"]["avatarId"] = proximalPlayerHashMap[playerEventInfo["playerId"]]["avatarId"]
-  returnStruct["player"]["knownRank"] = proximalPlayerHashMap[playerEventInfo["playerId"]]["lteRank"]
+  returnStruct["player"]["lteRank"] = proximalPlayerHashMap[playerEventInfo["playerId"]]["lteRank"]
 
   returnStruct["global"] = {}
   returnStruct["global"]["count"] = playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"][0]["position"]["count"]
@@ -356,9 +359,10 @@ const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboa
   returnStruct["global"]["adjacent"] = []
   for (let i of playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"]) {
     returnStruct["global"]["top"].push({
-      "playerId": i["playerId"],
+      // "playerId": i["playerId"],
       "ordinal": proximalPlayerHashMap[i["playerId"]]["sequence"],
       "avatarId": proximalPlayerHashMap[i["playerId"]]["avatarId"],
+      "lteRank": proximalPlayerHashMap[i["playerId"]]["lteRank"],
       "position": i["position"]["position"],
       "trophies": i["score"],
     })
@@ -366,9 +370,10 @@ const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboa
 
   for (let i of playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]) {
     returnStruct["global"]["adjacent"].push({
-      "playerId": i["playerId"],
+      // "playerId": i["playerId"],
       "ordinal": proximalPlayerHashMap[i["playerId"]]["sequence"],
       "avatarId": proximalPlayerHashMap[i["playerId"]]["avatarId"],
+      "lteRank": proximalPlayerHashMap[i["playerId"]]["lteRank"],
       "position": i["position"]["position"],
       "trophies": i["score"],
     })
@@ -386,6 +391,7 @@ const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboa
       "playerId": i["playerId"],
       "ordinal": proximalPlayerHashMap[i["playerId"]]["sequence"],
       "avatarId": proximalPlayerHashMap[i["playerId"]]["avatarId"],
+      "lteRank": proximalPlayerHashMap[i["playerId"]]["lteRank"],
       "position": i["position"]["position"],
       "trophies": i["score"],
     })
@@ -396,6 +402,7 @@ const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboa
       "playerId": i["playerId"],
       "ordinal": proximalPlayerHashMap[i["playerId"]]["sequence"],
       "avatarId": proximalPlayerHashMap[i["playerId"]]["avatarId"],
+      "lteRank": proximalPlayerHashMap[i["playerId"]]["lteRank"],
       "position": i["position"]["position"],
       "globalPosition": null,
       "trophies": i["score"],
@@ -404,26 +411,19 @@ const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboa
 
   // get results for each division player
   if (returnGlobalForDivision) {
-    const balanceHandler = new balance(currentEventData["eventName"], currentEventData["startDate"], currentEventData["endDate"])
-    await balanceHandler.loadBalanceData()
-
     const playerEventRecordsPromises = returnStruct["division"]["adjacent"].map(async (record) => {
       const id = record["playerId"]
       const eventId = returnStruct["event"]["eventGuid"]
       const rvalue = {
         "playFabId": id,
         "position": null,
-        "rankString": null,
         "dateJoined": null,
-        "dateUpdated": null
+        "dateUpdated": null,
       }
 
       const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25, true)
       const playerEventInfo = await getPlayerEventInfo(id, eventId)
 
-      // get estimated rank
-      const rankString = await balanceHandler.getRankFromTrophies(playerEventInfo["score"], playerEventInfo["created"], playerEventInfo["updated"])
-      rvalue["rankString"] = rankString
       rvalue["dateJoined"] = playerEventInfo["created"]
       rvalue["dateUpdated"] = playerEventInfo["updated"]
 
@@ -452,18 +452,18 @@ const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboa
       for (let j of returnStruct["division"]["adjacent"]) {
         if (i["playFabId"] === j["playerId"]) {
           j["globalPosition"] = i["position"]
-          j["rankString"] = i["rankString"]
           j["dateJoined"] = i["dateJoined"]
           j["dateUpdated"] = i["dateUpdated"]
+          j["playerId"] = null
         }
       }
       
       for (let k of returnStruct["division"]["top"]) {
         if (i["playFabId"] === k["playerId"]) {
           k["globalPosition"] = i["position"]
-          k["rankString"] = i["rankString"]
           k["dateJoined"] = i["dateJoined"]
           k["dateUpdated"] = i["dateUpdated"]
+          k["playerId"] = null
         }
       }
     }
@@ -483,6 +483,7 @@ const archivedEntryData = async(currentEventData, playerEventInfo, playerLeaderb
   returnStruct["event"]["eventName"] = currentEventData["eventName"]
   returnStruct["event"]["startDate"] = currentEventData["startDate"]
   returnStruct["event"]["endDate"] = currentEventData["endDate"]
+  returnStruct["event"]["isLteLive"] = currentEventData["isLteLive"]
 
   returnStruct["player"] = {}
   returnStruct["player"]["leaderboardGuid"] = playerEventInfo["leaderboardGuid"]
@@ -1026,17 +1027,8 @@ app.get('/api/discord/:event', async(req, res) => {
       return
     }
     
-    let playerRecords
-
-    if (req.query.allQuery && req.query.allQuery === 'true') {
-      playerRecords = await dbPlayerDiscordRecordsNoDateConstraint()
-    } else {
-      playerRecords = await dbPlayerDiscordRecords()
-    }
-
-    const balanceHandler = new balance(currentEventData["eventName"], currentEventData["startDate"], currentEventData["endDate"])
+    let playerRecords = await dbPlayerDiscordRecords()
     let currentKnownMaxPlayers = 0
-    await balanceHandler.loadBalanceData()
     
     // get results for each player
     const playerEventRecordsPromises = playerRecords.map(async (record) => {
@@ -1066,9 +1058,6 @@ app.get('/api/discord/:event', async(req, res) => {
         returnStruct = await archivedEntryData(currentEventData, playerEventInfo, playerLeaderboard)
       }
 
-      // get estimated rank
-      const rankString = await balanceHandler.getRankFromTrophies(returnStruct["player"]["trophies"], returnStruct["player"]["dateJoined"], returnStruct["player"]["dateUpdated"])
-      returnStruct["rankString"] = rankString
       if (returnStruct["global"]["count"] > currentKnownMaxPlayers) {
         currentKnownMaxPlayers = returnStruct["global"]["count"]
       }
@@ -1115,7 +1104,7 @@ app.get('/api/discord/:event', async(req, res) => {
             "divisionPosition": j["player"]["divisionPosition"],
             "isMainBoard": j["player"]["divisionRoot"] === 'global' ? true : false,
             "lastUpdated": j["player"]["dateUpdated"],
-            "rankString": j["rankString"]
+            "lteRank": j["player"]["lteRank"]
           }
 
           playerFinalRecords.push(individualPlayerFinalRecord)
@@ -1123,7 +1112,17 @@ app.get('/api/discord/:event', async(req, res) => {
       }
     }
     
-    res.status(200).send(playerFinalRecords)
+    const returnStructFinal = {}
+    returnStructFinal["players"] = playerFinalRecords
+
+    returnStructFinal["event"] = {}
+    returnStructFinal["event"]["eventGuid"] = currentEventData["eventId"]
+    returnStructFinal["event"]["eventName"] = currentEventData["eventName"]
+    returnStructFinal["event"]["startDate"] = currentEventData["startDate"]
+    returnStructFinal["event"]["endDate"] = currentEventData["endDate"]
+    returnStructFinal["event"]["isLteLive"] = currentEventData["isLteLive"]
+    
+    res.status(200).send(returnStructFinal)
     return
   } catch (e) {
     log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
@@ -1176,8 +1175,6 @@ app.get('/api/player/:id/all', async (req, res) => {
     // get results for each event
     const playerEventRecordsPromises = joinedEvents.map(async (record) => {
       const eventId = record["eventId"]
-      const balanceHandler = new balance(record["eventName"], record["startDate"], record["endDate"])
-      await balanceHandler.loadBalanceData()
 
       const playerEventInfoPromise = getPlayerEventInfo(id, eventId)
       const playerLeaderboardPromise = getPlayerLeaderboard(id, eventId, 25, 25, true)
@@ -1203,10 +1200,6 @@ app.get('/api/player/:id/all', async (req, res) => {
         returnStruct = await archivedEntryData(record, playerEventInfo, playerLeaderboard)
       }
 
-      // get estimated rank
-      const rankString = await balanceHandler.getRankFromTrophies(returnStruct["player"]["trophies"], returnStruct["player"]["dateJoined"], returnStruct["player"]["dateUpdated"])
-      returnStruct["rankString"] = rankString
-
       let divisionPosition = null
 
       if (returnStruct["division"]["top"]) {
@@ -1215,6 +1208,14 @@ app.get('/api/player/:id/all', async (req, res) => {
             divisionPosition = parseInt(j) + 1
             break
           }
+        }
+
+        for (let k in returnStruct["division"]["top"]) {
+          returnStruct["division"]["top"][k]["playerId"] = null
+        }
+
+        for (let l in returnStruct["division"]["adjacent"]) {
+          returnStruct["division"]["adjacent"][l]["playerId"] = null
         }
       }
 
@@ -1328,7 +1329,7 @@ app.get('/api/event/:event/balance', async (req, res) => {
 
     const eventId = req.params.event
 
-    const allEventData = await getAllEvents()
+    const allEventData = await getAllEvents(future=true)
     let currentEventData
 
     for (let i of allEventData) {
@@ -1336,6 +1337,11 @@ app.get('/api/event/:event/balance', async (req, res) => {
         currentEventData = i
         break
       }
+    }
+
+    if (currentEventData === undefined) {
+      res.sendStatus(404).end()
+      return
     }
 
     const balanceHandler = new balance(currentEventData["eventName"])
@@ -1437,9 +1443,6 @@ app.get('/api/event/:event/:id', async (req, res) => {
       }
     }
 
-    const balanceHandler = new balance(currentEventData["eventName"], currentEventData["startDate"], currentEventData["endDate"])
-    await balanceHandler.loadBalanceData()
-
     const playerEventInfo = await getPlayerEventInfo(id, eventId)
     if (!playerEventInfo) {
       // don't even bother continuing if we know the ID has no record
@@ -1467,9 +1470,6 @@ app.get('/api/event/:event/:id', async (req, res) => {
       // archive
       returnStruct = await archivedEntryData(currentEventData, playerEventInfo, playerLeaderboard)
     }
-
-    const rankString = await balanceHandler.getRankFromTrophies(returnStruct["player"]["trophies"], returnStruct["player"]["dateJoined"], returnStruct["player"]["dateUpdated"])
-    returnStruct["rankString"] = rankString
     
     res.status(200).json(returnStruct)
   } catch (e) {
@@ -1568,6 +1568,7 @@ app.get('/api/event/:event/:id/top/:count', async (req, res) => {
 
     const id = req.params.id
     const eventId = req.params.event
+    
     const topPlayers = parseInt(req.params.count)
 
     if (isNaN(topPlayers)) {
@@ -1615,10 +1616,14 @@ app.get('/api/event/:event/:id/top/:count', async (req, res) => {
       return
     }
 
-    const balanceHandler = new balance(currentEventData["eventName"], currentEventData["startDate"], currentEventData["endDate"])
-    await balanceHandler.loadBalanceData()
-
     const returnStruct = {}
+    returnStruct["event"] = {}
+    returnStruct["event"]["eventGuid"] = currentEventData["eventId"]
+    returnStruct["event"]["eventName"] = currentEventData["eventName"]
+    returnStruct["event"]["startDate"] = currentEventData["startDate"]
+    returnStruct["event"]["endDate"] = currentEventData["endDate"]
+    returnStruct["event"]["isLteLive"] = currentEventData["isLteLive"]
+
     returnStruct["count"] = playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"][0]["position"]["count"]
 
     returnStruct["top"] = {}
@@ -1635,7 +1640,7 @@ app.get('/api/event/:event/:id/top/:count', async (req, res) => {
         "endTime": null,
         "estimatedRank": null,
         "avatarId": proximalPlayerHashMap[i["playerId"]]["avatarId"],
-        "knownRank": proximalPlayerHashMap[i["playerId"]]["lteRank"]
+        "lteRank": proximalPlayerHashMap[i["playerId"]]["lteRank"]
       })
     }
 
@@ -1659,9 +1664,6 @@ app.get('/api/event/:event/:id/top/:count', async (req, res) => {
       returnStruct["startTime"] = playerEventInfo["created"]
       returnStruct["endTime"] = playerEventInfo["updated"]
       
-      const rankString = await balanceHandler.getRankFromTrophies(playerEventInfo["score"], playerEventInfo["created"], playerEventInfo["updated"])
-      returnStruct["estimatedRank"] = rankString
-      
       return returnStruct
     })
 
@@ -1676,6 +1678,7 @@ app.get('/api/event/:event/:id/top/:count', async (req, res) => {
           returnStruct["top"]["list"][i]["startTime"] = playerEventDivisions[j]["startTime"]
           returnStruct["top"]["list"][i]["endTime"] = playerEventDivisions[j]["endTime"]
           returnStruct["top"]["list"][i]["estimatedRank"] = playerEventDivisions[j]["estimatedRank"]
+          returnStruct["top"]["list"][i]["playerId"] = null
         }
       }
     }
@@ -1698,7 +1701,6 @@ app.get('/api/event/:event/:id/finished', async(req, res) => {
     const eventId = req.params.event
 
     const allEventData = await getAllEvents()
-    let topSample = 2**10
     let eventName
     let startTime
     let endTime
@@ -1723,36 +1725,24 @@ app.get('/api/event/:event/:id/finished', async(req, res) => {
 
     const balanceHandler = new balance(eventName, startTime, endTime)
     await balanceHandler.loadBalanceData()
-    
-    const requiredTrophies = await balanceHandler.getThreshold()
-    let finalPlayersFinished = -1
 
-    while (finalPlayersFinished === -1) {
-      playerLeaderboard = await getPlayerLeaderboard(id, eventId, 1, topSample, true)
-      
-      for (let i of playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"]) {
-        if (i["score"] < requiredTrophies) {
-          finalPlayersFinished = i["position"]["position"]
-          break
-        }
+    const maxRank = balanceHandler.getMaxRank()
+    playerLeaderboard = await getPlayerLeaderboard(id, eventId, 1, 2147483647, true)
+
+    let count = 0
+
+    for (let i of playerLeaderboard["resolvedPlayers"]["objectArray"]) {
+      if (i["customData"] && i["customData"]["lteRank"] && i["customData"]["lteRank"] === maxRank) {
+        count++
       }
-      
-      topSample *= 2
-    }
-    
-    if (finalPlayersFinished === -1) {
-      res.status(500)
-      return
-    } else {
-      const struct = {
-        "finishers": finalPlayersFinished,
-        "spendingCurve": await balanceHandler.getBalanceSpendingCurve(),
-        "chrono": await balanceHandler.getChrono()
-      }
-      res.status(200).json(struct)
-      return
     }
 
+    const struct = {
+      "finishers": count,
+      "chrono": await balanceHandler.getChrono()
+    }
+    res.status(200).json(struct)
+    return
   } catch (e) {
     log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
 
@@ -1773,10 +1763,10 @@ app.get('/api/icons', async(req, res) => {
     const fileName = await fs.promises.readFile(__dirname + '/balance/_DataConfig.json', 'utf8')
     .then((data) => {
       const dc = JSON.parse(data)
-      for (let i in dc["Balance"]) {
+      for (let i in dc["VersionSettings"]["Balance"]["Urls"]) {
         if (i === 'common') {
           // load balance with that name
-          const balUrl = dc["Balance"][i]
+          const balUrl = dc["VersionSettings"]["Balance"]["BaseURL"] + dc["VersionSettings"]["Balance"]["Urls"][i]
           const balUrlSplit = balUrl.split('/')
           return balUrlSplit[balUrlSplit.length - 1].slice(0, -3)
         }

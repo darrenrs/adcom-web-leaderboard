@@ -8,10 +8,8 @@ const postFormDiscordLeaderboard = async() => {
   document.querySelector('#discordLeaderboardLoadError').classList.remove('d-none')
   document.querySelector('#discordLeaderboardLoadError').innerText = 'Loading ...'
 
-  const noDateCheckSwitch = document.querySelector('#noDateCheck').checked
-
   const selectedEventId = document.querySelector('option:checked').value
-  const playerData = await getDiscordLeaderboard(selectedEventId, noDateCheckSwitch)
+  const playerData = await getDiscordLeaderboard(selectedEventId)
 
   if (!playerData) {
     document.querySelector('#discordLeaderboardLoadError').classList.remove('d-none')
@@ -42,8 +40,8 @@ const postFormDiscordLeaderboard = async() => {
   const discordId = await getDiscordId()
 
   populateDiscordLeaderboardTable(playerData, discordId)
-  populateSharedDivisions(playerData)
-  populateBoxPlot(playerData, discordId)
+  populateSharedDivisions(playerData["players"])
+  populateBoxPlot(playerData["players"], discordId)
 }
 
 const getEventSchedule = async() => {
@@ -103,12 +101,8 @@ const getDiscordId = async() => {
   })
 }
 
-const getDiscordLeaderboard = async(eventId, noDateCheckSwitch) => {
+const getDiscordLeaderboard = async(eventId) => {
   let queryUrl = `api/discord/${eventId}`
-
-  if (noDateCheckSwitch) {
-    queryUrl += '?allQuery=true'
-  }
 
   return await fetch(queryUrl)
   .then((response) => {
@@ -144,6 +138,17 @@ const getInvalidState = async(eventId) => {
 }
 
 const populateDiscordLeaderboardTable = (discordLb, discordId) => {
+  const lteLiveSelectors = document.querySelectorAll('.live-lte');
+  if (discordLb["event"]["isLteLive"]) {
+    for (let i of lteLiveSelectors) {
+      i.classList.remove('d-none')
+    }
+  } else {
+    for (let i of lteLiveSelectors) {
+      i.classList.add('d-none')
+    }
+  }
+
   document.querySelector('#mainContent').classList.remove('d-none')
 
   let tbody = document.querySelector('#discordLeaderboard')
@@ -153,13 +158,13 @@ const populateDiscordLeaderboardTable = (discordLb, discordId) => {
     i.remove()
   }
 
-  for (let i in discordLb) {
+  for (let i in discordLb["players"]) {
     let discordLbRow = document.createElement('tr')
-    if (discordId === discordLb[i]["discordId"]) {
+    if (discordId === discordLb["players"][i]["discordId"]) {
       discordLbRow.classList.add('fw-bold')
       
       if (i !== "0") {
-        let trophyDelta = discordLb[i-1]["trophies"] - discordLb[i]["trophies"] + 10
+        let trophyDelta = discordLb["players"][i-1]["trophies"] - discordLb["players"][i]["trophies"] + 10
 
         let moveUp = document.createElement('tr')
         moveUp.classList.add('fw-bold')
@@ -181,8 +186,8 @@ const populateDiscordLeaderboardTable = (discordLb, discordId) => {
     imageCell.style = 'padding-top: 0 !important; padding-bottom: 0 !important'
 
     let image = document.createElement('img')
-    if (discordLb[i]["discordPfpId"] !== null) {
-      image.src = `https://cdn.discordapp.com/avatars/${discordLb[i]["discordId"]}/${discordLb[i]["discordPfpId"]}.png?size=256`
+    if (discordLb["players"][i]["discordPfpId"] !== null) {
+      image.src = `https://cdn.discordapp.com/avatars/${discordLb["players"][i]["discordId"]}/${discordLb["players"][i]["discordPfpId"]}.png?size=256`
     }
     image.width = 40
     image.alt = '' // don't add a value to this or it'll look ugly
@@ -190,39 +195,36 @@ const populateDiscordLeaderboardTable = (discordLb, discordId) => {
     imageCell.appendChild(image)
 
     let nameCell = document.createElement('td')
-    nameCell.innerText = discordLb[i]["name"]
+    nameCell.innerText = discordLb["players"][i]["name"]
 
     let discordNameCell = document.createElement('td')
-    discordNameCell.innerText = discordLb[i]["discordName"]
+    discordNameCell.innerText = discordLb["players"][i]["discordName"]
 
     let positionCell = document.createElement('td')
-    if (discordLb[i]["isMainBoard"]) {
-      positionCell.innerText = `${discordLb[i]["position"].toLocaleString()} / ${discordLb[i]["positionOf"].toLocaleString()}`
+    if (discordLb["players"][i]["isMainBoard"]) {
+      positionCell.innerText = `${discordLb["players"][i]["position"].toLocaleString()} / ${discordLb["players"][i]["positionOf"].toLocaleString()}`
     } else {
       positionCell.innerText = '*'
     }
 
     let percentileCell = document.createElement('td')
-    if (discordLb[i]["isMainBoard"]) {
-      percentileCell.innerText = `${(discordLb[i]["position"]/discordLb[i]["positionOf"] * 100).toFixed(2)}%`
+    if (discordLb["players"][i]["isMainBoard"]) {
+      percentileCell.innerText = `${(discordLb["players"][i]["position"]/discordLb["players"][i]["positionOf"] * 100).toFixed(2)}%`
     } else {
       percentileCell.innerText = '*'
     }
 
     let divRankCell = document.createElement('td')
-    divRankCell.innerHTML = discordLb[i]["divisionPosition"] ? getPositionHTMLFormat(discordLb[i]["divisionPosition"]) : '?'
+    divRankCell.innerHTML = discordLb["players"][i]["divisionPosition"] ? getPositionHTMLFormat(discordLb["players"][i]["divisionPosition"]) : '?'
 
     let trophiesCell = document.createElement('td')
-    trophiesCell.innerText = discordLb[i]["trophies"].toLocaleString()
-
-    let rankCell = document.createElement('td')
-    rankCell.innerText = `${discordLb[i]["rankString"]["rank"]}/${discordLb[i]["rankString"]["mission"]}`
+    trophiesCell.innerText = discordLb["players"][i]["trophies"].toLocaleString()
 
     let lastUpdatedCell = document.createElement('td')
-    lastUpdatedCell.innerText = new Date(discordLb[i]["lastUpdated"]).toLocaleString()
+    lastUpdatedCell.innerText = new Date(discordLb["players"][i]["lastUpdated"]).toLocaleString()
 
     let amountSpentCell = document.createElement('td')
-    amountSpentCell.innerText = amountSpentDollars(discordLb[i]["divisionId"])
+    amountSpentCell.innerText = amountSpentDollars(discordLb["players"][i]["divisionId"])
 
     discordLbRow.append(idCell)
     discordLbRow.append(imageCell)
@@ -232,7 +234,13 @@ const populateDiscordLeaderboardTable = (discordLb, discordId) => {
     discordLbRow.append(percentileCell)
     discordLbRow.append(divRankCell)
     discordLbRow.append(trophiesCell)
-    discordLbRow.append(rankCell)
+
+    if (discordLb["event"]["isLteLive"]) {
+      let rankCell = document.createElement('td')
+      rankCell.innerText = discordLb["players"][i]["lteRank"]
+      discordLbRow.appendChild(rankCell)
+    }
+
     discordLbRow.append(lastUpdatedCell)
     discordLbRow.append(amountSpentCell)
     
@@ -262,7 +270,7 @@ const populateSharedDivisions = (data) => {
   for (j of Object.keys(keys)) {
     if (keys[j].length > 1) {
       const element = document.createElement('li')
-      element.innerHTML = `${expandPlayerList(keys[j])} shared a division!`
+      element.innerHTML = `${expandPlayerList(keys[j])} shared a shortboard!`
       listRoot.append(element)
     }
   }
@@ -270,7 +278,7 @@ const populateSharedDivisions = (data) => {
   if (listRoot.childElementCount > 0) {
     document.querySelector('#sharedDivisions').appendChild(listRoot)
   } else {
-    document.querySelector('#sharedDivisions').innerText = 'No players on the Discord leaderboard shared a division in this event.'
+    document.querySelector('#sharedDivisions').innerText = 'No players on the Discord leaderboard shared a shortboard in this event.'
   }
 }
 

@@ -83,6 +83,10 @@
   #boxPlotContent {
     border-left-color: white !important;
   }
+
+  .home-item {
+    background-color: #222 !important;
+  }
 }
 
 @media (prefers-color-scheme: light) {
@@ -90,42 +94,4 @@
     background-image: linear-gradient(315deg, #eee 25%, transparent 25%, transparent 50%, #eee 50%, #eee 75%, transparent 75%, rgba(0, 0, 0, 0));
     background-size: 50px 50px;
   }
-}
-
-/* not dark mode but other global selectors */
-@media only screen and (max-width: 378px)  {
-  .navbar-brand {
-    font-size: 18px;
-  }
-}
-@media only screen and (max-width: 357px)  {
-  .navbar-brand {
-    font-size: 16px;
-  }
-}
-
-input[type="text"] {
-  font-family: var(--bs-font-monospace);
-  font-size: 15px;
-}
-
-.font-monospace {
-  font-size: 15px;
-}
-
-.time-suffix {
-  font-variant: small-caps;
-}
-
-.navbar-brand:nth-child(2) {
-  font-size: 9px;
-}
-
-table {
-  white-space: nowrap;
-}
-
-.table-value-quant {
-  font-family: monospace;
-  text-align: right;
 }

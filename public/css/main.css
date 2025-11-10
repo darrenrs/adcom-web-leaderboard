@@ -1,0 +1,144 @@
+input[type="text"] {
+  font-family: var(--bs-font-monospace);
+  font-size: 15px;
+}
+
+.font-monospace {
+  font-size: 15px;
+}
+
+.time-suffix {
+  font-variant: small-caps;
+}
+
+.navbar-brand:nth-child(2) {
+  font-size: 9px;
+}
+
+table {
+  white-space: nowrap;
+}
+
+.table-value-quant {
+  font-family: monospace;
+  text-align: right;
+}
+
+.home-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.home-item {
+  display: block; 
+  text-decoration: none;
+  color: inherit;
+  width: 30%;
+  margin: 1.667%;
+  padding: 12px;
+  border-radius: 16px;
+  background-color: #ccc;
+  text-align: center;
+}
+
+.home-item:hover .flex-card {
+  cursor: pointer;
+}
+
+.playfab-form-items {
+  display: flex;
+}
+
+.playfab-form-items input {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-right: 5px;
+}
+
+.playfab-form-items button {
+  flex: 0 0 auto;
+}
+
+.playfab-updated-hidden {
+  display: none;
+}
+
+/* Sidebar */
+.open-btn {
+  cursor: pointer;
+  transition: 0.5s color;
+}
+
+.open-btn:hover {
+  color: gray
+}
+
+.side-menu {
+  position: fixed;
+  top: 50px;
+  left: -250px;
+  width: 250px;
+  height: 100%;
+  background: linear-gradient(180deg, rgb(33 37 41) 0%, rgb(0 0 0) 100%);
+  color: white;
+  transition: left 0.3s ease;
+  z-index: 99;
+  box-shadow: -3px 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.side-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  margin-top: 20px;
+}
+
+.side-menu ul li {
+  padding: 15px 20px;
+  border-bottom: 1px solid #444;
+}
+
+.side-menu ul li a {
+  color: white;
+  text-decoration: none;
+}
+
+.side-menu ul li a:hover {
+  text-decoration: underline;
+}
+
+.menu-option-selected {
+  font-weight: bold;
+}
+
+.menu-option-selected:before {
+  content: ">";
+  margin-left: -13.5px;
+}
+
+@media only screen and (max-width: 768px) {
+  .home-item {
+    width: 45%;
+    margin: 2.5%;
+  }
+}
+
+@media only screen and (max-width: 500px) {
+  .home-item {
+    width: 90%;
+    margin: 5%;
+  }
+}
+
+@media only screen and (max-width: 378px)  {
+  .navbar-brand {
+    font-size: 18px;
+  }
+}
+
+@media only screen and (max-width: 357px)  {
+  .navbar-brand {
+    font-size: 16px;
+  }
+}
