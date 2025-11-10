@@ -5,27 +5,18 @@ const postFormPlayFab = async() => {
   document.querySelector('#mainContent').classList.add('d-none')
   document.querySelector('#eventLoadConnectionError').classList.add('d-none')
 
-  const playerId = document.querySelector('#playFabQuery').value
-  const saveCurrentId = document.querySelector('#playFabSetDefault')
-  
+  const playerId = document.querySelector('#playfabSavedValue').innerText
   const userExists = await getPlayerState(playerId)
   
   if (userExists) {
-    // success
-    if (saveCurrentId.checked) {
-      localStorage.setItem('playerId', playerId)
-    } else {
-      localStorage.removeItem('playerId')
-    }
-    
-    document.querySelector('#noAccountFound').classList.add('d-none')
+    document.querySelector('#playfabLoadStatus').classList.add('d-none')
     document.querySelector('#activePlayFabId').innerText = playerId
 
     // load event list
     await postFormEventList()
   } else {
     // no user found or general failure
-    document.querySelector('#noAccountFound').classList.remove('d-none')
+    document.querySelector('#playfabLoadStatus').classList.remove('d-none')
   }
 }
 
@@ -71,7 +62,7 @@ const postFormEvent = async() => {
   
   if (eventData) {
     // success
-    document.querySelector('#noAccountFound').classList.add('d-none')
+    document.querySelector('#playfabLoadStatus').classList.add('d-none')
     document.querySelector('#eventLoadConnectionError').classList.add('d-none')
     document.querySelector('#mainContent').classList.remove('d-none')
 
@@ -112,6 +103,7 @@ const postFormEvent = async() => {
     document.querySelector('#globalPositions').classList.add('d-none')
     document.querySelector('#leaderboardMarkerContainer').style = `margin-top: 0px !important;`
     document.querySelector('#leaderboardMarker').innerText = 'N/A'
+    document.querySelector('#leaderboardMarker').setAttribute('inverse', 'N/A')
     document.querySelector('#bracketScore').innerText = 'unavailable'
   }
 }
@@ -122,17 +114,17 @@ const getPlayerState = async(playerId) => {
     if (response.status === 200) {
       return true
     } else if (response.status === 404) {
-      document.querySelector('#noAccountFound').innerText = `No account ${playerId} found.`
+      document.querySelector('#playfabLoadStatus').innerText = `No account ${playerId} found.`
       return false
     } else {
       console.error(`Server error (${response.status})`)
-      document.querySelector('#noAccountFound').innerText = `Server error (${response.status}).`
+      document.querySelector('#playfabLoadStatus').innerText = `Server error (${response.status}).`
       return false
     }
   })
   .catch((error) => {
     console.error(error)
-    document.querySelector('#noAccountFound').innerText = 'Please check your internet connection.'
+    document.querySelector('#playfabLoadStatus').innerText = 'Please check your internet connection.'
     return false
   })
 }
@@ -222,6 +214,17 @@ const getInvalidState = async(eventId) => {
 }
 
 const populateFieldsGeneral = (data, iconList) => {
+  const lteLiveSelectors = document.querySelectorAll('.live-lte');
+  if (data["event"]["isLteLive"]) {
+    for (let i of lteLiveSelectors) {
+      i.classList.remove('d-none')
+    }
+  } else {
+    for (let i of lteLiveSelectors) {
+      i.classList.add('d-none')
+    }
+  }
+
   const eventDetails = getEventDetails(data["event"]["eventName"])
   document.querySelector('#eventImage').classList.remove('d-none')
   document.querySelector('#eventImage').setAttribute('src', `img/adcom/banner/${data["event"]["eventName"]}.png`)
@@ -241,7 +244,7 @@ const populateFieldsGeneral = (data, iconList) => {
   document.querySelector('#globalPosition').innerText = `${(data["player"]["globalPosition"]+1).toLocaleString()} / ${data["global"]["count"].toLocaleString()}`
   document.querySelector('#globalPositionPercentile').innerText = `Top ${(data["player"]["globalPosition"] / (data["global"]["count"]-1) * 100).toFixed(2)}%`
   document.querySelector('#trophies').innerText = data["player"]["trophies"].toLocaleString()
-  document.querySelector('#rank').innerText = `${data["rankString"]["rank"]}/${data["rankString"]["mission"]}`
+  document.querySelector('#rank').innerText = data["event"]["isLteLive"] ? data["player"]["lteRank"] : ""
   document.querySelector('#joinDate').innerText = new Date(data["player"]["dateJoined"]).toLocaleString()
   document.querySelector('#updateDate').innerText = new Date(data["player"]["dateUpdated"]).toLocaleString()
   document.querySelector('#divisionId').innerText = data["player"]["divisionId"] ? data["player"]["divisionId"] : "No division"
@@ -293,9 +296,6 @@ const populateFieldsGeneral = (data, iconList) => {
       image.src = `img/icons/v2/${iconList[data["division"]["top"][i]["avatarId"]]}.png`
       image.style = 'width: 40px; max-height: 40px;'
       image.alt = playerNameProperties["defaultName"]
-      // Deprecated as of 2025-09-04
-      // image.classList.add('tinted-image')
-      // image.classList.add(playerNameProperties["color"])
       imageCell.appendChild(image)
 
       let nameCell = document.createElement('td')
@@ -312,9 +312,6 @@ const populateFieldsGeneral = (data, iconList) => {
       if (lbp_parsed / (data["global"]["count"]-1) >= 5e-4) {
         globalPctCell.innerHTML = `${(lbp_parsed / (data["global"]["count"]-1) * 100).toFixed(1)}%`
       }
-
-      let rankCell = document.createElement('td')
-      rankCell.innerText = `${data["division"]["top"][i]["rankString"]["rank"]}/${data["division"]["top"][i]["rankString"]["mission"]}`
       
       divisionPlayer.appendChild(positionCell)
       divisionPlayer.appendChild(imageCell)
@@ -322,7 +319,12 @@ const populateFieldsGeneral = (data, iconList) => {
       divisionPlayer.appendChild(trophyCell)
       divisionPlayer.appendChild(globalPosCell)
       divisionPlayer.appendChild(globalPctCell)
-      divisionPlayer.appendChild(rankCell)
+      
+      if (data["event"]["isLteLive"]) {
+        let rankCell = document.createElement('td')
+        rankCell.innerText = data["division"]["top"][i]["lteRank"]
+        divisionPlayer.appendChild(rankCell)
+      }
       
       tbody.appendChild(divisionPlayer)
     }
@@ -469,14 +471,6 @@ const populateFieldsGlobal = (data, playerData) => {
   document.querySelector('#leaderboardMarkerContainer').style = `margin-top: ${margin}px !important;`
 }
 
-document.querySelector('#playFabQuery').addEventListener('keyup', function() {
-  this.value = this.value.toUpperCase()
-})
-
-document.querySelector('#formSubmitPlayFab').addEventListener('click', function() {
-  postFormPlayFab()
-})
-
 document.querySelector('#formSubmitEvent').addEventListener('click', function() {
   postFormEvent()
 })
@@ -488,9 +482,3 @@ document.querySelector('#leaderboardMarker').addEventListener('click', function(
   this.innerHTML = posteriorMarkerText
   this.setAttribute('inverse', anteriorMarkerText)
 })
-
-if (localStorage.getItem('playerId')) {
-  let playerId = localStorage.getItem('playerId')
-  document.querySelector('#playFabQuery').value = playerId
-  document.querySelector('#playFabSetDefault').checked = true
-}

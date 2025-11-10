@@ -7,18 +7,19 @@
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="css/darkmode.css">
     <link rel="stylesheet" type="text/css" href="css/main.css">
-    <script src="js/rankestimator.js" defer></script>
+    <script src="js/accountvalue.js" defer></script>
     <script src="js/helper.js" defer></script>
     <script src="js/build.js" defer></script>
+    <script src="js/playfabform.js" defer></script>
     <script src="js/menu.js" defer></script>
-    <title>AdVenture Communist Web Leaderboard</title>
+    <title>AdVenture Communist Account Value Query</title>
   </head>
   <body>
     <nav class="navbar navbar-dark bg-dark sticky-top">
       <div class="container-fluid">
         <div id="sideMenuBtn" class="navbar-brand open-btn">
           <img src="img/icon.png" width="30" height="40" class="d-inline-block align-self-center" alt="AdCom icon">
-          Rank Estimator ☰
+          Account Value ☰
         </div>
         <a class="navbar-brand" href="https://github.com/darrenrs/adcom-web-leaderboard">
           <img src="img/github.png" width="30" height="30" style="display: flex; margin: 0 auto;" alt="GitHub">
@@ -27,41 +28,33 @@
       </div>
     </nav>
     <div class="container pt-2">
-      <h2>Rank Estimator</h2>
-      <div class="alert alert-danger" role="alert">
-        This tool is invalid for events with Trophy "RevRushes" and is only marginally reliable for other events. Use with caution.
-      </div>
-      <div class="mb-3">
-        <form onsubmit="return false">
-          <div class="mb-3">
-            <label for="trophyInput">Trophies <span class="text-danger">*</span></label>
-            <input id="trophyInput" class="form-control" type="number" aria-describedby="trophyInputDesc" max="500000" required>
-            <div id="trophyInputDesc" class="form-text">Current number of trophies</div>
-          </div>
-          <div class="mb-3">
-            <label for="startTimeInput">Start Time (UTC) <span class="text-danger">*</span></label>
-            <input id="startTimeInput" class="form-control" type="datetime-local" aria-describedby="startTimeInput" required>
-            <div id="trophyInputDesc" class="form-text">Event join time</div>
-          </div>
-          <div class="mb-3">
-            <label for="endTimeInput">End Time (UTC) <span class="text-danger">*</span></label>
-            <input id="endTimeInput" class="form-control" type="datetime-local" aria-describedby="endTimeInput" required>
-            <div id="trophyInputDesc" class="form-text">Time of last capsule opening</div>
-          </div>
-          <div class="mb-3">
-            <label for="activeEventId">Active Event ID <span class="text-danger">*</span></label>
-            <input id="activeEventId" class="form-control" aria-describedby="activeEventInput" type="text">
-            <div id="activeEventInput" class="form-text">(do not change)</div>
-          </div>
-          <button id="formCheckRank" type="submit" class="btn btn-primary">Check Rank</button>
-          <span id="checkRankStatus" class="p-2 text-danger"></span>
-        </form>
-      </div>
-      <div class="mb-3">
-        <div>
-          <span>Rank: </span>
-          <span id="output" class="fw-bold">...</span>
+      <h2>Account Value</h2>
+      <p>Reference tool to see how much money you've spent in-game.</p>
+      <div id="playfabManagement">
+        <div id="playfabFormContainer">
+          <hr>
+          <form id="playfabForm" onsubmit="return false">
+            <h4 class="mb-4">No PlayFab ID found. Please enter it here to add your account!</h4>
+            <label for="playfabQuery">PlayFab ID <span class="text-danger">*</span></label>
+            <div class="playfab-form-items">
+              <input id="playfabQuery" class="form-control" type="text" aria-describedby="playfabStorageDescription" maxlength="16" required>
+              <button id="playfabFormSubmit" type="submit" class="btn btn-primary">Save</button>
+            </div>
+            <div id="playfabStorageDescription" class="form-text">You can find this in-game in the Settings. Please note your PlayFab ID will be stored server-side in order to cache player records.</div>
+          </form>
         </div>
+        <div id="playfabSaved" class="d-none mt-2">Your PlayFab ID is: <span id="playfabSavedValue" class="font-monospace"></span>. You can change this <a href="account">here</a>.</div>
+        <div id="playfabLoadContainer" class="d-none">
+          <button id="playfabLoadButton" type="submit" class="btn btn-primary mt-2">Load Account</button>
+          <span id="playfabLoadStatus" class="d-none p-2 text-danger"></span>
+          <span id="activePlayFabId" class="d-none"></span>
+        </div>
+        <hr>
+      </div>
+      <div id="mainContent" class="d-none">
+        <div>Total Amount Spent: <strong id="accountValueUSD"></strong> <span id="accountValueQualitativeDescriptor"></span></div>
+        <div>Account Created: <strong id="dateAccountGenesis"></strong> <span id="timeSinceAccountGenesis"></span></div>
+        <div>Last Login: <strong id="dateAccountLastLogin"></strong> <span id="timeSinceAccountLastLogin"></span></div>
       </div>
     </div>
     <div class="side-menu side-menu-inactive" id="sideMenu">
@@ -87,7 +80,7 @@
         <li class="menu-option">
           <a href="finished">Finished Players</a>
         </li>
-        <li class="menu-option">
+        <li class="menu-option menu-option-selected">
           <a href="playervalue">Account Value</a>
         </li>
         <li class="menu-option">

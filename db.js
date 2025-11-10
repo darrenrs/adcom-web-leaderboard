@@ -171,18 +171,6 @@ module.exports = class SQLiteInterface {
 
   async getAllPlayerDiscordRecords() {
     return new Promise((resolve, reject) => {
-      this.db.all('SELECT * FROM "players-discord" WHERE julianday(\'now\') - julianday(lastCheckDate) <= 56', (err, rows) => {
-        if (err) {
-          reject(err)
-        }
-        
-        resolve(rows)
-      })
-    })
-  }
-
-  async getAllPlayerDiscordRecordsNoDateConstraint() {
-    return new Promise((resolve, reject) => {
       this.db.all('SELECT * FROM "players-discord"', (err, rows) => {
         if (err) {
           reject(err)

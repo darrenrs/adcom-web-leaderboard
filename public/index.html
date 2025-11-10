@@ -8,19 +8,19 @@
     <link rel="stylesheet" type="text/css" href="css/marker.css">
     <link rel="stylesheet" type="text/css" href="css/darkmode.css">
     <link rel="stylesheet" type="text/css" href="css/iconcolor.css">
-    <script src="js/script.js" defer></script>
-    <script src="js/helper.js" defer></script>
-    <script src="js/eventselector.js" defer></script>
+    <link rel="stylesheet" type="text/css" href="css/main.css">
     <script src="js/build.js" defer></script>
-    <title>AdVenture Communist Leaderboard</title>
+    <script src="js/playfabform.js" defer></script>
+    <script src="js/menu.js" defer></script>
+    <title>AdVenture Communist Web Leaderboard</title>
   </head>
   <body>
     <nav class="navbar navbar-dark bg-dark sticky-top">
       <div class="container-fluid">
-        <a class="navbar-brand" href=".">
+        <div id="sideMenuBtn" class="navbar-brand open-btn">
           <img src="img/icon.png" width="30" height="40" class="d-inline-block align-self-center" alt="AdCom icon">
-          Player Leaderboards
-        </a>
+          Home ☰
+        </div>
         <a class="navbar-brand" href="https://github.com/darrenrs/adcom-web-leaderboard">
           <img src="img/github.png" width="30" height="30" style="display: flex; margin: 0 auto;" alt="GitHub">
           <span id="buildId">&nbsp;</span>
@@ -28,191 +28,121 @@
       </div>
     </nav>
     <div class="container pt-2">
-      <h2>AdCom Leaderboards</h2>
-      <div class="mb-3">
-        <form onsubmit="return false">
-          <div class="mb-3">
-            <label for="playFabQuery">PlayFab ID</label>
-            <input id="playFabQuery" class="form-control" type="text" aria-describedby="playFabStorageS1" maxlength="16">
-            <div id="playFabStorageS1" class="form-text">You can find this in-game in the Settings.</div>
-            <a href="report" class="link-primary">Event Report</a><br>
-            <a href="account" class="link-primary">Account Management</a>
-          </div>
-          <div class="mb-3 form-check">
-            <input type="checkbox" class="form-check-input" id="playFabSetDefault">
-            <label class="form-check-label" for="playFabSetDefault">Set as default</label>
-            <div id="playFabStorage" class="form-text">Your PlayFab ID will be stored locally on your device.</div>
-          </div>
-          <button id="formSubmitPlayFab" type="submit" class="btn btn-primary">Load Account</button>
-          <span id="noAccountFound" class="d-none p-2 text-danger"></span>
-        </form>
-      </div>
-      <hr>
-      <div class="mb-3">
-        <form onsubmit="return false">
-          <div class="mb-3">
-            <label for="eventSelect">Event</label>
-            <select id="eventSelect" class="form-select" aria-describedby="eventLoadDisclaimer" disabled>
-              <option>Please load an account to continue</option>
-            </select>
-            <a href="discord" class="link-primary">View Discord Leaderboard</a>
-            <br>
-            <a href="eventlist" class="link-primary">View full event schedule</a>
-          </div>
-          <div class="mb-3">
-            <button id="formSubmitEvent" type="submit" class="btn btn-primary" disabled>Load Event</button>
-            <span id="eventLoadConnectionError" class="d-none p-2 text-danger"></span>
-            <span id="activePlayFabId" class="d-none"></span>
-          </div>
-        </form>
-      </div>
-    </div>
-    <div id="mainContent" class="d-none">
-      <hr>
-      <div class="container pt-2">
-        <h3>Event Information</h3>
-        <div class="row pt-3">
-          <div id="eventArchivedWarning" class="alert alert-danger d-none" role="alert">
-            This event is archived. Some features, such as global and division leaderboards, may not work.
-          </div>
-          <div id="exploitWarning" class="alert alert-warning d-none" role="alert">
-            During the runtime of this event, there was a known exploit which compromised the integrity of the leaderboards. Results may not be accurate.
-          </div>
-          <div id="dataFidelityWarning" class="alert alert-danger d-none" role="alert">
-            During the runtime of this event, server issues resulted in some data corruption. Results may not be accurate.
-          </div>
+      <h2>AdVenture Communist Web Leaderboard</h2>
+      <p>A collection of web tools for the mobile idle game <em>AdVenture Communist</em> by Hyper Hippo Entertainment.</p>
+      <div id="playfabManagement">
+        <div id="playfabFormContainer">
+          <hr>
+          <form id="playfabForm" onsubmit="return false">
+            <h4 class="mb-4">No PlayFab ID found. Please enter it here to add your account!</h4>
+            <label for="playfabQuery">PlayFab ID <span class="text-danger">*</span></label>
+            <div class="playfab-form-items">
+              <input id="playfabQuery" class="form-control" type="text" aria-describedby="playfabStorageDescription" maxlength="16" required>
+              <button id="playfabFormSubmit" type="submit" class="btn btn-primary">Save</button>
+            </div>
+            <div id="playfabStorageDescription" class="form-text">You can find this in-game in the Settings. Please note your PlayFab ID will be stored server-side in order to cache player records.</div>
+          </form>
         </div>
-        <div class="row pt-3">
-          <div class="col-md">
-            <h4 id="eventFullName"></h4>
-            <em id="eventDescription"></em>
-            <div class="pt-2">
-              <span class="fw-bold">Start Date: </span>
-              <span id="eventStartDate"></span>
-            </div>
-            <div class="pt-2">
-              <span class="fw-bold">End Date: </span>
-              <span id="eventEndDate"></span>
-            </div>
-            <div class="pt-2">
-              <span class="fw-bold">Duration: </span>
-              <span id="eventDuration"></span>
-            </div>
-          </div>
-          <div class="col-md">
-            <img src="" class="img-thumbnail d-none" id="eventImage">
-          </div>
+        <div id="playfabSaved" class="d-none mt-2">Your PlayFab ID is: <span id="playfabSavedValue" class="font-monospace"></span>. You can change this <a href="account">here</a>.</div>
+        <div id="playfabLoadContainer" class="d-none">
+          <button id="playfabLoadButton" type="submit" class="btn btn-primary mt-2">Load Account</button>
+          <span id="playfabLoadStatus" class="d-none p-2 text-danger"></span>
+          <span id="activePlayFabId" class="d-none"></span>
         </div>
-      </div>
-      <div class="container pt-2">
         <hr>
-        <h3>Player Information</h3>
-        <ul class="list-group list-group-flush">
-          <li class="list-group-item d-flex justify-content-between">
-            <div class="fw-bold">Name</div>
-            <div id="playerName"></div>
+      </div>
+      <div class="container home-container">
+        <a href="event" class="home-item">
+          <div class="flex-card">
+            <h3>Your Events</h3>
+            <p>View all your events including shortboards and how you placed</p>
+          </div>
+        </a>
+        <a href="discord" class="home-item">
+          <div class="flex-card">
+            <h3>Discord Leaderboard</h3>
+            <p>Join the competitive Discord leaderboard... if you dare</p>
+          </div>
+        </a>
+        <a href="eventlist" class="home-item">
+          <div class="flex-card">
+            <h3>Event Schedule</h3>
+            <p>A quick reference to all events past, present, and future</p>
+          </div>
+        </a>
+        <a href="report" class="home-item">
+          <div class="flex-card">
+            <h3>Event Report</h3>
+            <p>Every event you've ever played in a sweet and simple table</p>
+          </div>
+        </a>
+        <a href="top" class="home-item">
+          <div class="flex-card">
+            <h3>Top Players</h3>
+            <p>See who the top players of each event are</p>
+          </div>
+        </a>
+        <a href="finished" class="home-item">
+          <div class="flex-card">
+            <h3>Finished Players</h3>
+            <p>Quickly see how many players have finished an event</p>
+          </div>
+        </a>
+        <a href="playervalue" class="home-item">
+          <div class="flex-card">
+            <h3>Account Value</h3>
+            <p>Reference tool to see how much money you've spent in-game</p>
+          </div>
+        </a>
+        <a href="account" class="home-item">
+          <div class="flex-card">
+            <h3>Identity Management</h3>
+            <p>Manage your saved PlayFab ID and Discord login</p>
+          </div>
+        </a>
+        <a href="https://darrenrs.github.io/adcom-mission-tracker/" class="home-item">
+          <div class="flex-card">
+            <h3>Mission Tracker</h3>
+            <p>The original Mission Tracker, still up and running!</p>
+          </div>
+        </a>
+      </div>
+      <div class="side-menu side-menu-inactive" id="sideMenu">
+        <ul>
+          <li class="menu-option menu-option-selected">
+            <a href="./">Home</a>
           </li>
-          <li class="list-group-item d-flex justify-content-between">
-            <div class="fw-bold">Global Position</div>
-            <div id="globalPosition"></div>
+          <li class="menu-option">
+            <a href="event">Your Events</a>
           </li>
-          <li class="list-group-item d-flex justify-content-between">
-            <div class="fw-bold">Leaderboard Position</div>
-            <div id="globalPositionPercentile"></div>
+          <li class="menu-option">
+            <a href="discord">Discord Leaderboard</a>
           </li>
-          <li class="list-group-item d-flex justify-content-between">
-            <div class="fw-bold">Trophies</div>
-            <div id="trophies"></div>
+          <li class="menu-option">
+            <a href="eventlist">Event Schedule</a>
           </li>
-          <li class="list-group-item d-flex justify-content-between">
-            <div class="fw-bold"><em>Estimated</em> Rank</div>
-            <div id="rank"></div>
+          <li class="menu-option">
+            <a href="report">Event Report</a>
           </li>
-          <li class="list-group-item d-flex justify-content-between">
-            <div class="fw-bold">Join Date</div>
-            <div id="joinDate"></div>
+          <li class="menu-option">
+            <a href="top">Top Players</a>
           </li>
-          <li class="list-group-item d-flex justify-content-between">
-            <div class="fw-bold">Last Updated</div>
-            <div id="updateDate"></div>
+          <li class="menu-option">
+            <a href="finished">Finished Players</a>
           </li>
-          <li class="list-group-item d-flex justify-content-between">
-            <div class="fw-bold">Division Type</div>
-            <div id="divisionType"></div>
+          <li class="menu-option">
+            <a href="playervalue">Account Value</a>
           </li>
-          <li class="list-group-item d-flex justify-content-between">
-            <div class="fw-bold">Leaderboard Type</div>
-            <div id="leaderboardType"></div>
+          <li class="menu-option">
+            <a href="account">Identity Management</a>
+          </li>
+          <li class="menu-option">
+            &copy; 2022-25 Enigmaxim
           </li>
         </ul>
       </div>
-      <div class="container pt-2">
-        <hr>
-        <div class="row pt-3">
-          <div class="col-lg">
-            <h3>Global Leaderboard</h3>
-            <div>
-              <span class="fw-bold">Event ID: </span>
-              <span class="font-monospace" id="leaderboardId"></span>
-            </div>
-            <div class="container">
-              <div class="row">
-                <div id="leaderboardMarkerContainer" class="col col-1">
-                  <div id="leaderboardMarker" class="text-end">...</div> 
-                </div>
-                <div id="leaderboardTable" class="col col-11">
-                  <div class="overflow-auto">
-                    <table class="table table-striped table-hover">
-                      <thead>
-                        <tr>
-                          <th>Bracket Name</th>
-                          <th>Actual Position</th>
-                          <th>Threshold</th>
-                        </tr>
-                      </thead>
-                      <tbody id="globalPositions" class="table-group-divider"></tbody>
-                    </table>
-                  </div>
-                  <div>
-                    <span class="fw-bold">Bracket Score: </span>
-                    <span id="bracketScore"></span>
-                  </div>
-                </div>  
-              </div>
-            </div>
-            <a href="top" class="link-primary">View Top Players</a>
-            <br>
-            <a href="finished" class="link-primary">View Finished Players</a>
-          </div>
-          <div class="col-lg">
-            <h3>Division Leaderboard</h3>
-            <div>
-              <span class="fw-bold">Division ID: </span>
-              <span class="font-monospace" id="divisionId"></span>
-            </div>
-            <div class="overflow-auto">
-              <table class="table table-striped table-hover">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th colspan=2>Name</th>
-                    <th>Trophies</th>
-                    <th colspan=2>Global Position</th>
-                    <th><strong>Est. </strong>Rank</th>
-                  </tr>
-                </thead>
-                <tbody id="divisionPlayers" class="table-group-divider"></tbody>
-              </table>
-            </div>
-            <div>
-              <span class="fw-bold">Time to Fill Division: </span>
-              <span id="divisionTime"></span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="container pt-2">
-        This material is not official and is not endorsed by Hyper Hippo. For more information, see Hyper Hippo's Fan Content Policy: (<a href="https://hyperhippo.com/fan-content-policy/">https://hyperhippo.com/fan-content-policy/</a>)
+      <div class="pt-2">
+        This material is not official and is not endorsed by Hyper Hippo. For more information, see Hyper Hippo's Fan Content Policy: <a href="https://hyperhippo.com/fan-content-policy/">https://hyperhippo.com/fan-content-policy/</a>.
       </div>
     </div>
   </body>

@@ -67,8 +67,6 @@ const populateFinishers = (data) => {
   const timeElapsed = (endTimeDateActual - startTimeDate) / 1000
 
   document.querySelector("#giantPlayersFinished").innerText = data["finishers"].toLocaleString()
-  document.querySelector("#amountSpentUSD").innerText = getAmountSpentUSD(data["spendingCurve"], timeElapsed)
-  document.querySelector("#amountSpentGold").innerText = getAmountSpentGold(data["spendingCurve"], timeElapsed)
 
   if (currentDate > endTimeDate) {
     // display "static" values after event ends

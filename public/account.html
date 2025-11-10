@@ -6,18 +6,21 @@
     <link rel="icon" type="image/png" href="img/icon.png">
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="css/darkmode.css">
+    <link rel="stylesheet" type="text/css" href="css/main.css">
     <script src="js/account.js" defer></script>
     <script src="js/helper.js" defer></script>
     <script src="js/build.js" defer></script>
+    <script src="js/playfabform.js" defer></script>
+    <script src="js/menu.js" defer></script>
     <title>AdVenture Communist Account Management</title>
   </head>
   <body>
     <nav class="navbar navbar-dark bg-dark sticky-top">
       <div class="container-fluid">
-        <a class="navbar-brand" href="./">
+        <div id="sideMenuBtn" class="navbar-brand open-btn">
           <img src="img/icon.png" width="30" height="40" class="d-inline-block align-self-center" alt="AdCom icon">
-          Account Management
-        </a>
+          Identity Management ☰
+        </div>
         <a class="navbar-brand" href="https://github.com/darrenrs/adcom-web-leaderboard">
           <img src="img/github.png" width="30" height="30" style="display: flex; margin: 0 auto;" alt="GitHub">
           <span id="buildId">&nbsp;</span>
@@ -26,25 +29,28 @@
     </nav>
     <div class="container pt-2">
       <h2>Account Management</h2>
-      <p>If you'd like to update your icon, please hit <strong>Update Account</strong>.</p>
-      <div class="mb-3">
-        <form onsubmit="return false">
-          <div class="mb-3">
-            <label for="playFabIdInitCheck">PlayFab ID <span class="text-danger">*</span></label>
-            <input id="playFabIdInitCheck" class="form-control" type="text" aria-describedby="playFabDescInitCheck" maxlength="16" required>
-            <div id="playFabDescInitCheck" class="form-text">You can find this in-game in the Settings.</div>
-          </div>
-          <div class="mb-3 form-check">
-            <input type="checkbox" class="form-check-input" id="playFabSetDefault">
-            <label class="form-check-label" for="playFabSetDefault">Set as default</label>
-            <div id="playFabStorage" class="form-text">Your PlayFab ID will be stored locally on your device.</div>
-          </div>
-          <button id="formInitAccount" type="submit" class="btn btn-primary">Load Account</button>
-          <span id="accountCheckStatus" class="p-2 text-danger"></span>
-        </form>
+      <p>To update your Discord profile picture (pfp) icon, please hit <strong>Load Account</strong> &gt; <strong>Update Account</strong>.</p>
+      <div id="playfabManagement">
+        <div id="playfabFormContainer">
+          <hr>
+          <form id="playfabForm" onsubmit="return false">
+            <label for="playfabQuery">PlayFab ID <span class="text-danger">*</span></label>
+            <div class="playfab-form-items">
+              <input id="playfabQuery" class="form-control" type="text" aria-describedby="playfabStorageDescription" maxlength="16" required>
+              <button id="playfabFormSubmit" type="submit" class="btn btn-primary">Save</button>
+            </div>
+            <div id="playfabStorageDescription" class="form-text">You can find this in-game in the Settings. Please note your PlayFab ID will be stored server-side in order to cache player records.</div>
+          </form>
+        </div>
+        <div id="playfabSaved" class="d-none mt-2">Your PlayFab ID is: <span id="playfabSavedValue" class="font-monospace"></span></div>
+        <div id="playfabLoadContainer" class="d-none">
+          <button id="playfabLoadButton" type="submit" class="btn btn-primary mt-2">Load Account</button>
+          <span id="playfabLoadStatus" class="d-none p-2 text-danger"></span>
+          <span id="activePlayFabId" class="d-none"></span>
+        </div>
+        <hr>
       </div>
       <div id="mainContent" class="d-none">
-        <hr>
         <div class="mb-3">
           <form onsubmit="return false">
             <div class="mb-3">
@@ -73,5 +79,40 @@
           </form>
         </div>
       </div>
+    </div>
+    <div class="side-menu side-menu-inactive" id="sideMenu">
+      <ul>
+        <li class="menu-option">
+          <a href="./">Home</a>
+        </li>
+        <li class="menu-option">
+          <a href="event">Your Events</a>
+        </li>
+        <li class="menu-option">
+          <a href="discord">Discord Leaderboard</a>
+        </li>
+        <li class="menu-option">
+          <a href="eventlist">Event Schedule</a>
+        </li>
+        <li class="menu-option">
+          <a href="report">Event Report</a>
+        </li>
+        <li class="menu-option">
+          <a href="top">Top Players</a>
+        </li>
+        <li class="menu-option">
+          <a href="finished">Finished Players</a>
+        </li>
+        <li class="menu-option">
+          <a href="playervalue">Account Value</a>
+        </li>
+        <li class="menu-option menu-option-selected">
+          <a href="account">Identity Management</a>
+        </li>
+        <li class="menu-option">
+          &copy; 2022-25 Enigmaxim
+        </li>
+      </ul>
+    </div>
   </body>
 </html>

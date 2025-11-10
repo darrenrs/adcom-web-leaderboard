@@ -5,27 +5,18 @@ const postFormPlayFab = async() => {
   document.querySelector('#mainContent').classList.add('d-none')
   document.querySelector('#eventLoadConnectionError').classList.add('d-none')
 
-  const playerId = document.querySelector('#playFabQuery').value
-  const saveCurrentId = document.querySelector('#playFabSetDefault')
-  
+  const playerId = document.querySelector('#playfabSavedValue').innerText
   const userExists = await getPlayerState(playerId)
   
   if (userExists) {
-    // success
-    if (saveCurrentId.checked) {
-      localStorage.setItem('playerId', playerId)
-    } else {
-      localStorage.removeItem('playerId')
-    }
-    
-    document.querySelector('#noAccountFound').classList.add('d-none')
+    document.querySelector('#playfabLoadStatus').classList.add('d-none')
     document.querySelector('#activePlayFabId').innerText = playerId
 
     // load event list
     await postFormEventList()
   } else {
     // no user found or general failure
-    document.querySelector('#noAccountFound').classList.remove('d-none')
+    document.querySelector('#playfabLoadStatus').classList.remove('d-none')
   }
 }
 
@@ -81,7 +72,7 @@ const postFormEventLeaderboard = async() => {
   
   if (topPlayers) {
     // success
-    document.querySelector('#noAccountFound').classList.add('d-none')
+    document.querySelector('#playfabLoadStatus').classList.add('d-none')
     document.querySelector('#eventLoadConnectionError').classList.add('d-none')
     document.querySelector('#mainContent').classList.remove('d-none')
 
@@ -117,17 +108,17 @@ const getPlayerState = async(playerId) => {
     if (response.status === 200) {
       return true
     } else if (response.status === 404) {
-      document.querySelector('#noAccountFound').innerText = `No account ${playerId} found.`
+      document.querySelector('#playfabLoadStatus').innerText = `No account ${playerId} found.`
       return false
     } else {
       console.error(`Server error (${response.status})`)
-      document.querySelector('#noAccountFound').innerText = `Server error (${response.status}).`
+      document.querySelector('#playfabLoadStatus').innerText = `Server error (${response.status}).`
       return false
     }
   })
   .catch((error) => {
     console.error(error)
-    document.querySelector('#noAccountFound').innerText = 'Please check your internet connection'
+    document.querySelector('#playfabLoadStatus').innerText = 'Please check your internet connection'
     return false
   })
 }
@@ -186,6 +177,17 @@ const getInvalidState = async(eventId) => {
 
 
 const populateFieldsTop = (data, iconList) => {
+  const lteLiveSelectors = document.querySelectorAll('.live-lte');
+  if (data["event"]["isLteLive"]) {
+    for (let i of lteLiveSelectors) {
+      i.classList.remove('d-none')
+    }
+  } else {
+    for (let i of lteLiveSelectors) {
+      i.classList.add('d-none')
+    }
+  }
+
   let tbody = document.querySelector('#topGlobalPlayers')
   tbody.innerHTML = ''
   for (let i in data["top"]["list"]) {
@@ -233,9 +235,6 @@ const populateFieldsTop = (data, iconList) => {
     let trophyCell = document.createElement('td')
     trophyCell.innerText = data["top"]["list"][i]["trophies"].toLocaleString()
 
-    let rankCell = document.createElement('td')
-    rankCell.innerText = `${data["top"]["list"][i]["estimatedRank"]["rank"]}/${data["top"]["list"][i]["estimatedRank"]["mission"]}`
-
     let amountSpentCell = document.createElement('td')
     amountSpentCell.innerText = getSpendingCategory(data["top"]["list"][i]["divisionId"])
     
@@ -250,7 +249,13 @@ const populateFieldsTop = (data, iconList) => {
     topPlayer.appendChild(imageCell)
     topPlayer.appendChild(nameCell)
     topPlayer.appendChild(trophyCell)
-    topPlayer.appendChild(rankCell)
+
+    if (data["event"]["isLteLive"]) {
+      let rankCell = document.createElement('td')
+      rankCell.innerText = data["top"]["list"][i]["lteRank"]
+      topPlayer.appendChild(rankCell)
+    }
+
     topPlayer.appendChild(amountSpentCell)
     topPlayer.appendChild(divisionOrdinalIdCell)
     topPlayer.appendChild(timeElapsedCell)
@@ -259,20 +264,6 @@ const populateFieldsTop = (data, iconList) => {
   }
 }
 
-document.querySelector('#playFabQuery').addEventListener('keyup', function() {
-  this.value = this.value.toUpperCase()
-})
-
-document.querySelector('#formSubmitPlayFab').addEventListener('click', function() {
-  postFormPlayFab()
-})
-
 document.querySelector('#formSubmitEvent').addEventListener('click', function() {
   postFormEventLeaderboard()
 })
-
-if (localStorage.getItem('playerId')) {
-  let playerId = localStorage.getItem('playerId')
-  document.querySelector('#playFabQuery').value = playerId
-  document.querySelector('#playFabSetDefault').checked = true
-}

@@ -210,6 +210,13 @@ const getAllEventDetails = () => {
       "commonBalance": "minisanta",
       "eventType": "minisupreme"
     },
+    "minivillain": {
+      "name": "Supreme Minivillain",
+      "short": "Mini Vacation",
+      "desc": "Welcome to the Supreme Minivillain event, Comrade! It's time to put on that campy costume and become the greatest supervillain of the Motherland!",
+      "commonBalance": "minisanta",
+      "eventType": "minisupreme"
+    },
     "ninja": {
       "name": "Ninja Union",
       "short": "Ninja",

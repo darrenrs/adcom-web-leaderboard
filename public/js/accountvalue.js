@@ -1,26 +1,17 @@
-const postFormAccountValue = async() => {
+const postFormPlayFab = async() => {
   document.querySelector('#mainContent').classList.add('d-none')
-  document.querySelector('#loadStatus').classList.remove('d-none')
-  document.querySelector('#loadStatus').innerText = 'Loading ...'
+  document.querySelector('#playfabLoadStatus').classList.remove('d-none')
+  document.querySelector('#playfabLoadStatus').innerText = 'Loading ...'
 
-  const playerId = document.querySelector('#playFabQuery').value
-  const saveCurrentId = document.querySelector('#playFabSetDefault')
-  
+  const playerId = document.querySelector('#playfabSavedValue').innerText
   const userExists = await getPlayerState(playerId)
 
   if (userExists) {
-    // success
-    if (saveCurrentId.checked) {
-      localStorage.setItem('playerId', playerId)
-    } else {
-      localStorage.removeItem('playerId')
-    }
-    
     document.querySelector('#activePlayFabId').innerText = playerId
     
     // get player account value
     const userData = await getPlayerAccountValue(playerId)
-    document.querySelector('#loadStatus').classList.add('d-none')
+    document.querySelector('#playfabLoadStatus').classList.add('d-none')
     populateAccountValue(userData)
   } else {
     // no user found or general failure
@@ -34,17 +25,17 @@ const getPlayerState = async(playerId) => {
     if (response.status === 200) {
       return true
     } else if (response.status === 404) {
-      document.querySelector('#loadStatus').innerText = `No account ${playerId} found.`
+      document.querySelector('#playfabLoadStatus').innerText = `No account ${playerId} found.`
       return false
     } else {
       console.error(`Server error (${response.status})`)
-      document.querySelector('#loadStatus').innerText = `Server error (${response.status}).`
+      document.querySelector('#playfabLoadStatus').innerText = `Server error (${response.status}).`
       return false
     }
   })
   .catch((error) => {
     console.error(error)
-    document.querySelector('#loadStatus').innerText = 'Please check your internet connection.'
+    document.querySelector('#playfabLoadStatus').innerText = 'Please check your internet connection.'
     return false
   })
 }
@@ -56,13 +47,13 @@ const getPlayerAccountValue = async(playerId) => {
       return response.json()
     } else {
       console.error(`Server error (${response.status})`)
-      document.querySelector('#loadStatus').innerText = `Server error (${response.status})`
+      document.querySelector('#playfabLoadStatus').innerText = `Server error (${response.status})`
       return false
     }
   })
   .catch((error) => {
     console.error(error)
-    document.querySelector('#loadStatus').innerText = 'Please check your internet connection.'
+    document.querySelector('#playfabLoadStatus').innerText = 'Please check your internet connection.'
     return false
   })
 }
@@ -81,22 +72,6 @@ const populateAccountValue = (data) => {
   document.querySelector('#timeSinceAccountLastLogin').innerHTML = `(${getTimedeltaFormat(dateAccountLastLogin)} ago)`
 }
 
-const init = async() => {
-  if (localStorage.getItem('playerId')) {
-    let playerId = localStorage.getItem('playerId')
-    document.querySelector('#playFabQuery').value = playerId
-    document.querySelector('#playFabSetDefault').checked = true
-  }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-  init()
-})
-
-document.querySelector('#formSubmitPlayFab').addEventListener('click', function() {
-  postFormAccountValue()
-})
-
-document.querySelector('#playFabQuery').addEventListener('keyup', function() {
-  this.value = this.value.toUpperCase()
+document.querySelector('#playfabLoadButton').addEventListener('click', function() {
+  postFormPlayFab()
 })

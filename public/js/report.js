@@ -1,30 +1,21 @@
-const postFormPlayerReport = async() => {
+const postFormPlayFab = async() => {
   document.querySelector('#mainContent').classList.add('d-none')
-  document.querySelector('#loadStatus').classList.remove('d-none')
-  document.querySelector('#loadStatus').innerText = 'Loading ...'
+  document.querySelector('#playfabLoadStatus').classList.remove('d-none')
+  document.querySelector('#playfabLoadStatus').innerText = 'Loading ...'
 
-  const playerId = document.querySelector('#playFabQuery').value
-  const saveCurrentId = document.querySelector('#playFabSetDefault')
-  
+  const playerId = document.querySelector('#playfabSavedValue').innerText
   const userExists = await getPlayerState(playerId)
 
   if (userExists) {
-    // success
-    if (saveCurrentId.checked) {
-      localStorage.setItem('playerId', playerId)
-    } else {
-      localStorage.removeItem('playerId')
-    }
-    
     document.querySelector('#activePlayFabId').innerText = playerId
     
     // get player report
     const userData = await getPlayerReport(playerId)
-    document.querySelector('#loadStatus').classList.add('d-none')
+    document.querySelector('#playfabLoadStatus').classList.add('d-none')
     populateUserData(userData)
   } else {
     // no user found or general failure
-    document.querySelector('#noAccountFound').classList.remove('d-none')
+    document.querySelector('#playfabLoadStatus').classList.remove('d-none')
   }
 }
 
@@ -34,17 +25,17 @@ const getPlayerState = async(playerId) => {
     if (response.status === 200) {
       return true
     } else if (response.status === 404) {
-      document.querySelector('#loadStatus').innerText = `No account ${playerId} found.`
+      document.querySelector('#playfabLoadStatus').innerText = `No account ${playerId} found.`
       return false
     } else {
       console.error(`Server error (${response.status})`)
-      document.querySelector('#loadStatus').innerText = `Server error (${response.status}).`
+      document.querySelector('#playfabLoadStatus').innerText = `Server error (${response.status}).`
       return false
     }
   })
   .catch((error) => {
     console.error(error)
-    document.querySelector('#loadStatus').innerText = 'Please check your internet connection.'
+    document.querySelector('#playfabLoadStatus').innerText = 'Please check your internet connection.'
     return false
   })
 }
@@ -56,13 +47,13 @@ const getPlayerReport = async(playerId) => {
       return response.json()
     } else {
       console.error(`Server error (${response.status})`)
-      document.querySelector('#loadStatus').innerText = `Server error (${response.status})`
+      document.querySelector('#playfabLoadStatus').innerText = `Server error (${response.status})`
       return false
     }
   })
   .catch((error) => {
     console.error(error)
-    document.querySelector('#loadStatus').innerText = 'Please check your internet connection.'
+    document.querySelector('#playfabLoadStatus').innerText = 'Please check your internet connection.'
     return false
   })
 }
@@ -123,9 +114,6 @@ const populateUserData = (data) => {
     let trophiesCell = document.createElement('td')
     trophiesCell.innerText = data[i]["player"]["trophies"].toLocaleString()
 
-    let rankCell = document.createElement('td')
-    rankCell.innerText = `${data[i]["rankString"]["rank"]}/${data[i]["rankString"]["mission"]}`
-
     let divisionTypeCell = document.createElement('td')
     divisionTypeCell.innerText = getSpendingCategory(data[i]["player"]["divisionId"])
 
@@ -139,7 +127,6 @@ const populateUserData = (data) => {
     eventReportRow.append(percentileCell)
     eventReportRow.append(divRankCell)
     eventReportRow.append(trophiesCell)
-    eventReportRow.append(rankCell)
     eventReportRow.append(divisionTypeCell)
     eventReportRow.append(lastUpdatedCell)
     
@@ -179,16 +166,10 @@ const populateUserData = (data) => {
   }
 
   document.querySelector('table').classList.remove('d-none')
-  document.querySelector('#loadStatus').classList.add('d-none')
+  document.querySelector('#playfabLoadStatus').classList.add('d-none')
 
   document.querySelector('#totalTrophies').innerText = cumulativeTrophies.toLocaleString()
   document.querySelector('#medianGlobalPos').innerHTML = getPositionHTMLFormat(globalPositions.slice().sort((a, b) => a - b)[Math.floor(globalPositions.length / 2)])
-
-  if (divPositions.length > 0) {
-    document.querySelector('#medianDivPos').innerHTML = getPositionHTMLFormat(divPositions.slice().sort((a, b) => a - b)[Math.floor(divPositions.length / 2)])
-  } else {
-    document.querySelector('#medianDivPos').innerText = '?'
-  }
 
   let missingEventTypes = 0
   let bracketScoreSum = 0
@@ -354,22 +335,6 @@ const getBracketScoreSumQualitativeDescriptor = (bracketScoreSum) => {
   }
 }
 
-const init = async() => {
-  if (localStorage.getItem('playerId')) {
-    let playerId = localStorage.getItem('playerId')
-    document.querySelector('#playFabQuery').value = playerId
-    document.querySelector('#playFabSetDefault').checked = true
-  }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-  init()
-})
-
-document.querySelector('#formSubmitPlayFab').addEventListener('click', function() {
-  postFormPlayerReport()
-})
-
-document.querySelector('#playFabQuery').addEventListener('keyup', function() {
-  this.value = this.value.toUpperCase()
+document.querySelector('#playfabLoadButton').addEventListener('click', function() {
+  postFormPlayFab()
 })
