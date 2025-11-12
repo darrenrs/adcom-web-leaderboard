@@ -38,6 +38,7 @@ const populateScheduleTable = (eventSchedule) => {
     imageCell.appendChild(image)
 
     let nameCell = document.createElement('td')
+    nameCell.style.cursor = 'pointer'
     if (eventRecord) {
       nameCell.innerText = eventRecord["name"]
     } else {
@@ -85,11 +86,11 @@ const populateScheduleTable = (eventSchedule) => {
 
     let statusCodeCell = document.createElement('td')
     if (new Date(eventSchedule[i]["archivedAt"]).getFullYear() >= 1970) {
-      statusCodeCell.innerText = "A"
+      statusCodeCell.innerText = "archived"
     } else if (new Date(eventSchedule[i]["startDate"]) > new Date()) {
-      statusCodeCell.innerText = "F"
+      statusCodeCell.innerText = "future"
     } else {
-      statusCodeCell.innerText = "C"
+      statusCodeCell.innerText = "active"
     }
 
     eventRow.append(idCell)

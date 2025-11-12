@@ -64,9 +64,7 @@ const populateFinishers = (data) => {
     endTimeDateActual = endTimeDate
   }
 
-  const timeElapsed = (endTimeDateActual - startTimeDate) / 1000
-
-  document.querySelector("#giantPlayersFinished").innerText = data["finishers"].toLocaleString()
+  document.querySelector("#giantPlayersFinished").innerText = data["finishers"]["rankDistribution"][data["finishers"]["maxRank"]-1].toLocaleString()
 
   if (currentDate > endTimeDate) {
     // display "static" values after event ends
@@ -76,25 +74,64 @@ const populateFinishers = (data) => {
     document.querySelector("#timeDeltaRemaining").innerHTML = getTimedeltaFormat(endTimeDate)
     document.querySelector("#timeDeltaElapsed").innerHTML = getTimedeltaFormat(startTimeDate)
   }
-}
 
-const getAmountSpentUSD = (func, timeElapsedSec) => {
-  const amountRaw = Math.pow(func["base"], (func["powerSub"] - timeElapsedSec / 3600)) + func["intercept"]
-  if (amountRaw <= 5) {
-    return `no money`
-  } else {
-    return `ca. $${amountRaw.toFixed(2)}`
+  const rankDistributionLabels = []
+  for (let i = 0; i < data["finishers"]["maxRank"]; i++) {
+    rankDistributionLabels.push(i+1)
   }
-}
 
-const getAmountSpentGold = (func, timeElapsedSec) => {
-  const amountUSD = Math.pow(func["base"], (func["powerSub"] - timeElapsedSec / 3600)) + func["intercept"]
-  const goldConversion = amountUSD * (14.531 * (Math.log(amountUSD)) + 76.797)
-  if (goldConversion <= 0 || isNaN(goldConversion)) {
-    return '0'
-  } else {
-    return Math.floor(goldConversion).toLocaleString()
+  let chartStatus1 = Chart.getChart("rankDistributionChart"); // <canvas> id
+  if (chartStatus1 != undefined) {
+    chartStatus1.destroy();
   }
+
+  let chartStatus2 = Chart.getChart("trophyDistributionChart"); // <canvas> id
+  if (chartStatus2 != undefined) {
+    chartStatus2.destroy();
+  }
+
+  const ctx1 = document.querySelector('#rankDistributionChart')
+  new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels: rankDistributionLabels,
+      datasets: [{
+        label: 'Players',
+        data: data["finishers"]["rankDistribution"],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: { beginAtZero: true }
+      },
+      interaction: {
+        mode: 'index',
+        intersect: false
+      }
+    }
+  })
+
+  const ctx2 = document.querySelector('#trophyDistributionChart')
+  new Chart(ctx2, {
+    type: 'scatter',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Percentile',
+        data: data["finishers"]["trophyDistribution"],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  })
+
+  document.querySelector('#rankAverage').innerText = data["finishers"]["rankAverage"].toFixed(4)
+  document.querySelector('#trophySum').innerText = data["finishers"]["trophySum"].toLocaleString()
 }
 
 const heartbeatCentral = async(playFab, eventSchedule) => {
