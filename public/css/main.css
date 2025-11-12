@@ -64,6 +64,11 @@ table {
   display: none;
 }
 
+.finished-time-container {
+  margin-top: 20px;
+  margin-bottom: 50px;
+}
+
 /* Sidebar */
 .open-btn {
   cursor: pointer;

@@ -1121,6 +1121,7 @@ app.get('/api/discord/:event', async(req, res) => {
     returnStructFinal["event"]["startDate"] = currentEventData["startDate"]
     returnStructFinal["event"]["endDate"] = currentEventData["endDate"]
     returnStructFinal["event"]["isLteLive"] = currentEventData["isLteLive"]
+    returnStructFinal["event"]["eventStatus"] = currentEventData["eventStatus"]
     
     res.status(200).send(returnStructFinal)
     return
@@ -1678,7 +1679,9 @@ app.get('/api/event/:event/:id/top/:count', async (req, res) => {
           returnStruct["top"]["list"][i]["startTime"] = playerEventDivisions[j]["startTime"]
           returnStruct["top"]["list"][i]["endTime"] = playerEventDivisions[j]["endTime"]
           returnStruct["top"]["list"][i]["estimatedRank"] = playerEventDivisions[j]["estimatedRank"]
-          returnStruct["top"]["list"][i]["playerId"] = null
+          if (returnStruct["top"]["list"][i]["playerId"] !== req.params.id) {
+            returnStruct["top"]["list"][i]["playerId"] = null
+          }
         }
       }
     }
@@ -1729,19 +1732,35 @@ app.get('/api/event/:event/:id/finished', async(req, res) => {
     const maxRank = balanceHandler.getMaxRank()
     playerLeaderboard = await getPlayerLeaderboard(id, eventId, 1, 2147483647, true)
 
-    let count = 0
-
+    let count = new Array(maxRank).fill(0)
+    let cumulativeRank = 0
     for (let i of playerLeaderboard["resolvedPlayers"]["objectArray"]) {
-      if (i["customData"] && i["customData"]["lteRank"] && i["customData"]["lteRank"] === maxRank) {
-        count++
+      if (i["customData"] && i["customData"]["lteRank"]) {
+        count[i["customData"]["lteRank"]-1] += 1
+        cumulativeRank += i["customData"]["lteRank"]
       }
     }
+    let rankAverage = cumulativeRank / playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"].length
+    
+    let percentile = []
+    for (let j = 1; j <= 100; j++) {
+      let rankIndex = Math.floor(j/100 * (playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"].length-1))
 
-    const struct = {
-      "finishers": count,
+      percentile.push({x: j, y: playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"][rankIndex]["score"]})
+    }
+
+    let trophySum = 0
+    for (let k of playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"]) {
+      trophySum += k["score"]
+    }
+
+    let countStruct = {"maxRank": maxRank, "rankDistribution": count, "rankAverage": rankAverage, "trophyDistribution": percentile, "trophySum": trophySum}
+
+    const returnStruct = {
+      "finishers": countStruct,
       "chrono": await balanceHandler.getChrono()
     }
-    res.status(200).json(struct)
+    res.status(200).json(returnStruct)
     return
   } catch (e) {
     log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
@@ -1828,7 +1847,7 @@ app.post('/api/admin', async(req, res) => {
 })
 
 app.get('/api/build', async(req, res) => {
-  const buildId = process.env.COMMIT_HASH || "????";
+  const buildId = process.env.COMMIT_HASH || "BUILD UNKNOWN";
   res.status(200).send(buildId)
 })
 

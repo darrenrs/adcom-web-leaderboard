@@ -149,6 +149,17 @@ const populateDiscordLeaderboardTable = (discordLb, discordId) => {
     }
   }
 
+  const lteActiveSelectors = document.querySelectorAll('.active-lte');
+  if (discordLb["event"]["eventStatus"] !== 'archived') {
+    for (let i of lteActiveSelectors) {
+      i.classList.remove('d-none')
+    }
+  } else {
+    for (let i of lteActiveSelectors) {
+      i.classList.add('d-none')
+    }
+  }
+
   document.querySelector('#mainContent').classList.remove('d-none')
 
   let tbody = document.querySelector('#discordLeaderboard')
@@ -214,9 +225,6 @@ const populateDiscordLeaderboardTable = (discordLb, discordId) => {
       percentileCell.innerText = '*'
     }
 
-    let divRankCell = document.createElement('td')
-    divRankCell.innerHTML = discordLb["players"][i]["divisionPosition"] ? getPositionHTMLFormat(discordLb["players"][i]["divisionPosition"]) : '?'
-
     let trophiesCell = document.createElement('td')
     trophiesCell.innerText = discordLb["players"][i]["trophies"].toLocaleString()
 
@@ -232,7 +240,13 @@ const populateDiscordLeaderboardTable = (discordLb, discordId) => {
     discordLbRow.append(discordNameCell)
     discordLbRow.append(positionCell)
     discordLbRow.append(percentileCell)
-    discordLbRow.append(divRankCell)
+
+    if (discordLb["event"]["eventStatus"] !== 'archived') {
+      let divRankCell = document.createElement('td')
+      divRankCell.innerHTML = getPositionHTMLFormat(discordLb["players"][i]["divisionPosition"])
+      discordLbRow.append(divRankCell)
+    }
+
     discordLbRow.append(trophiesCell)
 
     if (discordLb["event"]["isLteLive"]) {
@@ -421,16 +435,11 @@ const expandPlayerList = (names) => {
 
 const init = async() => {
   const eventSchedule = await getEventSchedule()
-  const overrideDateConstraintDOMRender = window.localStorage.getItem('dateConstraintDbgSwitch')
 
   if (eventSchedule) {
     const selectElement = document.querySelector('#eventSelect')
     const selectButton = document.querySelector('#formSubmitEvent')
     nestedEventSelector(eventSchedule, selectElement, selectButton)
-  }
-
-  if (overrideDateConstraintDOMRender !== null) {
-    document.querySelector('#noDateCheckContainer').classList.remove('d-none')
   }
 
   document.querySelector('#earliestPossibleDate').innerText = new Date((new Date() - 56*86400*1000)).toLocaleString()

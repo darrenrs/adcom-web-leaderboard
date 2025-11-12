@@ -223,10 +223,7 @@ const populateFieldsTop = (data, iconList) => {
     
     image.src = `img/icons/v2/${iconList[data["top"]["list"][i]["avatarId"]]}.png`
     image.style = 'width: 40px; max-height: 40px;'
-    image.alt = playerNameProperties["defaultName"]
-    // Deprecated as of 2025-09-04
-    // image.classList.add('tinted-image')
-    // image.classList.add(playerNameProperties["color"])
+    image.alt = '' // don't add a value to this or it'll look ugly
     imageCell.appendChild(image)
 
     let nameCell = document.createElement('td')

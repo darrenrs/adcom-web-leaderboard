@@ -295,7 +295,7 @@ const populateFieldsGeneral = (data, iconList) => {
       let image = document.createElement('img')
       image.src = `img/icons/v2/${iconList[data["division"]["top"][i]["avatarId"]]}.png`
       image.style = 'width: 40px; max-height: 40px;'
-      image.alt = playerNameProperties["defaultName"]
+      image.alt = '' // don't add a value to this or it'll look ugly
       imageCell.appendChild(image)
 
       let nameCell = document.createElement('td')

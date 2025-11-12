@@ -34,15 +34,6 @@ module.exports = class BalanceParser {
     .catch((error) => {
       console.error(`${(new Date()).toISOString()} [internal] - Unable to load data file ${fileName}: ${error}.`)
     })
-
-    this.balanceSpendCurve = await fs.promises.readFile(__dirname + '/balance/BalSpendCurve.json', 'utf8')
-    .then((data) => {
-      const wlbp = JSON.parse(data)
-      return wlbp["balanceSpendingCurve"][this.eventName]
-    })
-    .catch((error) => {
-      console.error(`${(new Date()).toISOString()} [internal] - Unable to load balance spending parameters: ${error}.`)
-    })
   }
 
   async getBalanceData() {

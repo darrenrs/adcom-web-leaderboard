@@ -11,14 +11,15 @@
     <script src="js/helper.js" defer></script>
     <script src="js/build.js" defer></script>
     <script src="js/menu.js" defer></script>
-    <title>AdVenture Communist Event Finishers</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>AdVenture Communist Web Leaderboard</title>
   </head>
   <body>
     <nav class="navbar navbar-dark bg-dark sticky-top">
       <div class="container-fluid">
         <div id="sideMenuBtn" class="navbar-brand open-btn">
           <img src="img/icon.png" width="30" height="40" class="d-inline-block align-self-center" alt="AdCom icon">
-          Finished Players ☰
+          Current Event Statistics ☰
         </div>
         <a class="navbar-brand" href="https://github.com/darrenrs/adcom-web-leaderboard">
           <img src="img/github.png" width="30" height="30" style="display: flex; margin: 0 auto;" alt="GitHub">
@@ -38,9 +39,17 @@
         </div>
         <h1 id="giantPlayersFinished" class="display-1"></h1>
         <h2>players have finished this event</h2>
-        <div style="margin-top: 50px;" class="fw-light fst-italic">
+        <div class="finished-time-container fw-light fst-italic">
           <div>Time Elapsed: <span id="timeDeltaElapsed">...</span></div>
           <div>Time Remaining: <span id="timeDeltaRemaining">...</span></div>
+        </div>
+        <div>
+          <h2>Rank Distribution</h2>
+          <p><strong>Average Rank: </strong><span id="rankAverage" class="font-monospace"></span></p>
+          <canvas id="rankDistributionChart"></canvas>
+          <h2>Trophy Distribution</h2>
+          <p><strong>Total Trophies: </strong><span id="trophySum" class="font-monospace"></span></p>
+          <canvas id="trophyDistributionChart"></canvas>
         </div>
       </div>
     </div>
@@ -65,7 +74,7 @@
             <a href="top">Top Players</a>
           </li>
           <li class="menu-option menu-option-selected">
-            <a href="finished">Finished Players</a>
+            <a href="finished">Current Event Statistics</a>
           </li>
           <li class="menu-option">
             <a href="playervalue">Account Value</a>
