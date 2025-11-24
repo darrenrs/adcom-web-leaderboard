@@ -8,7 +8,7 @@ module.exports = class BalanceParser {
   }
 
   async loadBalanceData() {
-    const fileName = await fs.promises.readFile(__dirname + '/balance/_DataConfig.json', 'utf8')
+    const fileName = await fs.promises.readFile(__dirname + '/balance/manifest.json', 'utf8')
     .then((data) => {
       const dc = JSON.parse(data)
       for (let i in dc["VersionSettings"]["Balance"]["Urls"]) {
