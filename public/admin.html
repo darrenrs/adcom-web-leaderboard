@@ -31,7 +31,7 @@
       <div class="mb-3">
         <form onsubmit="return false">
           <div class="mb-3">
-            <label for="adminControlPass">DB Password</label>
+            <label for="adminControlPass">Password</label>
             <input id="adminControlPass" class="form-control" type="password" aria-describedby="adminControlData" maxlength="1024">
             <div id="adminControlData" class="form-text">This page is not intended to be accessed by the public</div>
           </div>
@@ -43,15 +43,17 @@
     <div id="mainContent" class="d-none">
       <hr>
       <div class="container pt-2">
-        <div class="row pt-3 d-none">
-          <form action="api/admin/icon" method="POST" enctype="multipart/form-data">
-            <h3>Upload Leaderboard Icon</h3>
+        <div class="row pt-3">
+          <form onsubmit="return false">
+            <h3>Update Data Files</h3>
             <div class="mb-3">
-              <label for="formFile" class="form-label">Required format: <span class="font-monospace">DISCORD_USER_ID.png</span><br><strong>Note:</strong> if nothing appears to happen but no error messages are visible, the server processed the file.</label>
-              <input class="form-control" type="file" id="formFile" name="file" accept="image/png" required>
-              <input id="adminControlPassIcon" class="form-control d-none" type="password" name="password" maxlength="1024">
+              <p>Current game version on server: <span id="currentTitleDataFileVersion">...</span></p>
+              <label for="dataVersion" class="form-label">Version to Update To</label>
+              <input class="form-control" type="text" id="dataVersion" name="version" required>
+              <input id="secondaryAdminAuthentication" class="form-control d-none" type="password" name="password" maxlength="1024">
               <br>
-              <button type="submit" class="btn btn-primary">Upload!</button>
+              <button id="formSubmitUpdateDataFile" type="submit" class="btn btn-primary">Update</button>
+              <span id="updateDataFileStatus" class="d-none p-2 text-danger"></span>
             </div>
           </form>
         </div>

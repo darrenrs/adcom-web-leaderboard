@@ -3,9 +3,15 @@ const fs = require('fs')
 const axios = require('axios')
 const readline = require('readline')
 require('dotenv').config()
+const crypto = require('crypto')
+const path = require('path')
+const zlib = require('zlib')
+const { promisify } = require('util')
+const gunzip = promisify(zlib.gunzip)
 
 const db = require('./db')
 const balance = require('./balance')
+const { url } = require('inspector')
 
 const app = express({
   strict: true
@@ -637,6 +643,121 @@ const getPlayerAccountValueFromPlayFab = async(id) => {
     // console.error(e)
     return Promise.reject(e)
   }
+}
+
+// must have an iOS device; not known how to acquire Android-equivalent token
+const getDataFilesForTitleVersion = async(version) => {
+  try {
+    // login with hardcoded iOS device ID
+    const sessionGenesisReq = await axios.post(`https://${process.env.PLAYFAB_TITLE_ID}.playfabapi.com/Client/LoginWithIOSDeviceID`,
+      data={
+        "AuthenticationContext": null,
+        "CreateAccount": false,
+        "CustomTags": null,
+        "DeviceId": process.env.GC_DEVICE_ID,
+        "DeviceModel": null,
+        "EncryptedRequest": null,
+        "InfoRequestParameters": {
+            "GetCharacterInventories": false,
+            "GetCharacterList": false,
+            "GetPlayerProfile": true,
+            "GetPlayerStatistics": false,
+            "GetTitleData": true,
+            "GetUserAccountInfo": true,
+            "GetUserData": true,
+            "GetUserInventory": true,
+            "GetUserReadOnlyData": true,
+            "GetUserVirtualCurrency": true,
+            "PlayerStatisticNames": null,
+            "ProfileConstraints": {
+                "ShowAvatarUrl": false,
+                "ShowBannedUntil": false,
+                "ShowCampaignAttributions": false,
+                "ShowContactEmailAddresses": false,
+                "ShowCreated": true,
+                "ShowDisplayName": false,
+                "ShowExperimentVariants": false,
+                "ShowLastLogin": false,
+                "ShowLinkedAccounts": false,
+                "ShowLocations": true,
+                "ShowMemberships": false,
+                "ShowOrigination": false,
+                "ShowPushNotificationRegistrations": false,
+                "ShowStatistics": false,
+                "ShowTags": false,
+                "ShowTotalValueToDateInUsd": true,
+                "ShowValuesToDate": false
+            },
+            "TitleDataKeys": [
+                "HardCurrencyCap",
+                "SoftCurrencyCap",
+                "TrophyCurrencyCap",
+                "EnableSzTransitionSdk",
+                "EnableIDFA",
+                "YoutubeUrl",
+                "WappierIosEnable",
+                "CrashlyticsUserIdCollected",
+                "FeatureFlags",
+                "ForceDataVersion"
+            ],
+            "UserDataKeys": null,
+            "UserReadOnlyDataKeys": null
+        },
+        "OS": null,
+        "PlayerSecret": null,
+        "TitleId": process.env.PLAYFAB_TITLE_ID
+      }
+    )
+    
+    const sessionToken = sessionGenesisReq["data"]["data"]["SessionTicket"]
+
+    const dataFileManifestReq = await axios.post(`https://${process.env.PLAYFAB_TITLE_ID}.playfabapi.com/Client/ExecuteCloudScript`,
+      data={
+        "FunctionName": "DataConfig",
+        "FunctionParameter": {
+          "DataVersion": version
+        },
+        "GeneratePlayStreamEvent": true,
+        "RevisionSelection": "Live",
+        "SpecificRevision": null,
+        "AuthenticationContext": null
+      },
+      {
+        headers: {
+          'X-Authorization': sessionToken
+        }
+      }
+    )
+    
+    return JSON.parse(dataFileManifestReq["data"]["data"]["FunctionResult"])
+  } catch (e) {
+    // console.error(e)
+    return Promise.reject(e)
+  }
+}
+
+const downloadToBalance = async(urls) => {
+  const dir = path.join(__dirname, 'balance');
+
+  await Promise.all(
+    urls.map(async (url) => {
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(`Failed to download ${url}: ${res.status} ${res.statusText}`);
+      }
+
+      const gzBuffer = Buffer.from(await res.arrayBuffer());
+      const data = await gunzip(gzBuffer); // decompressed content
+
+      let filename = url.split('/').pop().split('?')[0];
+      if (filename.endsWith('.gz')) {
+        filename = filename.slice(0, -3); // remove ".gz"
+      }
+
+      const filePath = path.join(dir, filename);
+      await fs.promises.writeFile(filePath, data);
+    })
+  );
 }
 
 // get event list
@@ -1779,7 +1900,7 @@ app.get('/api/icons', async(req, res) => {
   try {
     log(`${req.method} ${req.originalUrl}`, remoteAddress)
     
-    const fileName = await fs.promises.readFile(__dirname + '/balance/_DataConfig.json', 'utf8')
+    const fileName = await fs.promises.readFile(__dirname + '/balance/manifest.json', 'utf8')
     .then((data) => {
       const dc = JSON.parse(data)
       for (let i in dc["VersionSettings"]["Balance"]["Urls"]) {
@@ -1824,18 +1945,26 @@ app.get('/api/icons', async(req, res) => {
 app.post('/api/admin', async(req, res) => {
   const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
 
-  // not the best solution, but hashes aren't necessary for this
-  if (req.body && req.body.password == process.env.ADMIN_PWD) {
+  if (req.body && crypto.createHash('sha256').update(req.body.password).digest('hex') === process.env.ADMIN_PWD) {
     log(`${req.method} ${req.originalUrl} - successful admin login`, remoteAddress)
     const returnStruct = {
       "discordLeaderboard": null,
       "dbPlayerList": null,
-      "dbPlayerEventRecords": null
+      "dbPlayerEventRecordCount": null,
+      "currentTitleDataFileVersion": null
     }
 
-    returnStruct["discordLeaderboard"] = await dbPlayerDiscordRecordsNoDateConstraint()
+    returnStruct["discordLeaderboard"] = await dbPlayerDiscordRecords()
     returnStruct["dbPlayerList"] = await dbPlayerList()
-    returnStruct["dbPlayerEventRecords"] = await dbPlayerEventRecords()
+    returnStruct["dbPlayerEventRecordCount"] = (await dbPlayerEventRecords()).length
+
+    returnStruct["currentTitleDataFileVersion"] = await fs.promises.readFile(__dirname + '/balance/version', 'utf8')
+    .then((data) => {
+      return data
+    })
+    .catch((error) => {
+      console.error('Unable to determine balance version')
+    })
 
     res.json(returnStruct)
   } else {
@@ -1843,6 +1972,122 @@ app.post('/api/admin', async(req, res) => {
     res.sendStatus(401)
   }
   
+  return
+})
+
+app.post('/api/admin/data-file', async(req, res) => {
+  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+
+  if (req.body && crypto.createHash('sha256').update(req.body.password).digest('hex') === process.env.ADMIN_PWD) {
+    log(`${req.method} ${req.originalUrl} - successful admin login`, remoteAddress)
+
+    const returnStruct = {
+      "status": 1,
+      "statusMessage": null
+    }
+    
+    const balanceVersionOnDisk = await fs.promises.readFile(__dirname + '/balance/version', 'utf8')
+    .then((data) => {
+      return data
+    })
+    .catch((error) => {
+      console.error('Unable to determine balance version')
+      return
+    })
+
+    const balanceVersionRequested = req.body.version
+    const balanceVersionRequestedArr = balanceVersionRequested.split('.')
+
+    // make sure version strings are INTS
+    for (let i of balanceVersionRequestedArr) {
+      if (isNaN(parseInt(i))) {
+        returnStruct["statusMessage"] = 'Invalid version requested'
+        res.json(returnStruct)
+        return
+      }
+    }
+
+    if (balanceVersionOnDisk) {
+      const balanceVersionOnDiskArr = balanceVersionOnDisk.split('.')
+
+      for (let i of balanceVersionOnDiskArr) {
+        if (isNaN(parseInt(i))) {
+          returnStruct["statusMessage"] = 'Invalid version requested'
+          res.json(returnStruct)
+          return
+        }
+      }
+      
+      // make sure we're not going back to a pervious version
+      if (parseInt(balanceVersionOnDiskArr[0]) > parseInt(balanceVersionRequestedArr[0])) {
+        returnStruct["statusMessage"] = 'Cannot request an older version'
+        res.json(returnStruct)
+        return
+      } else if ((parseInt(balanceVersionOnDiskArr[0]) === parseInt(balanceVersionRequestedArr[0])) && (parseInt(balanceVersionOnDiskArr[1]) > parseInt(balanceVersionRequestedArr[1]))) {
+        returnStruct["statusMessage"] = 'Cannot request an older version'
+        res.json(returnStruct)
+        return
+      }
+    }
+    
+    const dataFilesForRequestedVersion = await getDataFilesForTitleVersion(balanceVersionRequested)
+    .catch((error) => {
+      console.error('Unable to load new data files')
+      returnStruct["statusMessage"] = 'Unable to load new data files'
+      res.json(returnStruct)
+      return
+    })
+
+    if (!dataFilesForRequestedVersion) {
+      return
+    }
+
+    const pathToSaveNewDataFileManifest = path.join(__dirname, 'balance', 'manifest.json');
+    await fs.promises.writeFile(pathToSaveNewDataFileManifest, JSON.stringify(dataFilesForRequestedVersion));
+
+    // TODO: Delete old balance files
+    const existingManifest = await fs.promises.readFile(__dirname + '/balance/manifest.json', 'utf8')
+    .then((data) => {
+      return JSON.parse(data)
+    })
+    .catch((error) => {
+      console.error('Unable to load manifest')
+      returnStruct["statusMessage"] = 'Unable to load manifest'
+      res.json(returnStruct)
+      return
+    })
+
+    const existingBalanceFiles = []
+    for (let i of Object.values(existingManifest["VersionSettings"]["Balance"]["Urls"])) {
+      existingBalanceFiles.push(i)
+    }
+    existingBalanceFiles.push(existingManifest["VersionSettings"]["LTESchedule"]["Url"].split('/').at(-1))
+    
+    for (let i of existingBalanceFiles) {
+      await fs.promises.unlink(__dirname + '/balance/' + i.replace('.gz', ''))
+      .catch((err) => console.log(`Unable to delete existing balance file ${i.replace('.gz', '')} (does it exist?)`))
+    }
+
+    const urlsToDownload = []
+    for (let i of Object.values(dataFilesForRequestedVersion["VersionSettings"]["Balance"]["Urls"])) {
+      urlsToDownload.push(`${dataFilesForRequestedVersion["VersionSettings"]["Balance"]["BaseURL"]}${i}`)
+    }
+    urlsToDownload.push(dataFilesForRequestedVersion["VersionSettings"]["LTESchedule"]["Url"])
+    
+    downloadToBalance(urlsToDownload)
+    .then(() => {})
+    .catch((err) => {console.error("Unable to download new data files")});
+
+    const pathToSaveVersionString = path.join(__dirname, 'balance', 'version');
+    await fs.promises.writeFile(pathToSaveVersionString, balanceVersionRequested);
+
+    returnStruct["status"] = 0
+    res.json(returnStruct)
+  } else {
+    log(`${req.method} ${req.originalUrl} - failed admin login`, remoteAddress)
+    res.sendStatus(401)
+  }
+
   return
 })
 
