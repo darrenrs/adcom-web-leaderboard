@@ -2065,7 +2065,7 @@ app.post('/api/admin/data-file', async(req, res) => {
     
     for (let i of existingBalanceFiles) {
       await fs.promises.unlink(__dirname + '/balance/' + i.replace('.gz', ''))
-      .catch((err) => console.log(`Unable to delete existing balance file ${i.replace('.gz', '')} (does it exist?)`))
+      .catch((err) => {console.log(`Unable to delete existing balance file ${i.replace('.gz', '')} (does it exist?)`)})
     }
 
     const urlsToDownload = []
