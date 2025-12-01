@@ -11,12 +11,11 @@ const gunzip = promisify(zlib.gunzip)
 
 const db = require('./db')
 const balance = require('./balance')
-const { url } = require('inspector')
 
 const app = express({
   strict: true
 })
-const port = process.env.PORT
+const PORT = process.env.PORT || 3000
 const fullBaseLeaderboard = `${process.env.API_URL_LEADERBOARD}/project/${process.env.API_APPLICATION_ID}`
 const fullBasePlayerMeta = `${process.env.API_URL_PLAYERMETA}/project/${process.env.API_APPLICATION_ID}`
 
@@ -2096,6 +2095,6 @@ app.get('/api/build', async(req, res) => {
   res.status(200).send(buildId)
 })
 
-app.listen(port, '0.0.0.0', () => {
-  log(`Server listening on port ${port}.`, 'internal')
-})
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server listening on port ${server.address().port}.`);
+});

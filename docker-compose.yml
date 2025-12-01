@@ -9,7 +9,7 @@ services:
       - ./afflicted-events.txt:/usr/src/app/afflicted-events.txt  # Dynamic file
       - ./players.db:/usr/src/app/players.db  # Database file
     ports:
-      - "3000:3000"
+      - "127.0.0.1:${PORT}:${PORT}"
     env_file:
       - .env
     restart: unless-stopped
