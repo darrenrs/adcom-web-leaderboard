@@ -1,13 +1,14 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/png" href="img/icon.png">
-    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="css/darkmode.css">
-    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" href="img/icon.png" />
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="css/darkmode.css" />
+    <link rel="stylesheet" type="text/css" href="css/main.css" />
     <script src="js/report.js" defer></script>
+    <script src="js/runtime-config.js" defer></script>
     <script src="js/helper.js" defer></script>
     <script src="js/build.js" defer></script>
     <script src="js/playfabform.js" defer></script>
@@ -18,11 +19,26 @@
     <nav class="navbar navbar-dark bg-dark sticky-top">
       <div class="container-fluid">
         <div id="sideMenuBtn" class="navbar-brand open-btn">
-          <img src="img/icon.png" width="30" height="40" class="d-inline-block align-self-center" alt="AdCom icon">
+          <img
+            src="img/icon.png"
+            width="30"
+            height="40"
+            class="d-inline-block align-self-center"
+            alt="AdCom icon"
+          />
           Event Report ☰
         </div>
-        <a class="navbar-brand" href="https://github.com/darrenrs/adcom-web-leaderboard">
-          <img src="img/github.png" width="30" height="30" style="display: flex; margin: 0 auto;" alt="GitHub">
+        <a
+          class="navbar-brand"
+          href="https://github.com/darrenrs/adcom-web-leaderboard"
+        >
+          <img
+            src="img/github.png"
+            width="30"
+            height="30"
+            style="display: flex; margin: 0 auto"
+            alt="GitHub"
+          />
           <span id="buildId">&nbsp;</span>
         </a>
       </div>
@@ -32,24 +48,55 @@
       <p>Every event you've ever played in a sweet and simple table.</p>
       <div id="playfabManagement">
         <div id="playfabFormContainer">
-          <hr>
-          <form id="playfabForm" onsubmit="return false">
-            <h4 class="mb-4">No PlayFab ID found. Please enter it here to add your account!</h4>
-            <label for="playfabQuery">PlayFab ID <span class="text-danger">*</span></label>
+          <hr />
+          <form id="playfabForm" onsubmit="return false;">
+            <h4 class="mb-4">
+              No PlayFab ID found. Please enter it here to add your account!
+            </h4>
+            <label for="playfabQuery"
+              >PlayFab ID <span class="text-danger">*</span></label
+            >
             <div class="playfab-form-items">
-              <input id="playfabQuery" class="form-control" type="text" aria-describedby="playfabStorageDescription" maxlength="16" required>
-              <button id="playfabFormSubmit" type="submit" class="btn btn-primary">Save</button>
+              <input
+                id="playfabQuery"
+                class="form-control"
+                type="text"
+                aria-describedby="playfabStorageDescription"
+                maxlength="16"
+                required
+              />
+              <button
+                id="playfabFormSubmit"
+                type="submit"
+                class="btn btn-primary"
+              >
+                Save
+              </button>
             </div>
-            <div id="playfabStorageDescription" class="form-text">You can find this in-game in the Settings. Please note your PlayFab ID will be stored server-side in order to cache player records.</div>
+            <div id="playfabStorageDescription" class="form-text">
+              You can find this in-game in the Settings. Please note your
+              PlayFab ID will be stored server-side in order to cache player
+              records.
+            </div>
           </form>
         </div>
-        <div id="playfabSaved" class="d-none mt-2">Your PlayFab ID is: <span id="playfabSavedValue" class="font-monospace"></span>. You can change this <a href="account">here</a>.</div>
+        <div id="playfabSaved" class="d-none mt-2">
+          Your PlayFab ID is:
+          <span id="playfabSavedValue" class="font-monospace"></span>. You can
+          change this <a href="account">here</a>.
+        </div>
         <div id="playfabLoadContainer" class="d-none">
-          <button id="playfabLoadButton" type="submit" class="btn btn-primary mt-2">Load Account</button>
+          <button
+            id="playfabLoadButton"
+            type="submit"
+            class="btn btn-primary mt-2"
+          >
+            Load Account
+          </button>
           <span id="playfabLoadStatus" class="d-none p-2 text-danger"></span>
           <span id="activePlayFabId" class="d-none"></span>
         </div>
-        <hr>
+        <hr />
       </div>
       <div id="mainContent" class="d-none">
         <h3>Event Report</h3>
@@ -59,8 +106,8 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th colspan=2>Event</th>
-                  <th colspan=2>Position</th>
+                  <th colspan="2">Event</th>
+                  <th colspan="2">Position</th>
                   <th>Board Rk.</th>
                   <th>Trophies</th>
                   <th>Board Type</th>
@@ -68,14 +115,24 @@
                 </tr>
               </thead>
               <tbody id="eventReport" class="table-group-divider"></tbody>
-            </table> 
+            </table>
           </div>
         </div>
         <h3>Victory Lap Performances</h3>
-        <p>This shows your best performance for any event in each of the four event classes (Standard four-day event, Mini event, Fusion event, Supreme [regular or mini] event.)</p>
+        <p>
+          This shows your best performance for any event in each of the four
+          event classes (Standard four-day event, Mini event, Fusion event,
+          Supreme [regular or mini] event.)
+        </p>
         <div class="row pt-3">
-          <div id="cheaterExclusion" class="alert alert-danger d-none" role="alert">
-            Unfortunately, the fidelity of this account cannot be verified. If this is in error, you (the account holder) will need to contact a Hyper Hippo representative to perform a full audit.
+          <div
+            id="cheaterExclusion"
+            class="alert alert-danger d-none"
+            role="alert"
+          >
+            Unfortunately, the fidelity of this account cannot be verified. If
+            this is in error, you (the account holder) will need to contact a
+            Hyper Hippo representative to perform a full audit.
           </div>
         </div>
         <div class="row pt-3 pb-3">
@@ -84,14 +141,17 @@
               <thead>
                 <tr>
                   <th>Event Class</th>
-                  <th colspan=2>Event</th>
+                  <th colspan="2">Event</th>
                   <th>Bracket</th>
                   <th>Bracket Score</th>
                   <th>Date Recorded</th>
                 </tr>
               </thead>
-              <tbody id="eventPositionApexByClass" class="table-group-divider"></tbody>
-            </table> 
+              <tbody
+                id="eventPositionApexByClass"
+                class="table-group-divider"
+              ></tbody>
+            </table>
           </div>
           <div>
             <div id="bracketScoreSum" class="d-none"></div>
@@ -139,9 +199,7 @@
         <li class="menu-option">
           <a href="account">Identity Management</a>
         </li>
-        <li class="menu-option">
-          &copy; 2022-25 Enigmaxim
-        </li>
+        <li class="menu-option">&copy; 2022-26 Idle Game Tools</li>
       </ul>
     </div>
   </body>

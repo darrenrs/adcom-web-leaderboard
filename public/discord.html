@@ -1,14 +1,15 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/png" href="img/icon.png">
-    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="css/darkmode.css">
-    <link rel="stylesheet" type="text/css" href="css/boxplot.css">
-    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" href="img/icon.png" />
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="css/darkmode.css" />
+    <link rel="stylesheet" type="text/css" href="css/boxplot.css" />
+    <link rel="stylesheet" type="text/css" href="css/main.css" />
     <script src="js/discord.js" defer></script>
+    <script src="js/runtime-config.js" defer></script>
     <script src="js/helper.js" defer></script>
     <script src="js/eventselector.js" defer></script>
     <script src="js/build.js" defer></script>
@@ -19,22 +20,43 @@
     <nav class="navbar navbar-dark bg-dark sticky-top">
       <div class="container-fluid">
         <div id="sideMenuBtn" class="navbar-brand open-btn">
-          <img src="img/icon.png" width="30" height="40" class="d-inline-block align-self-center" alt="AdCom icon">
+          <img
+            src="img/icon.png"
+            width="30"
+            height="40"
+            class="d-inline-block align-self-center"
+            alt="AdCom icon"
+          />
           Discord Leaderboard ☰
         </div>
-        <a class="navbar-brand" href="https://github.com/darrenrs/adcom-web-leaderboard">
-          <img src="img/github.png" width="30" height="30" style="display: flex; margin: 0 auto;" alt="GitHub">
+        <a
+          class="navbar-brand"
+          href="https://github.com/darrenrs/adcom-web-leaderboard"
+        >
+          <img
+            src="img/github.png"
+            width="30"
+            height="30"
+            style="display: flex; margin: 0 auto"
+            alt="GitHub"
+          />
           <span id="buildId">&nbsp;</span>
         </a>
       </div>
     </nav>
     <div class="container pt-2">
       <h2>Discord Leaderboard</h2>
-      <p>If you would like to join, please <a href="account">add your information here</a>! Also consider checking out Catster's <a href="https://adcom-visual-discordlb.web.app/">Visual Leaderboard</a>. If you'd like to update your icon, please visit the Identity Management page.
+      <p>
+        If you would like to join, please
+        <a href="account">add your information here</a>! Also consider checking
+        out Catster's
+        <a href="https://adcom-visual-discordlb.web.app/">Visual Leaderboard</a
+        >. If you'd like to update your icon, please visit the Identity
+        Management page.
       </p>
-      <hr>
+      <hr />
       <div class="mb-3">
-        <form onsubmit="return false">
+        <form onsubmit="return false;">
           <div class="mb-3">
             <label for="eventSelect">Event</label>
             <select id="eventSelect" class="form-select" disabled>
@@ -42,29 +64,62 @@
             </select>
           </div>
           <div class="mb-3">
-            <button id="formSubmitEvent" type="submit" class="btn btn-primary" disabled>Load Event</button>
-            <span id="discordLeaderboardLoadError" class="d-none p-2 text-danger"></span> 
+            <button
+              id="formSubmitEvent"
+              type="submit"
+              class="btn btn-primary"
+              disabled
+            >
+              Load Event
+            </button>
+            <span
+              id="discordLeaderboardLoadError"
+              class="d-none p-2 text-danger"
+            ></span>
             <span id="activePlayFabId" class="d-none"></span>
           </div>
         </form>
       </div>
     </div>
     <div id="mainContent" class="d-none">
-      <hr>
+      <hr />
       <div class="container pt-2">
         <h3 id="contentHeader">Leaderboard</h3>
         <div class="row pt-3">
-          <div id="exploitWarning" class="alert alert-warning d-none" role="alert">
-            During the runtime of this event, there was a known exploit which compromised the integrity of the leaderboards. Results may not be accurate.
+          <div
+            id="exploitWarning"
+            class="alert alert-warning d-none"
+            role="alert"
+          >
+            During the runtime of this event, there was a known exploit which
+            compromised the integrity of the leaderboards. Results may not be
+            accurate.
           </div>
-          <div id="dataFidelityWarning" class="alert alert-danger d-none" role="alert">
-            During the runtime of this event, server issues resulted in some data corruption. Results may not be accurate.
+          <div
+            id="dataFidelityWarning"
+            class="alert alert-danger d-none"
+            role="alert"
+          >
+            During the runtime of this event, server issues resulted in some
+            data corruption. Results may not be accurate.
           </div>
-          <div id="uncacheDisclaimer" class="alert alert-warning d-none" role="alert">
-            If you have previously registered for an account but you are not showing up despite participating in the event, this is because the website has uncached your record to preserve bandwidth. This is the case if you last made a PlayFab-based request here before <span id="earliestPossibleDate" class="fw-bold">CALCULATING DATE</span>. To resolve this, please refresh the page.
+          <div
+            id="uncacheDisclaimer"
+            class="alert alert-warning d-none"
+            role="alert"
+          >
+            If you have previously registered for an account but you are not
+            showing up despite participating in the event, this is because the
+            website has uncached your record to preserve bandwidth. This is the
+            case if you last made a PlayFab-based request here before
+            <span id="earliestPossibleDate" class="fw-bold"
+              >CALCULATING DATE</span
+            >. To resolve this, please refresh the page.
           </div>
         </div>
-        <button id="toggleLbViewState" class="btn btn-primary">View Chart Plot</button>
+        <button id="toggleLbViewState" class="btn btn-primary">
+          View Chart Plot
+        </button>
         <div id="leaderboardTabularView">
           <div class="row pt-3">
             <div class="overflow-auto">
@@ -72,21 +127,27 @@
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th colspan=2>Name</th>
+                    <th colspan="2">Name</th>
                     <th>Discord Username</th>
-                    <th colspan=2>Position</th>
+                    <th colspan="2">Position</th>
                     <th class="active-lte">Board Rk.</th>
                     <th>Trophies</th>
                     <th class="live-lte">Rank</th>
-                    <th colspan=2>Last Updated</th>
+                    <th colspan="2">Last Updated</th>
                   </tr>
                 </thead>
-                <tbody id="discordLeaderboard" class="table-group-divider"></tbody>
-              </table> 
+                <tbody
+                  id="discordLeaderboard"
+                  class="table-group-divider"
+                ></tbody>
+              </table>
             </div>
           </div>
           <h3>Shared Shortboard</h3>
-          <p id="sharedDivisions">No players on the Discord leaderboard shared a shortboard in this event.</p>
+          <p id="sharedDivisions">
+            No players on the Discord leaderboard shared a shortboard in this
+            event.
+          </p>
         </div>
         <div id="leaderboardBoxPlotView" class="d-none">
           <div id="boxPlotLabelContainer"></div>
@@ -123,9 +184,7 @@
         <li class="menu-option">
           <a href="account">Identity Management</a>
         </li>
-        <li class="menu-option">
-          &copy; 2022-25 Enigmaxim
-        </li>
+        <li class="menu-option">&copy; 2022-26 Idle Game Tools</li>
       </ul>
     </div>
   </body>

@@ -4,10 +4,6 @@ const axios = require('axios')
 const readline = require('readline')
 require('dotenv').config()
 const crypto = require('crypto')
-const path = require('path')
-const zlib = require('zlib')
-const { promisify } = require('util')
-const gunzip = promisify(zlib.gunzip)
 
 const db = require('./db')
 const balance = require('./balance')
@@ -18,12 +14,61 @@ const app = express({
 const PORT = process.env.PORT || 3000
 const fullBaseLeaderboard = `${process.env.API_URL_LEADERBOARD}/project/${process.env.API_APPLICATION_ID}`
 const fullBasePlayerMeta = `${process.env.API_URL_PLAYERMETA}/project/${process.env.API_APPLICATION_ID}`
+const ASSET_SERVER = process.env.ASSET_SERVER
+const ASSET_NAMESPACE = process.env.PLAYFAB_TITLE_ID
+const ASSET_PUBLIC_BASE = process.env.ASSET_PUBLIC_BASE
+const ASSET_UPDATE_URL = process.env.ASSET_UPDATE_URL
+
+const assetServerBase = () => {
+  if (!ASSET_SERVER || !ASSET_NAMESPACE) {
+    return null
+  }
+
+  return `${ASSET_SERVER.replace(/\/+$/, '')}/assets/${ASSET_NAMESPACE}`
+}
+
+const assetPublicBase = () => {
+  if (ASSET_PUBLIC_BASE) {
+    return ASSET_PUBLIC_BASE.replace(/\/+$/, '')
+  }
+
+  const fallback = assetServerBase()
+  if (!fallback) {
+    return ''
+  }
+
+  return fallback
+}
+
+const assetUpdateUrl = () => {
+  if (ASSET_UPDATE_URL) {
+    return ASSET_UPDATE_URL.replace(/\/+$/, '')
+  }
+
+  if (!ASSET_SERVER) {
+    return null
+  }
+
+  return `${ASSET_SERVER.replace(/\/+$/, '')}/update`
+}
 
 // load static content
 app.use(express.json())
 app.use(express.static('public', {extensions: ['html']}))
 app.use(express.static(__dirname + '/node_modules/bootstrap/dist/'))
 app.enable('trust proxy')
+
+// Runtime config bridge for client-side URL helpers.
+app.get('/js/runtime-config.js', async (req, res) => {
+  res.setHeader('content-type', 'application/javascript; charset=utf-8')
+  res.setHeader('cache-control', 'no-store, max-age=0')
+  const runtimeConfig = {
+    assetBaseUrl: assetPublicBase(),
+    titleId: ASSET_NAMESPACE || ''
+  }
+
+  res.status(200).send(`window.__RUNTIME_CONFIG__ = ${JSON.stringify(runtimeConfig)};`)
+})
 
 const log = async (message, remoteAddress, error=false) => {
   const currentTime = (new Date()).toISOString()
@@ -642,121 +687,6 @@ const getPlayerAccountValueFromPlayFab = async(id) => {
     // console.error(e)
     return Promise.reject(e)
   }
-}
-
-// must have an iOS device; not known how to acquire Android-equivalent token
-const getDataFilesForTitleVersion = async(version) => {
-  try {
-    // login with hardcoded iOS device ID
-    const sessionGenesisReq = await axios.post(`https://${process.env.PLAYFAB_TITLE_ID}.playfabapi.com/Client/LoginWithIOSDeviceID`,
-      data={
-        "AuthenticationContext": null,
-        "CreateAccount": false,
-        "CustomTags": null,
-        "DeviceId": process.env.GC_DEVICE_ID,
-        "DeviceModel": null,
-        "EncryptedRequest": null,
-        "InfoRequestParameters": {
-            "GetCharacterInventories": false,
-            "GetCharacterList": false,
-            "GetPlayerProfile": true,
-            "GetPlayerStatistics": false,
-            "GetTitleData": true,
-            "GetUserAccountInfo": true,
-            "GetUserData": true,
-            "GetUserInventory": true,
-            "GetUserReadOnlyData": true,
-            "GetUserVirtualCurrency": true,
-            "PlayerStatisticNames": null,
-            "ProfileConstraints": {
-                "ShowAvatarUrl": false,
-                "ShowBannedUntil": false,
-                "ShowCampaignAttributions": false,
-                "ShowContactEmailAddresses": false,
-                "ShowCreated": true,
-                "ShowDisplayName": false,
-                "ShowExperimentVariants": false,
-                "ShowLastLogin": false,
-                "ShowLinkedAccounts": false,
-                "ShowLocations": true,
-                "ShowMemberships": false,
-                "ShowOrigination": false,
-                "ShowPushNotificationRegistrations": false,
-                "ShowStatistics": false,
-                "ShowTags": false,
-                "ShowTotalValueToDateInUsd": true,
-                "ShowValuesToDate": false
-            },
-            "TitleDataKeys": [
-                "HardCurrencyCap",
-                "SoftCurrencyCap",
-                "TrophyCurrencyCap",
-                "EnableSzTransitionSdk",
-                "EnableIDFA",
-                "YoutubeUrl",
-                "WappierIosEnable",
-                "CrashlyticsUserIdCollected",
-                "FeatureFlags",
-                "ForceDataVersion"
-            ],
-            "UserDataKeys": null,
-            "UserReadOnlyDataKeys": null
-        },
-        "OS": null,
-        "PlayerSecret": null,
-        "TitleId": process.env.PLAYFAB_TITLE_ID
-      }
-    )
-    
-    const sessionToken = sessionGenesisReq["data"]["data"]["SessionTicket"]
-
-    const dataFileManifestReq = await axios.post(`https://${process.env.PLAYFAB_TITLE_ID}.playfabapi.com/Client/ExecuteCloudScript`,
-      data={
-        "FunctionName": "DataConfig",
-        "FunctionParameter": {
-          "DataVersion": version
-        },
-        "GeneratePlayStreamEvent": true,
-        "RevisionSelection": "Live",
-        "SpecificRevision": null,
-        "AuthenticationContext": null
-      },
-      {
-        headers: {
-          'X-Authorization': sessionToken
-        }
-      }
-    )
-    
-    return JSON.parse(dataFileManifestReq["data"]["data"]["FunctionResult"])
-  } catch (e) {
-    // console.error(e)
-    return Promise.reject(e)
-  }
-}
-
-const downloadToBalance = async(urls) => {
-  const dir = path.join(__dirname, 'balance');
-
-  await Promise.all(
-    urls.map(async (url) => {
-      const res = await fetch(url);
-      if (!res.ok) {
-        throw new Error(`Failed to download ${url}: ${res.status} ${res.statusText}`);
-      }
-
-      const gzBuffer = Buffer.from(await res.arrayBuffer());
-      const data = await gunzip(gzBuffer); // decompressed content
-
-      let filename = url.split('/').pop().split('?')[0];
-      if (filename.endsWith('.gz')) {
-        filename = filename.slice(0, -3); // remove ".gz"
-      }
-
-      const filePath = path.join(dir, filename);
-      await fs.promises.writeFile(filePath, data);
-    })
-  );
 }
 
 // get event list
@@ -1894,51 +1824,56 @@ app.get('/api/event/:event/:id/finished', async(req, res) => {
   }
 })
 
+const getAvatarMapFromAssetServer = async() => {
+  const baseUrl = assetServerBase()
+  if (!baseUrl) {
+    return {}
+  }
+
+  const commonUrl = `${baseUrl}/common.json`
+  const commonResponse = await fetch(commonUrl)
+  if (!commonResponse.ok) {
+    throw new Error(`commonUrl=${commonUrl} - HTTP ${commonResponse.status}`)
+  }
+
+  const commonData = await commonResponse.json()
+  const avatarDataRaw = commonData["Avatar"] || commonData["Avatars"] || []
+  const avatarData = {}
+  for (const avatar of avatarDataRaw) {
+    if (avatar["ID"] && avatar["VisualKey"]) {
+      avatarData[avatar["ID"]] = avatar["VisualKey"]
+    }
+  }
+
+  return avatarData
+}
+
 app.get('/api/icons', async(req, res) => {
   const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
   try {
     log(`${req.method} ${req.originalUrl}`, remoteAddress)
-    
-    const fileName = await fs.promises.readFile(__dirname + '/balance/manifest.json', 'utf8')
-    .then((data) => {
-      const dc = JSON.parse(data)
-      for (let i in dc["VersionSettings"]["Balance"]["Urls"]) {
-        if (i === 'common') {
-          // load balance with that name
-          const balUrl = dc["VersionSettings"]["Balance"]["BaseURL"] + dc["VersionSettings"]["Balance"]["Urls"][i]
-          const balUrlSplit = balUrl.split('/')
-          return balUrlSplit[balUrlSplit.length - 1].slice(0, -3)
-        }
-      }
-
-      return Promise.reject('Balance file not found')
-    })
-    .catch((error) => {
-      console.error(`${(new Date()).toISOString()} [internal] - Unable to load balance master list: ${error}.`)
-    })
-
-    const commonData = await fs.promises.readFile(__dirname + '/balance/' + fileName, 'utf8')
-    .then((data) => {
-      const data1 = JSON.parse(data)
-      return data1
-    })
-    .catch((error) => {
-      console.error(`${(new Date()).toISOString()} [internal] - Unable to load data file ${fileName}: ${error}.`)
-    })
-
-    const avatarDataRaw = commonData["Avatars"]
-    const avatarData = {}
-    for (const avatar of avatarDataRaw) {
-      avatarData[avatar.ID] = avatar.VisualKey
-    }
-
+    const avatarData = await getAvatarMapFromAssetServer()
     res.status(200).json(avatarData)
-    
+    return
   } catch (e) {
     log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
+    res.status(200).json({})
+    return
   }
+})
 
-  return
+app.get('/api/avatar-map', async(req, res) => {
+  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  try {
+    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+    const avatarData = await getAvatarMapFromAssetServer()
+    res.status(200).json(avatarData)
+    return
+  } catch (e) {
+    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
+    res.status(200).json({})
+    return
+  }
 })
 
 app.post('/api/admin', async(req, res) => {
@@ -1950,20 +1885,34 @@ app.post('/api/admin', async(req, res) => {
       "discordLeaderboard": null,
       "dbPlayerList": null,
       "dbPlayerEventRecordCount": null,
-      "currentTitleDataFileVersion": null
+      "currentTitleDataFileVersion": null,
+      "currentTitleDataFileJobCompleteAt": null
     }
 
     returnStruct["discordLeaderboard"] = await dbPlayerDiscordRecords()
     returnStruct["dbPlayerList"] = await dbPlayerList()
     returnStruct["dbPlayerEventRecordCount"] = (await dbPlayerEventRecords()).length
+    returnStruct["currentTitleDataFileVersion"] = 'Unknown'
+    returnStruct["currentTitleDataFileJobCompleteAt"] = 'Unknown'
 
-    returnStruct["currentTitleDataFileVersion"] = await fs.promises.readFile(__dirname + '/balance/version', 'utf8')
-    .then((data) => {
-      return data
-    })
-    .catch((error) => {
-      console.error('Unable to determine balance version')
-    })
+    if (ASSET_SERVER && process.env.PLAYFAB_TITLE_ID) {
+      const assetStatusUrl = ASSET_SERVER.replace(/\/+$/, '')
+      try {
+        const assetStatusResponse = await fetch(assetStatusUrl)
+        if (assetStatusResponse.ok) {
+          const assetStatus = await assetStatusResponse.json()
+          if (assetStatus && assetStatus["titles"] && assetStatus["titles"][process.env.PLAYFAB_TITLE_ID]) {
+            const titleStatus = assetStatus["titles"][process.env.PLAYFAB_TITLE_ID]
+            returnStruct["currentTitleDataFileVersion"] = titleStatus["dataVersion"] || 'Unknown'
+            returnStruct["currentTitleDataFileJobCompleteAt"] = titleStatus["jobCompleteAt"] || 'Unknown'
+          }
+        } else {
+          returnStruct["currentTitleDataFileVersion"] = `Asset status error (${assetStatusResponse.status})`
+        }
+      } catch (e) {
+        returnStruct["currentTitleDataFileVersion"] = 'Asset status unavailable'
+      }
+    }
 
     res.json(returnStruct)
   } else {
@@ -1976,118 +1925,77 @@ app.post('/api/admin', async(req, res) => {
 
 app.post('/api/admin/data-file', async(req, res) => {
   const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
-
-  if (req.body && crypto.createHash('sha256').update(req.body.password).digest('hex') === process.env.ADMIN_PWD) {
-    log(`${req.method} ${req.originalUrl} - successful admin login`, remoteAddress)
-
-    const returnStruct = {
-      "status": 1,
-      "statusMessage": null
-    }
-    
-    const balanceVersionOnDisk = await fs.promises.readFile(__dirname + '/balance/version', 'utf8')
-    .then((data) => {
-      return data
-    })
-    .catch((error) => {
-      console.error('Unable to determine balance version')
-      return
-    })
-
-    const balanceVersionRequested = req.body.version
-    const balanceVersionRequestedArr = balanceVersionRequested.split('.')
-
-    // make sure version strings are INTS
-    for (let i of balanceVersionRequestedArr) {
-      if (isNaN(parseInt(i))) {
-        returnStruct["statusMessage"] = 'Invalid version requested'
-        res.json(returnStruct)
-        return
-      }
-    }
-
-    if (balanceVersionOnDisk) {
-      const balanceVersionOnDiskArr = balanceVersionOnDisk.split('.')
-
-      for (let i of balanceVersionOnDiskArr) {
-        if (isNaN(parseInt(i))) {
-          returnStruct["statusMessage"] = 'Invalid version requested'
-          res.json(returnStruct)
-          return
-        }
-      }
-      
-      // make sure we're not going back to a pervious version
-      if (parseInt(balanceVersionOnDiskArr[0]) > parseInt(balanceVersionRequestedArr[0])) {
-        returnStruct["statusMessage"] = 'Cannot request an older version'
-        res.json(returnStruct)
-        return
-      } else if ((parseInt(balanceVersionOnDiskArr[0]) === parseInt(balanceVersionRequestedArr[0])) && (parseInt(balanceVersionOnDiskArr[1]) > parseInt(balanceVersionRequestedArr[1]))) {
-        returnStruct["statusMessage"] = 'Cannot request an older version'
-        res.json(returnStruct)
-        return
-      }
-    }
-    
-    const dataFilesForRequestedVersion = await getDataFilesForTitleVersion(balanceVersionRequested)
-    .catch((error) => {
-      console.error('Unable to load new data files')
-      returnStruct["statusMessage"] = 'Unable to load new data files'
-      res.json(returnStruct)
-      return
-    })
-
-    if (!dataFilesForRequestedVersion) {
-      return
-    }
-
-    const pathToSaveNewDataFileManifest = path.join(__dirname, 'balance', 'manifest.json');
-    await fs.promises.writeFile(pathToSaveNewDataFileManifest, JSON.stringify(dataFilesForRequestedVersion));
-
-    // TODO: Delete old balance files
-    const existingManifest = await fs.promises.readFile(__dirname + '/balance/manifest.json', 'utf8')
-    .then((data) => {
-      return JSON.parse(data)
-    })
-    .catch((error) => {
-      console.error('Unable to load manifest')
-      returnStruct["statusMessage"] = 'Unable to load manifest'
-      res.json(returnStruct)
-      return
-    })
-
-    const existingBalanceFiles = []
-    for (let i of Object.values(existingManifest["VersionSettings"]["Balance"]["Urls"])) {
-      existingBalanceFiles.push(i)
-    }
-    existingBalanceFiles.push(existingManifest["VersionSettings"]["LTESchedule"]["Url"].split('/').at(-1))
-    
-    for (let i of existingBalanceFiles) {
-      await fs.promises.unlink(__dirname + '/balance/' + i.replace('.gz', ''))
-      .catch((err) => {console.log(`Unable to delete existing balance file ${i.replace('.gz', '')} (does it exist?)`)})
-    }
-
-    const urlsToDownload = []
-    for (let i of Object.values(dataFilesForRequestedVersion["VersionSettings"]["Balance"]["Urls"])) {
-      urlsToDownload.push(`${dataFilesForRequestedVersion["VersionSettings"]["Balance"]["BaseURL"]}${i}`)
-    }
-    urlsToDownload.push(dataFilesForRequestedVersion["VersionSettings"]["LTESchedule"]["Url"])
-    
-    downloadToBalance(urlsToDownload)
-    .then(() => {})
-    .catch((err) => {console.error("Unable to download new data files")});
-
-    const pathToSaveVersionString = path.join(__dirname, 'balance', 'version');
-    await fs.promises.writeFile(pathToSaveVersionString, balanceVersionRequested);
-
-    returnStruct["status"] = 0
-    res.json(returnStruct)
-  } else {
+  const adminPassword = req.body ? req.body.adminPassword : null
+  if (!adminPassword || crypto.createHash('sha256').update(adminPassword).digest('hex') !== process.env.ADMIN_PWD) {
     log(`${req.method} ${req.originalUrl} - failed admin login`, remoteAddress)
     res.sendStatus(401)
+    return
   }
 
-  return
+  log(`${req.method} ${req.originalUrl} - successful admin login`, remoteAddress)
+
+  const updateUrl = assetUpdateUrl()
+  if (!updateUrl) {
+    res.status(500).json({
+      "ok": false,
+      "parameters": {
+        "titleId": process.env.PLAYFAB_TITLE_ID || null,
+        "dataVersion": req.body ? req.body.dataVersion : null
+      },
+      "currentStep": "config",
+      "status": "Asset update URL is not configured."
+    })
+    return
+  }
+
+  const titleId = process.env.PLAYFAB_TITLE_ID
+  const dataVersion = req.body ? req.body.dataVersion : undefined
+  const assetPassword = req.body ? req.body.password : undefined
+  const allowDowngrade = req.body ? Boolean(req.body.allowDowngrade) : false
+
+  try {
+    const updateResponse = await fetch(updateUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        titleId: titleId,
+        dataVersion: dataVersion,
+        password: assetPassword,
+        allowDowngrade: allowDowngrade
+      })
+    })
+
+    const rawBody = await updateResponse.text()
+    if (!rawBody) {
+      res.sendStatus(updateResponse.status)
+      return
+    }
+
+    try {
+      const parsedBody = JSON.parse(rawBody)
+      res.status(updateResponse.status).json(parsedBody)
+      return
+    } catch (e) {
+      // Non-JSON payload from upstream: preserve status code and plain text.
+      res.status(updateResponse.status).send(rawBody)
+      return
+    }
+  } catch (e) {
+    const causeText = e && e.cause && e.cause.message ? `; cause: ${e.cause.message}` : ''
+    log(`${req.method} ${req.originalUrl} error - updateUrl=${updateUrl} - ${e}${causeText}`, remoteAddress, true)
+    res.status(502).json({
+      "ok": false,
+      "parameters": {
+        "titleId": titleId || null,
+        "dataVersion": dataVersion || null
+      },
+      "currentStep": "proxy",
+      "status": "Internal server error. Please see log file for details."
+    })
+    return
+  }
 })
 
 app.get('/api/build', async(req, res) => {
@@ -2096,5 +2004,9 @@ app.get('/api/build', async(req, res) => {
 })
 
 const server = app.listen(PORT, '0.0.0.0', () => {
+  const runningInDocker = fs.existsSync('/.dockerenv')
+  if (runningInDocker && ASSET_SERVER && ASSET_SERVER.includes('localhost')) {
+    console.warn('WARNING: ASSET_SERVER points to localhost while running in Docker. Use http://host.docker.internal:3002 (or a container hostname) instead.')
+  }
   console.log(`Server listening on port ${server.address().port}.`);
 });

@@ -1,13 +1,14 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/png" href="img/icon.png">
-    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="css/darkmode.css">
-    <link rel="stylesheet" type="text/css" href="css/iconcolor.css">
-    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" href="img/icon.png" />
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="css/darkmode.css" />
+    <link rel="stylesheet" type="text/css" href="css/iconcolor.css" />
+    <link rel="stylesheet" type="text/css" href="css/main.css" />
+    <script src="js/runtime-config.js" defer></script>
     <script src="js/admin.js" defer></script>
     <script src="js/build.js" defer></script>
     <script src="js/menu.js" defer></script>
@@ -17,11 +18,26 @@
     <nav class="navbar navbar-dark bg-dark sticky-top">
       <div class="container-fluid">
         <div id="sideMenuBtn" class="navbar-brand open-btn">
-          <img src="img/icon.png" width="30" height="40" class="d-inline-block align-self-center" alt="AdCom icon">
+          <img
+            src="img/icon.png"
+            width="30"
+            height="40"
+            class="d-inline-block align-self-center"
+            alt="AdCom icon"
+          />
           Admin Frontend ☰
         </div>
-        <a class="navbar-brand" href="https://github.com/darrenrs/adcom-web-leaderboard">
-          <img src="img/github.png" width="30" height="30" style="display: flex; margin: 0 auto;" alt="GitHub">
+        <a
+          class="navbar-brand"
+          href="https://github.com/darrenrs/adcom-web-leaderboard"
+        >
+          <img
+            src="img/github.png"
+            width="30"
+            height="30"
+            style="display: flex; margin: 0 auto"
+            alt="GitHub"
+          />
           <span id="buildId">&nbsp;</span>
         </a>
       </div>
@@ -29,40 +45,105 @@
     <div class="container pt-2">
       <h2>Admin Frontend</h2>
       <div class="mb-3">
-        <form onsubmit="return false">
+        <form onsubmit="return false;">
           <div class="mb-3">
             <label for="adminControlPass">Password</label>
-            <input id="adminControlPass" class="form-control" type="password" aria-describedby="adminControlData" maxlength="1024">
-            <div id="adminControlData" class="form-text">This page is not intended to be accessed by the public</div>
+            <input
+              id="adminControlPass"
+              class="form-control"
+              type="password"
+              aria-describedby="adminControlData"
+              maxlength="1024"
+            />
+            <div id="adminControlData" class="form-text">
+              This page is not intended to be accessed by the public
+            </div>
           </div>
-          <button id="formSubmitAdmin" type="submit" class="btn btn-primary">Log In</button>
+          <button id="formSubmitAdmin" type="submit" class="btn btn-primary">
+            Log In
+          </button>
           <span id="adminLoginStatus" class="d-none p-2 text-danger"></span>
         </form>
       </div>
     </div>
     <div id="mainContent" class="d-none">
-      <hr>
+      <hr />
       <div class="container pt-2">
         <div class="row pt-3">
-          <form onsubmit="return false">
+          <form onsubmit="return false;">
             <h3>Update Data Files</h3>
             <div class="mb-3">
-              <p>Current game version on server: <span id="currentTitleDataFileVersion">...</span></p>
-              <label for="dataVersion" class="form-label">Version to Update To</label>
-              <input class="form-control" type="text" id="dataVersion" name="version" required>
-              <input id="secondaryAdminAuthentication" class="form-control d-none" type="password" name="password" maxlength="1024">
-              <br>
-              <button id="formSubmitUpdateDataFile" type="submit" class="btn btn-primary">Update</button>
-              <span id="updateDataFileStatus" class="d-none p-2 text-danger"></span>
+              <p>
+                Current game version on server:
+                <span id="currentTitleDataFileVersion">...</span>
+              </p>
+              <p>
+                Last update completed at (UTC):
+                <span id="currentTitleDataFileJobCompleteAt">...</span>
+              </p>
+              <br />
+              <label for="dataVersion" class="form-label"
+                >Version to Update To</label
+              >
+              <input
+                class="form-control"
+                type="text"
+                id="dataVersion"
+                name="version"
+                required
+              />
+              <br />
+              <label for="assetServerPassword" class="form-label"
+                >Asset Server Password</label
+              >
+              <input
+                id="assetServerPassword"
+                class="form-control"
+                type="password"
+                name="assetPassword"
+                maxlength="1024"
+                required
+              />
+              <div class="form-check mt-3">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="allowDowngrade"
+                />
+                <label class="form-check-label" for="allowDowngrade">
+                  Allow downgrade to older data version
+                </label>
+              </div>
+              <br />
+              <button
+                id="formSubmitUpdateDataFile"
+                type="submit"
+                class="btn btn-primary"
+              >
+                Update
+              </button>
+              <span
+                id="updateDataFileStatus"
+                class="d-none p-2 text-danger"
+              ></span>
             </div>
           </form>
         </div>
         <div class="row pt-3">
           <h3>Record Count</h3>
-          <ul style="list-style-type: none;">
-            <li><strong>Discord Leaderboard Player Count: </strong><span id="discordLeaderboardCount">...</span></li>
-            <li><strong>Database Player Count: </strong><span id="dbPlayerCount">...</span></li>
-            <li><strong>Database Player Event Records: </strong><span id="dbPlayerEventRecordCount">...</span></li>
+          <ul style="list-style-type: none">
+            <li>
+              <strong>Discord Leaderboard Player Count: </strong
+              ><span id="discordLeaderboardCount">...</span>
+            </li>
+            <li>
+              <strong>Database Player Count: </strong
+              ><span id="dbPlayerCount">...</span>
+            </li>
+            <li>
+              <strong>Database Player Event Records: </strong
+              ><span id="dbPlayerEventRecordCount">...</span>
+            </li>
           </ul>
         </div>
         <div class="row pt-3">
@@ -79,7 +160,10 @@
                   <th>Last Login (UTC)</th>
                 </tr>
               </thead>
-              <tbody id="discordLeaderboardRaw" class="table-group-divider"></tbody>
+              <tbody
+                id="discordLeaderboardRaw"
+                class="table-group-divider"
+              ></tbody>
             </table>
           </div>
         </div>
@@ -127,9 +211,7 @@
         <li class="menu-option">
           <a href="account">Identity Management</a>
         </li>
-        <li class="menu-option">
-          &copy; 2022-25 Enigmaxim
-        </li>
+        <li class="menu-option">&copy; 2022-26 Idle Game Tools</li>
       </ul>
     </div>
   </body>

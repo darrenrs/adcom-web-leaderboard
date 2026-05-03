@@ -5,11 +5,12 @@ services:
       args:
         COMMIT_HASH: ${COMMIT_HASH}  # Passing COMMIT_HASH as an argument
     volumes:
-      - ./balance:/usr/src/app/balance  # Dynamic files
       - ./afflicted-events.txt:/usr/src/app/afflicted-events.txt  # Dynamic file
       - ./players.db:/usr/src/app/players.db  # Database file
     ports:
       - "127.0.0.1:${PORT}:${PORT}"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     env_file:
       - .env
     restart: unless-stopped

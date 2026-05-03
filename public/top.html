@@ -1,14 +1,15 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/png" href="img/icon.png">
-    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="css/darkmode.css">
-    <link rel="stylesheet" type="text/css" href="css/iconcolor.css">
-    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" href="img/icon.png" />
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="css/darkmode.css" />
+    <link rel="stylesheet" type="text/css" href="css/iconcolor.css" />
+    <link rel="stylesheet" type="text/css" href="css/main.css" />
     <script src="js/top.js" defer></script>
+    <script src="js/runtime-config.js" defer></script>
     <script src="js/helper.js" defer></script>
     <script src="js/eventselector.js" defer></script>
     <script src="js/build.js" defer></script>
@@ -20,11 +21,26 @@
     <nav class="navbar navbar-dark bg-dark sticky-top">
       <div class="container-fluid">
         <div id="sideMenuBtn" class="navbar-brand open-btn">
-          <img src="img/icon.png" width="30" height="40" class="d-inline-block align-self-center" alt="AdCom icon">
+          <img
+            src="img/icon.png"
+            width="30"
+            height="40"
+            class="d-inline-block align-self-center"
+            alt="AdCom icon"
+          />
           Top Players ☰
         </div>
-        <a class="navbar-brand" href="https://github.com/darrenrs/adcom-web-leaderboard">
-          <img src="img/github.png" width="30" height="30" style="display: flex; margin: 0 auto;" alt="GitHub">
+        <a
+          class="navbar-brand"
+          href="https://github.com/darrenrs/adcom-web-leaderboard"
+        >
+          <img
+            src="img/github.png"
+            width="30"
+            height="30"
+            style="display: flex; margin: 0 auto"
+            alt="GitHub"
+          />
           <span id="buildId">&nbsp;</span>
         </a>
       </div>
@@ -34,55 +50,123 @@
       <p>See who the top players in each event are.</p>
       <div id="playfabManagement">
         <div id="playfabFormContainer">
-          <hr>
-          <form id="playfabForm" onsubmit="return false">
-            <h4 class="mb-4">No PlayFab ID found. Please enter it here to add your account!</h4>
-            <label for="playfabQuery">PlayFab ID <span class="text-danger">*</span></label>
+          <hr />
+          <form id="playfabForm" onsubmit="return false;">
+            <h4 class="mb-4">
+              No PlayFab ID found. Please enter it here to add your account!
+            </h4>
+            <label for="playfabQuery"
+              >PlayFab ID <span class="text-danger">*</span></label
+            >
             <div class="playfab-form-items">
-              <input id="playfabQuery" class="form-control" type="text" aria-describedby="playfabStorageDescription" maxlength="16" required>
-              <button id="playfabFormSubmit" type="submit" class="btn btn-primary">Save</button>
+              <input
+                id="playfabQuery"
+                class="form-control"
+                type="text"
+                aria-describedby="playfabStorageDescription"
+                maxlength="16"
+                required
+              />
+              <button
+                id="playfabFormSubmit"
+                type="submit"
+                class="btn btn-primary"
+              >
+                Save
+              </button>
             </div>
-            <div id="playfabStorageDescription" class="form-text">You can find this in-game in the Settings. Please note your PlayFab ID will be stored server-side in order to cache player records.</div>
+            <div id="playfabStorageDescription" class="form-text">
+              You can find this in-game in the Settings. Please note your
+              PlayFab ID will be stored server-side in order to cache player
+              records.
+            </div>
           </form>
         </div>
-        <div id="playfabSaved" class="d-none mt-2">Your PlayFab ID is: <span id="playfabSavedValue" class="font-monospace"></span>. You can change this <a href="account">here</a>.</div>
+        <div id="playfabSaved" class="d-none mt-2">
+          Your PlayFab ID is:
+          <span id="playfabSavedValue" class="font-monospace"></span>. You can
+          change this <a href="account">here</a>.
+        </div>
         <div id="playfabLoadContainer" class="d-none">
-          <button id="playfabLoadButton" type="submit" class="btn btn-primary mt-2">Load Account</button>
+          <button
+            id="playfabLoadButton"
+            type="submit"
+            class="btn btn-primary mt-2"
+          >
+            Load Account
+          </button>
           <span id="playfabLoadStatus" class="d-none p-2 text-danger"></span>
           <span id="activePlayFabId" class="d-none"></span>
         </div>
-        <hr>
+        <hr />
       </div>
       <div class="mb-3">
-        <form onsubmit="return false">
+        <form onsubmit="return false;">
           <div class="mb-3">
             <label for="eventSelect">Event</label>
-            <select id="eventSelect" class="form-select" aria-describedby="eventLoadDisclaimer" disabled>
+            <select
+              id="eventSelect"
+              class="form-select"
+              aria-describedby="eventLoadDisclaimer"
+              disabled
+            >
               <option>Please load an account to continue</option>
             </select>
           </div>
           <div class="mb-3">
             <label for="eventNPlayers">Top #</label>
-            <input id="eventNPlayers" class="form-control" type="number" min="1" max="1000" aria-describedby="eventNPlayersDisclaimer" value="100" disabled>
-            <div id="eventNPlayersDisclaimer" class="form-text">Select the number of players to view. (Maximum: top 1,000)</div>
+            <input
+              id="eventNPlayers"
+              class="form-control"
+              type="number"
+              min="1"
+              max="1000"
+              aria-describedby="eventNPlayersDisclaimer"
+              value="100"
+              disabled
+            />
+            <div id="eventNPlayersDisclaimer" class="form-text">
+              Select the number of players to view. (Maximum: top 1,000)
+            </div>
           </div>
           <div class="mb-3">
-            <button id="formSubmitEvent" type="submit" class="btn btn-primary" disabled>Load Event</button>
-            <span id="eventLoadConnectionError" class="d-none p-2 text-danger"></span>
+            <button
+              id="formSubmitEvent"
+              type="submit"
+              class="btn btn-primary"
+              disabled
+            >
+              Load Event
+            </button>
+            <span
+              id="eventLoadConnectionError"
+              class="d-none p-2 text-danger"
+            ></span>
             <span id="activePlayFabId" class="d-none"></span>
           </div>
         </form>
       </div>
     </div>
     <div id="mainContent" class="d-none">
-      <hr>
+      <hr />
       <div class="container pt-2">
         <div class="row pt-3">
-          <div id="exploitWarning" class="alert alert-warning d-none" role="alert">
-            During the runtime of this event, there was a known exploit which compromised the integrity of the leaderboards. Results may not be accurate.
+          <div
+            id="exploitWarning"
+            class="alert alert-warning d-none"
+            role="alert"
+          >
+            During the runtime of this event, there was a known exploit which
+            compromised the integrity of the leaderboards. Results may not be
+            accurate.
           </div>
-          <div id="dataFidelityWarning" class="alert alert-danger d-none" role="alert">
-            During the runtime of this event, server issues resulted in some data corruption. Results may not be accurate.
+          <div
+            id="dataFidelityWarning"
+            class="alert alert-danger d-none"
+            role="alert"
+          >
+            During the runtime of this event, server issues resulted in some
+            data corruption. Results may not be accurate.
           </div>
         </div>
         <div class="row pt-3">
@@ -92,11 +176,11 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th colspan=2>Name</th>
+                  <th colspan="2">Name</th>
                   <th>Trophies</th>
                   <th class="live-lte">Rank</th>
                   <th>Board Type</th>
-                  <th style="text-align: right;">n</th>
+                  <th style="text-align: right">n</th>
                   <th>Event Time Elapsed</th>
                 </tr>
               </thead>
@@ -135,9 +219,7 @@
         <li class="menu-option">
           <a href="account">Identity Management</a>
         </li>
-        <li class="menu-option">
-          &copy; 2022-25 Enigmaxim
-        </li>
+        <li class="menu-option">&copy; 2022-26 Idle Game Tools</li>
       </ul>
     </div>
   </body>

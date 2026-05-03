@@ -1,5 +1,3 @@
-const fs = require('fs')
-
 module.exports = class BalanceParser {
   constructor(eventName, startTime, endTime) {
     this.eventName = eventName
@@ -7,33 +5,36 @@ module.exports = class BalanceParser {
     this.endTime = endTime
   }
 
+  getAssetServerBase() {
+    if (!process.env.ASSET_SERVER || !process.env.PLAYFAB_TITLE_ID) {
+      return null
+    }
+
+    return `${process.env.ASSET_SERVER.replace(/\/+$/, '')}/assets/${process.env.PLAYFAB_TITLE_ID}`
+  }
+
+  getRemoteBalanceUrl() {
+    const base = this.getAssetServerBase()
+    if (!base) {
+      return null
+    }
+
+    return `${base}/${this.eventName}/balance.json`
+  }
+
   async loadBalanceData() {
-    const fileName = await fs.promises.readFile(__dirname + '/balance/manifest.json', 'utf8')
-    .then((data) => {
-      const dc = JSON.parse(data)
-      for (let i in dc["VersionSettings"]["Balance"]["Urls"]) {
-        if (i.includes(this.eventName)) {
-          // load balance with that name
-          const balUrl = dc["VersionSettings"]["Balance"]["BaseURL"] + dc["VersionSettings"]["Balance"]["Urls"][i]
-          const balUrlSplit = balUrl.split('/')
-          return balUrlSplit[balUrlSplit.length - 1].slice(0, -3)
-        }
-      }
+    const remoteUrl = this.getRemoteBalanceUrl()
 
-      return Promise.reject('Balance file not found')
-    })
-    .catch((error) => {
-      console.error(`${(new Date()).toISOString()} [internal] - Unable to load balance master list: ${error}.`)
-    })
+    if (!remoteUrl) {
+      throw new Error('ASSET_SERVER or PLAYFAB_TITLE_ID is not configured')
+    }
 
-    this.balanceData = await fs.promises.readFile(__dirname + '/balance/' + fileName, 'utf8')
-    .then((data) => {
-      const data1 = JSON.parse(data)
-      return data1
-    })
-    .catch((error) => {
-      console.error(`${(new Date()).toISOString()} [internal] - Unable to load data file ${fileName}: ${error}.`)
-    })
+    const response = await fetch(remoteUrl)
+    if (!response.ok) {
+      throw new Error(`Unable to load remote balance data ${remoteUrl}: HTTP ${response.status}`)
+    }
+
+    this.balanceData = await response.json()
   }
 
   async getBalanceData() {

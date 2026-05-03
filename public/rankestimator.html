@@ -1,13 +1,14 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/png" href="img/icon.png">
-    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="css/darkmode.css">
-    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" href="img/icon.png" />
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="css/darkmode.css" />
+    <link rel="stylesheet" type="text/css" href="css/main.css" />
     <script src="js/rankestimator.js" defer></script>
+    <script src="js/runtime-config.js" defer></script>
     <script src="js/helper.js" defer></script>
     <script src="js/build.js" defer></script>
     <script src="js/menu.js" defer></script>
@@ -17,11 +18,26 @@
     <nav class="navbar navbar-dark bg-dark sticky-top">
       <div class="container-fluid">
         <div id="sideMenuBtn" class="navbar-brand open-btn">
-          <img src="img/icon.png" width="30" height="40" class="d-inline-block align-self-center" alt="AdCom icon">
+          <img
+            src="img/icon.png"
+            width="30"
+            height="40"
+            class="d-inline-block align-self-center"
+            alt="AdCom icon"
+          />
           Rank Estimator ☰
         </div>
-        <a class="navbar-brand" href="https://github.com/darrenrs/adcom-web-leaderboard">
-          <img src="img/github.png" width="30" height="30" style="display: flex; margin: 0 auto;" alt="GitHub">
+        <a
+          class="navbar-brand"
+          href="https://github.com/darrenrs/adcom-web-leaderboard"
+        >
+          <img
+            src="img/github.png"
+            width="30"
+            height="30"
+            style="display: flex; margin: 0 auto"
+            alt="GitHub"
+          />
           <span id="buildId">&nbsp;</span>
         </a>
       </div>
@@ -29,31 +45,70 @@
     <div class="container pt-2">
       <h2>Rank Estimator</h2>
       <div class="alert alert-danger" role="alert">
-        This tool is invalid for events with Trophy "RevRushes" and is only marginally reliable for other events. Use with caution.
+        This tool is invalid for events with Trophy "RevRushes" and is only
+        marginally reliable for other events. Use with caution.
       </div>
       <div class="mb-3">
-        <form onsubmit="return false">
+        <form onsubmit="return false;">
           <div class="mb-3">
-            <label for="trophyInput">Trophies <span class="text-danger">*</span></label>
-            <input id="trophyInput" class="form-control" type="number" aria-describedby="trophyInputDesc" max="500000" required>
-            <div id="trophyInputDesc" class="form-text">Current number of trophies</div>
+            <label for="trophyInput"
+              >Trophies <span class="text-danger">*</span></label
+            >
+            <input
+              id="trophyInput"
+              class="form-control"
+              type="number"
+              aria-describedby="trophyInputDesc"
+              max="500000"
+              required
+            />
+            <div id="trophyInputDesc" class="form-text">
+              Current number of trophies
+            </div>
           </div>
           <div class="mb-3">
-            <label for="startTimeInput">Start Time (UTC) <span class="text-danger">*</span></label>
-            <input id="startTimeInput" class="form-control" type="datetime-local" aria-describedby="startTimeInput" required>
+            <label for="startTimeInput"
+              >Start Time (UTC) <span class="text-danger">*</span></label
+            >
+            <input
+              id="startTimeInput"
+              class="form-control"
+              type="datetime-local"
+              aria-describedby="startTimeInput"
+              required
+            />
             <div id="trophyInputDesc" class="form-text">Event join time</div>
           </div>
           <div class="mb-3">
-            <label for="endTimeInput">End Time (UTC) <span class="text-danger">*</span></label>
-            <input id="endTimeInput" class="form-control" type="datetime-local" aria-describedby="endTimeInput" required>
-            <div id="trophyInputDesc" class="form-text">Time of last capsule opening</div>
+            <label for="endTimeInput"
+              >End Time (UTC) <span class="text-danger">*</span></label
+            >
+            <input
+              id="endTimeInput"
+              class="form-control"
+              type="datetime-local"
+              aria-describedby="endTimeInput"
+              required
+            />
+            <div id="trophyInputDesc" class="form-text">
+              Time of last capsule opening
+            </div>
           </div>
           <div class="mb-3">
-            <label for="activeEventId">Active Event ID <span class="text-danger">*</span></label>
-            <input id="activeEventId" class="form-control" aria-describedby="activeEventInput" type="text">
+            <label for="activeEventId"
+              >Active Event ID <span class="text-danger">*</span></label
+            >
+            <input
+              id="activeEventId"
+              class="form-control"
+              aria-describedby="activeEventInput"
+              type="text"
+            />
             <div id="activeEventInput" class="form-text">(do not change)</div>
           </div>
-          <button id="formCheckRank" type="submit" class="btn btn-primary">Check Rank</button>
+          <button id="formCheckRank" type="submit" class="btn btn-primary">
+            Check Rank
+          </button>
           <span id="checkRankStatus" class="p-2 text-danger"></span>
         </form>
       </div>
@@ -93,9 +148,7 @@
         <li class="menu-option">
           <a href="account">Identity Management</a>
         </li>
-        <li class="menu-option">
-          &copy; 2022-25 Enigmaxim
-        </li>
+        <li class="menu-option">&copy; 2022-26 Idle Game Tools</li>
       </ul>
     </div>
   </body>

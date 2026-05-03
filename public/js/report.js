@@ -90,7 +90,7 @@ const populateUserData = (data) => {
     imageCell.style = 'padding-top: 0 !important; padding-bottom: 0 !important'
 
     let image = document.createElement('img')
-    image.src = `img/adcom/icon/${data[i]["event"]["eventName"]}.png`
+    image.src = getEventIconAssetPath(data[i]["event"]["eventName"])
     image.style = 'height: 40px; width: 40px; background-color: rgba(0, 0, 0, 0) !important'
     image.alt = '' // don't add a value to this or it'll look ugly
     imageCell.appendChild(image)
@@ -198,7 +198,7 @@ const populateUserData = (data) => {
     imageCell.style = 'padding-top: 0 !important; padding-bottom: 0 !important'
 
     let image = document.createElement('img')
-    image.src = `img/adcom/icon/${bestPositionsByType[i]["eventId"]}.png`
+    image.src = getEventIconAssetPath(bestPositionsByType[i]["eventId"])
     image.style = 'height: 40px; width: 40px; background-color: rgba(0, 0, 0, 0) !important'
     image.alt = '' // don't add a value to this or it'll look ugly
     imageCell.appendChild(image)

@@ -1,13 +1,14 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/png" href="img/icon.png">
-    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="css/darkmode.css">
-    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" href="img/icon.png" />
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="css/darkmode.css" />
+    <link rel="stylesheet" type="text/css" href="css/main.css" />
     <script src="js/account.js" defer></script>
+    <script src="js/runtime-config.js" defer></script>
     <script src="js/helper.js" defer></script>
     <script src="js/build.js" defer></script>
     <script src="js/playfabform.js" defer></script>
@@ -18,63 +19,187 @@
     <nav class="navbar navbar-dark bg-dark sticky-top">
       <div class="container-fluid">
         <div id="sideMenuBtn" class="navbar-brand open-btn">
-          <img src="img/icon.png" width="30" height="40" class="d-inline-block align-self-center" alt="AdCom icon">
+          <img
+            src="img/icon.png"
+            width="30"
+            height="40"
+            class="d-inline-block align-self-center"
+            alt="AdCom icon"
+          />
           Identity Management ☰
         </div>
-        <a class="navbar-brand" href="https://github.com/darrenrs/adcom-web-leaderboard">
-          <img src="img/github.png" width="30" height="30" style="display: flex; margin: 0 auto;" alt="GitHub">
+        <a
+          class="navbar-brand"
+          href="https://github.com/darrenrs/adcom-web-leaderboard"
+        >
+          <img
+            src="img/github.png"
+            width="30"
+            height="30"
+            style="display: flex; margin: 0 auto"
+            alt="GitHub"
+          />
           <span id="buildId">&nbsp;</span>
         </a>
       </div>
     </nav>
     <div class="container pt-2">
       <h2>Identity Management</h2>
-      <p>To update your Discord profile picture (pfp) icon, please hit <strong>Load Account</strong> &gt; <strong>Update Account</strong>.</p>
+      <p>
+        To update your Discord profile picture (pfp) icon, please hit
+        <strong>Load Account</strong> &gt; <strong>Update Account</strong>.
+      </p>
       <div id="playfabManagement">
         <div id="playfabFormContainer">
-          <hr>
-          <form id="playfabForm" onsubmit="return false">
-            <label for="playfabQuery">PlayFab ID <span class="text-danger">*</span></label>
+          <hr />
+          <form id="playfabForm" onsubmit="return false;">
+            <label for="playfabQuery"
+              >PlayFab ID <span class="text-danger">*</span></label
+            >
             <div class="playfab-form-items">
-              <input id="playfabQuery" class="form-control" type="text" aria-describedby="playfabStorageDescription" maxlength="16" required>
-              <button id="playfabFormSubmit" type="submit" class="btn btn-primary">Save</button>
+              <input
+                id="playfabQuery"
+                class="form-control"
+                type="text"
+                aria-describedby="playfabStorageDescription"
+                maxlength="16"
+                required
+              />
+              <button
+                id="playfabFormSubmit"
+                type="submit"
+                class="btn btn-primary"
+              >
+                Save
+              </button>
             </div>
-            <div id="playfabStorageDescription" class="form-text">You can find this in-game in the Settings. Please note your PlayFab ID will be stored server-side in order to cache player records.</div>
+            <div id="playfabStorageDescription" class="form-text">
+              You can find this in-game in the Settings. Please note your
+              PlayFab ID will be stored server-side in order to cache player
+              records.
+            </div>
           </form>
         </div>
-        <div id="playfabSaved" class="d-none mt-2">Your PlayFab ID is: <span id="playfabSavedValue" class="font-monospace"></span></div>
+        <div id="playfabSaved" class="d-none mt-2">
+          Your PlayFab ID is:
+          <span id="playfabSavedValue" class="font-monospace"></span>
+        </div>
         <div id="playfabLoadContainer" class="d-none">
-          <button id="playfabLoadButton" type="submit" class="btn btn-primary mt-2">Load Account</button>
+          <button
+            id="playfabLoadButton"
+            type="submit"
+            class="btn btn-primary mt-2"
+          >
+            Load Account
+          </button>
           <span id="playfabLoadStatus" class="d-none p-2 text-danger"></span>
           <span id="activePlayFabId" class="d-none"></span>
         </div>
-        <hr>
+        <hr />
       </div>
       <div id="mainContent" class="d-none">
         <div class="mb-3">
-          <form onsubmit="return false">
+          <form onsubmit="return false;">
             <div class="mb-3">
-              <label for="playFabId">PlayFab ID <span class="text-danger">*</span></label>
-              <input id="playFabId" class="form-control" type="text" aria-describedby="playFabDesc" maxlength="16" required disabled>
-              <div id="playFabDesc" class="form-text">This field is autofilled from the input box above.</div>
+              <label for="playFabId"
+                >PlayFab ID <span class="text-danger">*</span></label
+              >
+              <input
+                id="playFabId"
+                class="form-control"
+                type="text"
+                aria-describedby="playFabDesc"
+                maxlength="16"
+                required
+                disabled
+              />
+              <div id="playFabDesc" class="form-text">
+                This field is autofilled from the input box above.
+              </div>
             </div>
             <div class="mb-3">
-              <label for="displayName">Preferred Display Name <span class="text-danger">*</span></label>
-              <input id="displayName" class="form-control" type="text" aria-describedby="displayNameDesc" maxlength="32" required>
-              <div id="displayNameDesc" class="form-text">What would you like to be called on the website?</div>
+              <label for="displayName"
+                >Preferred Display Name
+                <span class="text-danger">*</span></label
+              >
+              <input
+                id="displayName"
+                class="form-control"
+                type="text"
+                aria-describedby="displayNameDesc"
+                maxlength="32"
+                required
+              />
+              <div id="displayNameDesc" class="form-text">
+                What would you like to be called on the website?
+              </div>
             </div>
             <div class="mb-3 d-none">
-              <label for="iconQualitativeDesc">Visual Description of your Leaderboard Icon</label>
-              <textarea id="iconQualitativeDesc" class="form-control" type="textarea" aria-describedby="iconQualitativeDescDesc" rows="3" maxlength="1024"></textarea>
-              <div id="iconQualitativeDescDesc" class="form-text">Please describe with as much detail as possible what you want your leaderboard icon to look like. You can choose the actual symbol and <strong>exactly one</strong> color. Overly fancy requests may be rejected and/or modified.</div>
+              <label for="iconQualitativeDesc"
+                >Visual Description of your Leaderboard Icon</label
+              >
+              <textarea
+                id="iconQualitativeDesc"
+                class="form-control"
+                type="textarea"
+                aria-describedby="iconQualitativeDescDesc"
+                rows="3"
+                maxlength="1024"
+              ></textarea>
+              <div id="iconQualitativeDescDesc" class="form-text">
+                Please describe with as much detail as possible what you want
+                your leaderboard icon to look like. You can choose the actual
+                symbol and <strong>exactly one</strong> color. Overly fancy
+                requests may be rejected and/or modified.
+              </div>
             </div>
-            <input id="username" class="form-control d-none" type="text" maxlength="32" required disabled>
-            <input id="discordId" class="form-control d-none" type="text" maxlength="19" required disabled>
-            <input id="discordProfilePictureId" class="form-control d-none" maxlength="32" type="text" required disabled>
-            <input id="accountOperation" class="form-control d-none" type="text" disabled>
-            <button id="formSubmitAccount" type="submit" class="btn btn-primary">Create Account</button>
-            <button id="formPatchAccount" type="submit" class="btn btn-primary">Update Account</button>
-            <button id="formDeleteAccount" type="submit" class="btn btn-primary">Delete Account</button>
+            <input
+              id="username"
+              class="form-control d-none"
+              type="text"
+              maxlength="32"
+              required
+              disabled
+            />
+            <input
+              id="discordId"
+              class="form-control d-none"
+              type="text"
+              maxlength="19"
+              required
+              disabled
+            />
+            <input
+              id="discordProfilePictureId"
+              class="form-control d-none"
+              maxlength="32"
+              type="text"
+              required
+              disabled
+            />
+            <input
+              id="accountOperation"
+              class="form-control d-none"
+              type="text"
+              disabled
+            />
+            <button
+              id="formSubmitAccount"
+              type="submit"
+              class="btn btn-primary"
+            >
+              Create Account
+            </button>
+            <button id="formPatchAccount" type="submit" class="btn btn-primary">
+              Update Account
+            </button>
+            <button
+              id="formDeleteAccount"
+              type="submit"
+              class="btn btn-primary"
+            >
+              Delete Account
+            </button>
             <span id="accountManagementStatus" class="p-2 text-danger"></span>
           </form>
         </div>
@@ -109,9 +234,7 @@
         <li class="menu-option menu-option-selected">
           <a href="account">Identity Management</a>
         </li>
-        <li class="menu-option">
-          &copy; 2022-25 Enigmaxim
-        </li>
+        <li class="menu-option">&copy; 2022-26 Idle Game Tools</li>
       </ul>
     </div>
   </body>

@@ -1,13 +1,14 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/png" href="img/icon.png">
-    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="css/darkmode.css">
-    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" href="img/icon.png" />
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="css/darkmode.css" />
+    <link rel="stylesheet" type="text/css" href="css/main.css" />
     <script src="js/finished.js" defer></script>
+    <script src="js/runtime-config.js" defer></script>
     <script src="js/helper.js" defer></script>
     <script src="js/build.js" defer></script>
     <script src="js/menu.js" defer></script>
@@ -18,24 +19,56 @@
     <nav class="navbar navbar-dark bg-dark sticky-top">
       <div class="container-fluid">
         <div id="sideMenuBtn" class="navbar-brand open-btn">
-          <img src="img/icon.png" width="30" height="40" class="d-inline-block align-self-center" alt="AdCom icon">
+          <img
+            src="img/icon.png"
+            width="30"
+            height="40"
+            class="d-inline-block align-self-center"
+            alt="AdCom icon"
+          />
           Current Event Statistics ☰
         </div>
-        <a class="navbar-brand" href="https://github.com/darrenrs/adcom-web-leaderboard">
-          <img src="img/github.png" width="30" height="30" style="display: flex; margin: 0 auto;" alt="GitHub">
+        <a
+          class="navbar-brand"
+          href="https://github.com/darrenrs/adcom-web-leaderboard"
+        >
+          <img
+            src="img/github.png"
+            width="30"
+            height="30"
+            style="display: flex; margin: 0 auto"
+            alt="GitHub"
+          />
           <span id="buildId">&nbsp;</span>
         </a>
       </div>
     </nav>
     <div class="container pt-2">
-      <span id="eventFinisherLoadError" class="text-danger">Please wait ... this process should take no longer than 5 seconds</span>
-      <h3 class="text-end"><span id="heartbeatClock" class="text-danger d-none" role="button">...</span></h3>
+      <span id="eventFinisherLoadError" class="text-danger"
+        >Please wait ... this process should take no longer than 5 seconds</span
+      >
+      <h3 class="text-end">
+        <span id="heartbeatClock" class="text-danger d-none" role="button"
+          >...</span
+        >
+      </h3>
       <div id="eventFinisherMaster" class="text-center d-none">
-        <div id="exploitWarning" class="alert alert-warning d-none" role="alert">
-          During the runtime of this event, there was a known exploit which compromised the integrity of the leaderboards. Results may not be accurate.
+        <div
+          id="exploitWarning"
+          class="alert alert-warning d-none"
+          role="alert"
+        >
+          During the runtime of this event, there was a known exploit which
+          compromised the integrity of the leaderboards. Results may not be
+          accurate.
         </div>
-        <div id="dataFidelityWarning" class="alert alert-danger d-none" role="alert">
-          During the runtime of this event, server issues resulted in some data corruption. Results may not be accurate.
+        <div
+          id="dataFidelityWarning"
+          class="alert alert-danger d-none"
+          role="alert"
+        >
+          During the runtime of this event, server issues resulted in some data
+          corruption. Results may not be accurate.
         </div>
         <h1 id="giantPlayersFinished" class="display-1"></h1>
         <h2>players have finished this event</h2>
@@ -45,47 +78,51 @@
         </div>
         <div>
           <h2>Rank Distribution</h2>
-          <p><strong>Average Rank: </strong><span id="rankAverage" class="font-monospace"></span></p>
+          <p>
+            <strong>Average Rank: </strong
+            ><span id="rankAverage" class="font-monospace"></span>
+          </p>
           <canvas id="rankDistributionChart"></canvas>
           <h2>Trophy Distribution</h2>
-          <p><strong>Total Trophies: </strong><span id="trophySum" class="font-monospace"></span></p>
+          <p>
+            <strong>Total Trophies: </strong
+            ><span id="trophySum" class="font-monospace"></span>
+          </p>
           <canvas id="trophyDistributionChart"></canvas>
         </div>
       </div>
     </div>
-      <div class="side-menu side-menu-inactive" id="sideMenu">
-        <ul>
-          <li class="menu-option">
-            <a href="./">Home</a>
-          </li>
-          <li class="menu-option">
-            <a href="event">Your Events</a>
-          </li>
-          <li class="menu-option">
-            <a href="discord">Discord Leaderboard</a>
-          </li>
-          <li class="menu-option">
-            <a href="eventlist">Event Schedule</a>
-          </li>
-          <li class="menu-option">
-            <a href="report">Event Report</a>
-          </li>
-          <li class="menu-option">
-            <a href="top">Top Players</a>
-          </li>
-          <li class="menu-option menu-option-selected">
-            <a href="finished">Current Event Statistics</a>
-          </li>
-          <li class="menu-option">
-            <a href="playervalue">Account Value</a>
-          </li>
-          <li class="menu-option">
-            <a href="account">Identity Management</a>
-          </li>
-          <li class="menu-option">
-            &copy; 2022-25 Enigmaxim
-          </li>
-        </ul>
-      </div>
+    <div class="side-menu side-menu-inactive" id="sideMenu">
+      <ul>
+        <li class="menu-option">
+          <a href="./">Home</a>
+        </li>
+        <li class="menu-option">
+          <a href="event">Your Events</a>
+        </li>
+        <li class="menu-option">
+          <a href="discord">Discord Leaderboard</a>
+        </li>
+        <li class="menu-option">
+          <a href="eventlist">Event Schedule</a>
+        </li>
+        <li class="menu-option">
+          <a href="report">Event Report</a>
+        </li>
+        <li class="menu-option">
+          <a href="top">Top Players</a>
+        </li>
+        <li class="menu-option menu-option-selected">
+          <a href="finished">Current Event Statistics</a>
+        </li>
+        <li class="menu-option">
+          <a href="playervalue">Account Value</a>
+        </li>
+        <li class="menu-option">
+          <a href="account">Identity Management</a>
+        </li>
+        <li class="menu-option">&copy; 2022-26 Idle Game Tools</li>
+      </ul>
+    </div>
   </body>
 </html>

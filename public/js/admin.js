@@ -10,7 +10,6 @@ const postFormAdmin = async() => {
     return
   }
 
-  document.querySelector('#secondaryAdminAuthentication').value = document.querySelector('#adminControlPass').value
   populateAdmin(playerData)
 }
 
@@ -22,12 +21,18 @@ const postFormUpdateDataFile = async() => {
 
   const updateDataFiles = await getUpdateDataFiles()
 
-  if (updateDataFiles["status"] === 0) {
+  if (!updateDataFiles) {
+    document.querySelector('#updateDataFileStatus').innerText = 'Update failed'
+    return
+  }
+
+  if (updateDataFiles["ok"] === true || updateDataFiles["__httpStatus"] === 200) {
     document.querySelector('#updateDataFileStatus').classList.add('text-success')
     document.querySelector('#updateDataFileStatus').classList.remove('text-danger')
     document.querySelector('#updateDataFileStatus').innerText = `Successfully updated data files to version ${document.querySelector('#dataVersion').value}`
   } else {
-    document.querySelector('#updateDataFileStatus').innerText = updateDataFiles["statusMessage"]
+    const message = updateDataFiles["status"] || updateDataFiles["statusMessage"] || updateDataFiles["detail"] || `Server error (${updateDataFiles["__httpStatus"]})`
+    document.querySelector('#updateDataFileStatus').innerText = (typeof message === 'string') ? message : JSON.stringify(message)
   }
 }
 
@@ -64,8 +69,10 @@ const getAdmin = async() => {
 
 const getUpdateDataFiles = async() => {
   const data = {
-    "password": document.querySelector('#secondaryAdminAuthentication').value,
-    "version": document.querySelector('#dataVersion').value
+    "adminPassword": document.querySelector('#adminControlPass').value,
+    "dataVersion": document.querySelector('#dataVersion').value.trim(),
+    "password": document.querySelector('#assetServerPassword').value,
+    "allowDowngrade": document.querySelector('#allowDowngrade').checked
   }
 
   return await fetch('api/admin/data-file', {
@@ -75,17 +82,26 @@ const getUpdateDataFiles = async() => {
     },
     body: JSON.stringify(data)
   })
-  .then((response) => {
-    if (response.status === 200) {
-      return response.json()
-    } else if (response.status === 401) {
-      document.querySelector('#updateDataFileStatus').innerText = `Incorrect password`
-      return
+  .then(async(response) => {
+    let parsedPayload
+    const contentType = response.headers.get('content-type') || ''
+
+    if (contentType.includes('application/json')) {
+      parsedPayload = await response.json()
     } else {
-      console.error(`Server error (${response.status})`)
-      document.querySelector('#updateDataFileStatus').innerText = `Server error (${response.status})`
-      return
+      parsedPayload = {"status": await response.text()}
     }
+
+    if (response.status === 401) {
+      document.querySelector('#updateDataFileStatus').innerText = `Incorrect password`
+    }
+
+    if (parsedPayload && typeof parsedPayload === 'object') {
+      parsedPayload["__httpStatus"] = response.status
+      return parsedPayload
+    }
+
+    return {"status": parsedPayload, "__httpStatus": response.status}
   })
   .catch((error) => {
     console.error(error)
@@ -101,6 +117,7 @@ const populateAdmin = async(data) => {
   document.querySelector('#dbPlayerCount').innerText = (data["dbPlayerList"].length).toLocaleString()
   document.querySelector('#dbPlayerEventRecordCount').innerText = data["dbPlayerEventRecordCount"].toLocaleString()
   document.querySelector('#currentTitleDataFileVersion').innerText = data["currentTitleDataFileVersion"]
+  document.querySelector('#currentTitleDataFileJobCompleteAt').innerText = data["currentTitleDataFileJobCompleteAt"]
 
   const tbodyDiscord = document.querySelector('#discordLeaderboardRaw')
   const allExistingRowsDiscord = document.querySelectorAll('#discordLeaderboardRaw tr')

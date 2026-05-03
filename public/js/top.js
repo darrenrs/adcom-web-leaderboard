@@ -92,7 +92,6 @@ const postFormEventLeaderboard = async() => {
     }
 
     const iconList = await getIconListFetch()
-
     populateFieldsTop(topPlayers, iconList)
   } else {
     // general failure
@@ -221,7 +220,7 @@ const populateFieldsTop = (data, iconList) => {
 
     let image = document.createElement('img')
     
-    image.src = `img/icons/v2/${iconList[data["top"]["list"][i]["avatarId"]]}.png`
+    image.src = getAvatarImagePath(iconList, data["top"]["list"][i]["avatarId"])
     image.style = 'width: 40px; max-height: 40px;'
     image.alt = '' // don't add a value to this or it'll look ugly
     imageCell.appendChild(image)

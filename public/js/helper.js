@@ -1,3 +1,52 @@
+const getNormalizedAssetBaseUrl = () => {
+  const runtimeConfig = window.__RUNTIME_CONFIG__ || {}
+  if (!runtimeConfig.assetBaseUrl) {
+    return ''
+  }
+
+  return runtimeConfig.assetBaseUrl.replace(/\/+$/, '')
+}
+
+const buildAssetUrl = (path) => {
+  const cleanPath = path.replace(/^\/+/, '')
+  const assetBaseUrl = getNormalizedAssetBaseUrl()
+
+  if (!assetBaseUrl) {
+    return `/${cleanPath}`
+  }
+
+  return `${assetBaseUrl}/${cleanPath}`
+}
+
+const getEventBannerAssetPath = (balanceId) => {
+  return buildAssetUrl(`${balanceId}/banner.png`)
+}
+
+const getEventIconAssetPath = (balanceId) => {
+  return buildAssetUrl(`${balanceId}/icon.png`)
+}
+
+const getAvatarAssetPath = (avatarVisualKey) => {
+  return buildAssetUrl(`avatars/${avatarVisualKey}.png`)
+}
+
+const getAvatarImagePath = (iconList, avatarId) => {
+  if (!avatarId) {
+    return ''
+  }
+
+  const visualKey = iconList && iconList[avatarId] ? iconList[avatarId] : avatarId
+  return getAvatarAssetPath(visualKey)
+}
+
+const getLeaderboardNamesAssetPath = () => {
+  return buildAssetUrl('leaderboardnames.json')
+}
+
+const getLocalizationAssetPath = () => {
+  return buildAssetUrl('localization.json')
+}
+
 const getPlayerNameFromOrdinal = (n) => {
   if (n < 0) {
     return {"defaultName": 'Not available if archived'}
@@ -77,7 +126,7 @@ const getPlayerNameFromOrdinal = (n) => {
   const iconTexture = nameValues["IconTextures"][((n * incrementValue[4]) + baseCaseIndex[4]) % nameValues["IconTextures"].length]
   
   const fullName = `${adjective} ${noun} ${generation}`
-  const url = `img/icons/${iconTexture}.png`
+  const url = ''
 
   const returnStruct = {
     "defaultName": fullName,
@@ -507,21 +556,17 @@ const getUsdValueQualitativeDescriptor = (v) => {
 }
 
 const getIconListFetch = async() => {
-  return await fetch('api/icons')
+  return await fetch('api/avatar-map')
   .then((response) => {
-    if (response.status === 200) {
-      return response.json()
-    } else {
-      console.error(`Server error (${response.status})`)
-      document.querySelector('#eventListLoadError').innerText = `Server error (${response.status}).`
-      document.querySelector('#eventListLoadError').classList.remove('d-none')
-      return false
+    if (response.status !== 200) {
+      console.error(`Avatar map error (${response.status})`)
+      return {}
     }
+
+    return response.json()
   })
   .catch((error) => {
     console.error(error)
-    document.querySelector('#eventListLoadError').innerText = 'Please check your internet connection.'
-    document.querySelector('#eventListLoadError').classList.remove('d-none')
-    return false
+    return {}
   })
 }

@@ -1,13 +1,14 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/png" href="img/icon.png">
-    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="css/darkmode.css">
-    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" href="img/icon.png" />
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="css/darkmode.css" />
+    <link rel="stylesheet" type="text/css" href="css/main.css" />
     <script src="js/accountvalue.js" defer></script>
+    <script src="js/runtime-config.js" defer></script>
     <script src="js/helper.js" defer></script>
     <script src="js/build.js" defer></script>
     <script src="js/playfabform.js" defer></script>
@@ -18,11 +19,26 @@
     <nav class="navbar navbar-dark bg-dark sticky-top">
       <div class="container-fluid">
         <div id="sideMenuBtn" class="navbar-brand open-btn">
-          <img src="img/icon.png" width="30" height="40" class="d-inline-block align-self-center" alt="AdCom icon">
+          <img
+            src="img/icon.png"
+            width="30"
+            height="40"
+            class="d-inline-block align-self-center"
+            alt="AdCom icon"
+          />
           Account Value ☰
         </div>
-        <a class="navbar-brand" href="https://github.com/darrenrs/adcom-web-leaderboard">
-          <img src="img/github.png" width="30" height="30" style="display: flex; margin: 0 auto;" alt="GitHub">
+        <a
+          class="navbar-brand"
+          href="https://github.com/darrenrs/adcom-web-leaderboard"
+        >
+          <img
+            src="img/github.png"
+            width="30"
+            height="30"
+            style="display: flex; margin: 0 auto"
+            alt="GitHub"
+          />
           <span id="buildId">&nbsp;</span>
         </a>
       </div>
@@ -32,29 +48,69 @@
       <p>Reference tool to see how much money you've spent in-game.</p>
       <div id="playfabManagement">
         <div id="playfabFormContainer">
-          <hr>
-          <form id="playfabForm" onsubmit="return false">
-            <h4 class="mb-4">No PlayFab ID found. Please enter it here to add your account!</h4>
-            <label for="playfabQuery">PlayFab ID <span class="text-danger">*</span></label>
+          <hr />
+          <form id="playfabForm" onsubmit="return false;">
+            <h4 class="mb-4">
+              No PlayFab ID found. Please enter it here to add your account!
+            </h4>
+            <label for="playfabQuery"
+              >PlayFab ID <span class="text-danger">*</span></label
+            >
             <div class="playfab-form-items">
-              <input id="playfabQuery" class="form-control" type="text" aria-describedby="playfabStorageDescription" maxlength="16" required>
-              <button id="playfabFormSubmit" type="submit" class="btn btn-primary">Save</button>
+              <input
+                id="playfabQuery"
+                class="form-control"
+                type="text"
+                aria-describedby="playfabStorageDescription"
+                maxlength="16"
+                required
+              />
+              <button
+                id="playfabFormSubmit"
+                type="submit"
+                class="btn btn-primary"
+              >
+                Save
+              </button>
             </div>
-            <div id="playfabStorageDescription" class="form-text">You can find this in-game in the Settings. Please note your PlayFab ID will be stored server-side in order to cache player records.</div>
+            <div id="playfabStorageDescription" class="form-text">
+              You can find this in-game in the Settings. Please note your
+              PlayFab ID will be stored server-side in order to cache player
+              records.
+            </div>
           </form>
         </div>
-        <div id="playfabSaved" class="d-none mt-2">Your PlayFab ID is: <span id="playfabSavedValue" class="font-monospace"></span>. You can change this <a href="account">here</a>.</div>
+        <div id="playfabSaved" class="d-none mt-2">
+          Your PlayFab ID is:
+          <span id="playfabSavedValue" class="font-monospace"></span>. You can
+          change this <a href="account">here</a>.
+        </div>
         <div id="playfabLoadContainer" class="d-none">
-          <button id="playfabLoadButton" type="submit" class="btn btn-primary mt-2">Load Account</button>
+          <button
+            id="playfabLoadButton"
+            type="submit"
+            class="btn btn-primary mt-2"
+          >
+            Load Account
+          </button>
           <span id="playfabLoadStatus" class="d-none p-2 text-danger"></span>
           <span id="activePlayFabId" class="d-none"></span>
         </div>
-        <hr>
+        <hr />
       </div>
       <div id="mainContent" class="d-none">
-        <div>Total Amount Spent: <strong id="accountValueUSD"></strong> <span id="accountValueQualitativeDescriptor"></span></div>
-        <div>Account Created: <strong id="dateAccountGenesis"></strong> <span id="timeSinceAccountGenesis"></span></div>
-        <div>Last Login: <strong id="dateAccountLastLogin"></strong> <span id="timeSinceAccountLastLogin"></span></div>
+        <div>
+          Total Amount Spent: <strong id="accountValueUSD"></strong>
+          <span id="accountValueQualitativeDescriptor"></span>
+        </div>
+        <div>
+          Account Created: <strong id="dateAccountGenesis"></strong>
+          <span id="timeSinceAccountGenesis"></span>
+        </div>
+        <div>
+          Last Login: <strong id="dateAccountLastLogin"></strong>
+          <span id="timeSinceAccountLastLogin"></span>
+        </div>
       </div>
     </div>
     <div class="side-menu side-menu-inactive" id="sideMenu">
@@ -86,9 +142,7 @@
         <li class="menu-option">
           <a href="account">Identity Management</a>
         </li>
-        <li class="menu-option">
-          &copy; 2022-25 Enigmaxim
-        </li>
+        <li class="menu-option">&copy; 2022-26 Idle Game Tools</li>
       </ul>
     </div>
   </body>

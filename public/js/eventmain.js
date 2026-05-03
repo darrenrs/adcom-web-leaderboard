@@ -82,7 +82,6 @@ const postFormEvent = async() => {
     }
 
     const iconList = await getIconListFetch()
-
     populateFieldsGeneral(eventData, iconList)
   } else {
     // general failure
@@ -227,7 +226,7 @@ const populateFieldsGeneral = (data, iconList) => {
 
   const eventDetails = getEventDetails(data["event"]["eventName"])
   document.querySelector('#eventImage').classList.remove('d-none')
-  document.querySelector('#eventImage').setAttribute('src', `img/adcom/banner/${data["event"]["eventName"]}.png`)
+  document.querySelector('#eventImage').setAttribute('src', getEventBannerAssetPath(data["event"]["eventName"]))
   document.querySelector('#eventFullName').innerText = eventDetails["name"]
   document.querySelector('#eventDescription').innerText = eventDetails["desc"]
   document.querySelector('#eventStartDate').innerText = new Date(data["event"]["startDate"]).toLocaleString()
@@ -293,7 +292,7 @@ const populateFieldsGeneral = (data, iconList) => {
       const playerNameProperties = getPlayerNameFromOrdinal(data["division"]["top"][i]["ordinal"])
       
       let image = document.createElement('img')
-      image.src = `img/icons/v2/${iconList[data["division"]["top"][i]["avatarId"]]}.png`
+      image.src = getAvatarImagePath(iconList, data["division"]["top"][i]["avatarId"])
       image.style = 'width: 40px; max-height: 40px;'
       image.alt = '' // don't add a value to this or it'll look ugly
       imageCell.appendChild(image)

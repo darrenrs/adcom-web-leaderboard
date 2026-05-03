@@ -1,14 +1,15 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/png" href="img/icon.png">
-    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="css/eventlist.css">
-    <link rel="stylesheet" type="text/css" href="css/darkmode.css">
-    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" href="img/icon.png" />
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="css/eventlist.css" />
+    <link rel="stylesheet" type="text/css" href="css/darkmode.css" />
+    <link rel="stylesheet" type="text/css" href="css/main.css" />
     <script src="js/eventlist.js" defer></script>
+    <script src="js/runtime-config.js" defer></script>
     <script src="js/helper.js" defer></script>
     <script src="js/build.js" defer></script>
     <script src="js/menu.js" defer></script>
@@ -20,19 +21,43 @@
     <nav class="navbar navbar-dark bg-dark sticky-top">
       <div class="container-fluid">
         <div id="sideMenuBtn" class="navbar-brand open-btn">
-          <img src="img/icon.png" width="30" height="40" class="d-inline-block align-self-center" alt="AdCom icon">
+          <img
+            src="img/icon.png"
+            width="30"
+            height="40"
+            class="d-inline-block align-self-center"
+            alt="AdCom icon"
+          />
           Event Schedule ☰
         </div>
-        <a class="navbar-brand" href="https://github.com/darrenrs/adcom-web-leaderboard">
-          <img src="img/github.png" width="30" height="30" style="display: flex; margin: 0 auto;" alt="GitHub">
+        <a
+          class="navbar-brand"
+          href="https://github.com/darrenrs/adcom-web-leaderboard"
+        >
+          <img
+            src="img/github.png"
+            width="30"
+            height="30"
+            style="display: flex; margin: 0 auto"
+            alt="GitHub"
+          />
           <span id="buildId">&nbsp;</span>
         </a>
       </div>
     </nav>
     <div class="container pt-2">
       <h2>Event Schedule</h2>
-      <p>A quick reference to all events past, present, and future. Events are ALWAYS shown in your local time zone (as reported by your web browser.)</p>
-      <p><strong>Note:</strong> Events prior to August 25, 2022 are unavailable as those used a previous API version. Events labeled "future" in the status column are susceptible to change at any time. Events labeled "archived" have undergone an archive job and have limited accessible data.</p>
+      <p>
+        A quick reference to all events past, present, and future. Events are
+        ALWAYS shown in your local time zone (as reported by your web browser.)
+      </p>
+      <p>
+        <strong>Note:</strong> Events prior to August 25, 2022 are unavailable
+        as those used a previous API version. Events labeled "future" in the
+        status column are susceptible to change at any time. Events labeled
+        "archived" have undergone an archive job and have limited accessible
+        data.
+      </p>
       <div class="container pt-2">
         <div class="row pt-3">
           <div class="overflow-auto">
@@ -40,8 +65,8 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th colspan=2>Name</th>
-                  <th colspan=2>Start/End Date (<span id="tzs"></span>)</th>
+                  <th colspan="2">Name</th>
+                  <th colspan="2">Start/End Date (<span id="tzs"></span>)</th>
                   <th>Duration</th>
                   <th>Player Count*</th>
                   <th>Status</th>
@@ -49,7 +74,7 @@
               </thead>
               <tbody id="eventSchedule" class="table-group-divider"></tbody>
             </table>
-            <span id="eventListLoadError" class="text-danger d-none"></span>  
+            <span id="eventListLoadError" class="text-danger d-none"></span>
           </div>
         </div>
       </div>
@@ -59,51 +84,66 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Event Debug Information</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
           </div>
           <div class="modal-body">
             <ul id="eventDebugInfo"></ul>
           </div>
           <div class="modal-footer">
-            <button id="copyEventId" type="button" class="btn btn-primary me-auto">Copy Event ID</button>
-            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            <button
+              id="copyEventId"
+              type="button"
+              class="btn btn-primary me-auto"
+            >
+              Copy Event ID
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
           </div>
         </div>
       </div>
     </div>
-      <div class="side-menu side-menu-inactive" id="sideMenu">
-        <ul>
-          <li class="menu-option">
-            <a href="./">Home</a>
-          </li>
-          <li class="menu-option">
-            <a href="event">Your Events</a>
-          </li>
-          <li class="menu-option">
-            <a href="discord">Discord Leaderboard</a>
-          </li>
-          <li class="menu-option menu-option-selected">
-            <a href="eventlist">Event Schedule</a>
-          </li>
-          <li class="menu-option">
-            <a href="report">Event Report</a>
-          </li>
-          <li class="menu-option">
-            <a href="top">Top Players</a>
-          </li>
-          <li class="menu-option">
-            <a href="finished">Current Event Statistics</a>
-          </li>
-          <li class="menu-option">
-            <a href="playervalue">Account Value</a>
-          </li>
-          <li class="menu-option">
-            <a href="account">Identity Management</a>
-          </li>
-          <li class="menu-option">
-            &copy; 2022-25 Enigmaxim
-          </li>
-        </ul>
-      </div>
+    <div class="side-menu side-menu-inactive" id="sideMenu">
+      <ul>
+        <li class="menu-option">
+          <a href="./">Home</a>
+        </li>
+        <li class="menu-option">
+          <a href="event">Your Events</a>
+        </li>
+        <li class="menu-option">
+          <a href="discord">Discord Leaderboard</a>
+        </li>
+        <li class="menu-option menu-option-selected">
+          <a href="eventlist">Event Schedule</a>
+        </li>
+        <li class="menu-option">
+          <a href="report">Event Report</a>
+        </li>
+        <li class="menu-option">
+          <a href="top">Top Players</a>
+        </li>
+        <li class="menu-option">
+          <a href="finished">Current Event Statistics</a>
+        </li>
+        <li class="menu-option">
+          <a href="playervalue">Account Value</a>
+        </li>
+        <li class="menu-option">
+          <a href="account">Identity Management</a>
+        </li>
+        <li class="menu-option">&copy; 2022-26 Idle Game Tools</li>
+      </ul>
+    </div>
   </body>
 </html>
