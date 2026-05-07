@@ -17,7 +17,6 @@ const fullBasePlayerMeta = `${process.env.API_URL_PLAYERMETA}/project/${process.
 const ASSET_SERVER = process.env.ASSET_SERVER
 const ASSET_NAMESPACE = process.env.PLAYFAB_TITLE_ID
 const ASSET_PUBLIC_BASE = process.env.ASSET_PUBLIC_BASE
-const ASSET_UPDATE_URL = process.env.ASSET_UPDATE_URL
 
 const assetServerBase = () => {
   if (!ASSET_SERVER || !ASSET_NAMESPACE) {
@@ -41,10 +40,6 @@ const assetPublicBase = () => {
 }
 
 const assetUpdateUrl = () => {
-  if (ASSET_UPDATE_URL) {
-    return ASSET_UPDATE_URL.replace(/\/+$/, '')
-  }
-
   if (!ASSET_SERVER) {
     return null
   }

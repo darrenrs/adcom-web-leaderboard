@@ -29,7 +29,6 @@ Please make a copy of `.env.example` and rename it to `.env`. This file is manda
 | `PORT` | Yes | Express server port. |
 | `ASSET_SERVER` | Yes | Backend-to-backend asset server base URL. |
 | `ASSET_PUBLIC_BASE` | Yes | Browser-facing asset base URL for images/JSON. |
-| `ASSET_UPDATE_URL` | No | Override for update endpoint. Defaults to `${ASSET_SERVER}/update`. |
 | `ADMIN_PWD` | Yes | SHA-256 hash of leaderboard admin password (not plain text). |
 | `API_APPLICATION_ID` | Yes | Hyper Hippo project/application id (example: `adcom`). |
 | `API_URL_LEADERBOARD` | Yes | HH leaderboard API base URL. |
