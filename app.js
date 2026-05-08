@@ -18,6 +18,27 @@ const ASSET_SERVER = process.env.ASSET_SERVER
 const ASSET_NAMESPACE = process.env.PLAYFAB_TITLE_ID
 const ASSET_PUBLIC_BASE = process.env.ASSET_PUBLIC_BASE
 
+const resolveAssetPublicBase = (rawBase, titleId) => {
+  if (!rawBase) {
+    return ''
+  }
+
+  const normalizedBase = rawBase.replace(/\/+$/, '')
+  if (!titleId) {
+    return normalizedBase
+  }
+
+  if (normalizedBase.includes('{env.PLAYFAB_TITLE_ID}')) {
+    return normalizedBase.replace(/\{env\.PLAYFAB_TITLE_ID\}/g, titleId)
+  }
+
+  if (normalizedBase.endsWith(`/${titleId}`)) {
+    return normalizedBase
+  }
+
+  return `${normalizedBase}/${titleId}`
+}
+
 const assetServerBase = () => {
   if (!ASSET_SERVER || !ASSET_NAMESPACE) {
     return null
@@ -28,7 +49,7 @@ const assetServerBase = () => {
 
 const assetPublicBase = () => {
   if (ASSET_PUBLIC_BASE) {
-    return ASSET_PUBLIC_BASE.replace(/\/+$/, '')
+    return resolveAssetPublicBase(ASSET_PUBLIC_BASE, ASSET_NAMESPACE)
   }
 
   const fallback = assetServerBase()
