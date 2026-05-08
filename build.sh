@@ -7,5 +7,7 @@ export COMMIT_HASH=$(git rev-parse --short=8 HEAD)
 touch players.db
 touch afflicted-events.txt
 
+docker network inspect adcom-sites >/dev/null 2>&1 || docker network create adcom-sites
+
 # Run Docker Compose with the build argument
 docker compose up --build -d

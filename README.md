@@ -27,7 +27,7 @@ Please make a copy of `.env.example` and rename it to `.env`. This file is manda
 | Variable | Required | Description |
 |---|---|---|
 | `PORT` | Yes | Express server port. |
-| `ASSET_SERVER` | Yes | Backend-to-backend asset server base URL. |
+| `ASSET_SERVER` | Yes | Backend-to-backend asset server base URL (Docker service URL in dev, private internal URL in prod). |
 | `ASSET_PUBLIC_BASE` | Yes | Browser-facing asset root URL for images/JSON (for example, `http://localhost:3002/assets`). |
 | `ADMIN_PWD` | Yes | SHA-256 hash of leaderboard admin password (not plain text). |
 | `API_APPLICATION_ID` | Yes | Hyper Hippo project/application id (example: `adcom`). |
@@ -42,11 +42,12 @@ Please make a copy of `.env.example` and rename it to `.env`. This file is manda
 
 #### Practical Notes
 
-- In Docker, if the asset server runs on the host machine, use `ASSET_SERVER=http://host.docker.internal:3002`.
+- In Docker Compose, use `ASSET_SERVER=http://assets:3002` so the app reaches `adcom-assets` over the shared `adcom-sites` Docker network.
 - `ASSET_SERVER` is backend reachability; `ASSET_PUBLIC_BASE` is browser reachability (they can differ).
 - `ASSET_PUBLIC_BASE` should be set to the assets root only; runtime config appends `/{PLAYFAB_TITLE_ID}` for client requests.
 - Typical values:
-  `ASSET_PUBLIC_BASE=http://localhost:3002/assets` (dev) and `ASSET_PUBLIC_BASE=https://idlegametools.com/assets` (prod).
+  `ASSET_SERVER=http://assets:3002` in Docker, `ASSET_PUBLIC_BASE=http://localhost:3002/assets` in dev, and `ASSET_PUBLIC_BASE=https://idlegametools.com/assets` in prod.
+- In production, reverse proxy this app to `/adcom-leaderboard/` and proxy only the asset server's `/assets/` path publicly. Do not expose the asset server's `/` or `/update` paths publicly.
 - Generate `ADMIN_PWD` from a plain password:
   `echo -n "your-password" | shasum -a 256`
 
