@@ -86,7 +86,7 @@ app.get('/js/runtime-config.js', async (req, res) => {
   res.status(200).send(`window.__RUNTIME_CONFIG__ = ${JSON.stringify(runtimeConfig)};`)
 })
 
-const log = async (message, remoteAddress, error=false) => {
+const log = (message, remoteAddress, error=false) => {
   const currentTime = (new Date()).toISOString()
   const logMessage = `${currentTime} [${remoteAddress}] - ${message}`
 
@@ -707,15 +707,15 @@ const getPlayerAccountValueFromPlayFab = async(id) => {
 
 // get event list
 app.get('/api/list', async (req, res) => {
-  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const remoteAddress = req.socket.remoteAddress
   try {
-    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+    log(`${req.method} ${req.path}`, remoteAddress)
     
     const allEvents = await getAllEvents()
 
     res.send(allEvents)
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
+    log(`${req.method} ${req.path} error - ${e}`, remoteAddress, true)
 
     res.sendStatus(502)
   }
@@ -723,15 +723,15 @@ app.get('/api/list', async (req, res) => {
 
 // get event list including future events
 app.get('/api/list/all', async (req, res) => {
-  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const remoteAddress = req.socket.remoteAddress
   try {
-    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+    log(`${req.method} ${req.path}`, remoteAddress)
 
     const allEvents = await getAllEvents(true)
 
     res.send(allEvents)
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
+    log(`${req.method} ${req.path} error - ${e}`, remoteAddress, true)
 
     res.sendStatus(502)
   }
@@ -739,9 +739,9 @@ app.get('/api/list/all', async (req, res) => {
 
 // check if exists in discord lb
 app.post('/api/discord/account', async(req, res) => {
-  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const remoteAddress = req.socket.remoteAddress
   try {
-    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+    log(`${req.method} ${req.path}`, remoteAddress)
 
     if (!req.body || !req.body["playFabId"]) {
       res.sendStatus(400)
@@ -769,7 +769,7 @@ app.post('/api/discord/account', async(req, res) => {
     dbHandler.close()
     return
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
+    log(`${req.method} ${req.path} error - ${e}`, remoteAddress, true)
 
     res.sendStatus(500)
     
@@ -779,9 +779,9 @@ app.post('/api/discord/account', async(req, res) => {
 
 // add record to discord lb
 app.put('/api/discord/account', async(req, res) => {
-  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const remoteAddress = req.socket.remoteAddress
   try {
-    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+    log(`${req.method} ${req.path}`, remoteAddress)
 
     if (!req.body) {
       res.sendStatus(400)
@@ -842,7 +842,7 @@ app.put('/api/discord/account', async(req, res) => {
     dbHandler.close()
     return
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
+    log(`${req.method} ${req.path} error - ${e}`, remoteAddress, true)
 
     if (e.includes("UNIQUE constraint failed")) {
       res.sendStatus(409)
@@ -856,9 +856,9 @@ app.put('/api/discord/account', async(req, res) => {
 
 // update discord lb record
 app.patch('/api/discord/account', async(req, res) => {
-  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const remoteAddress = req.socket.remoteAddress
   try {
-    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+    log(`${req.method} ${req.path}`, remoteAddress)
 
     if (!req.body) {
       res.sendStatus(400)
@@ -919,7 +919,7 @@ app.patch('/api/discord/account', async(req, res) => {
     dbHandler.close()
     return
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
+    log(`${req.method} ${req.path} error - ${e}`, remoteAddress, true)
 
     if (e.includes("no records found")) {
       res.sendStatus(404)
@@ -933,9 +933,9 @@ app.patch('/api/discord/account', async(req, res) => {
 
 // delete record from discord lb
 app.delete('/api/discord/account', async(req, res) => {
-  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const remoteAddress = req.socket.remoteAddress
   try {
-    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+    log(`${req.method} ${req.path}`, remoteAddress)
 
     if (!req.body) {
       res.sendStatus(400)
@@ -965,7 +965,7 @@ app.delete('/api/discord/account', async(req, res) => {
     dbHandler.close()
     return
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
+    log(`${req.method} ${req.path} error - ${e}`, remoteAddress, true)
 
     if (e.includes("no records found")) {
       res.sendStatus(404)
@@ -979,7 +979,7 @@ app.delete('/api/discord/account', async(req, res) => {
 
 // discord OAuth2 callback
 app.get('/api/discord/oauth', async (req, res) => {
-  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const remoteAddress = req.socket.remoteAddress
   const origin = `${req.protocol}://${req.headers.host}`
   const basePath = req.headers['x-original-base-path'] || '' // Apache custom configuration
 
@@ -1073,9 +1073,9 @@ app.get('/api/discord/oauth', async (req, res) => {
 
 // query all players who are participants in the Discord leaderboard
 app.get('/api/discord/:event', async(req, res) => {
-  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const remoteAddress = req.socket.remoteAddress
   try {
-    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+    log(`${req.method} ${req.path}`, remoteAddress)
 
     const eventId = req.params.event
     const allEventData = await getAllEvents()
@@ -1192,16 +1192,16 @@ app.get('/api/discord/:event', async(req, res) => {
     res.status(200).send(returnStructFinal)
     return
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
+    log(`${req.method} ${req.path} error - ${e}`, remoteAddress, true)
     res.sendStatus(502)
   }
 })
 
 // check if player exists
 app.get('/api/player/:id', async (req, res) => {
-  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const remoteAddress = req.socket.remoteAddress
   try {
-    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+    log(`${req.method} ${req.path}`, remoteAddress)
 
     const id = req.params.id
 
@@ -1209,12 +1209,12 @@ app.get('/api/player/:id', async (req, res) => {
     if (playerState) {
       res.status(200).end()
     } else {
-      log(`${req.method} ${req.originalUrl} - no record found.`, remoteAddress)
+      log(`${req.method} ${req.path} - no record found.`, remoteAddress)
 
       res.status(404).end()
     }
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
+    log(`${req.method} ${req.path} error - ${e}`, remoteAddress, true)
 
     res.sendStatus(502)
   }
@@ -1222,16 +1222,16 @@ app.get('/api/player/:id', async (req, res) => {
 
 // get all player events with position
 app.get('/api/player/:id/all', async (req, res) => {
-  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const remoteAddress = req.socket.remoteAddress
   try {
-    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+    log(`${req.method} ${req.path}`, remoteAddress)
 
     const id = req.params.id
 
     const allKnownPlayerEvents = await getKnownPlayerEvents(id)
 
     if (!allKnownPlayerEvents) {
-      log(`${req.method} ${req.originalUrl} - no record found.`, remoteAddress)
+      log(`${req.method} ${req.path} - no record found.`, remoteAddress)
 
       res.status(404).end()
       return
@@ -1297,7 +1297,7 @@ app.get('/api/player/:id/all', async (req, res) => {
     
     res.status(200).send(playerEventRecords)
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
+    log(`${req.method} ${req.path} error - ${e}`, remoteAddress, true)
 
     res.sendStatus(502)
   }
@@ -1305,9 +1305,9 @@ app.get('/api/player/:id/all', async (req, res) => {
 
 // get lifetime amount spent for player
 app.get('/api/player/:id/accountvalue', async (req, res) => {
-  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const remoteAddress = req.socket.remoteAddress
   try {
-    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+    log(`${req.method} ${req.path}`, remoteAddress)
 
     const id = req.params.id
     let output = await getPlayerAccountValueFromPlayFab(id)
@@ -1321,7 +1321,7 @@ app.get('/api/player/:id/accountvalue', async (req, res) => {
 
     res.json(output)
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
+    log(`${req.method} ${req.path} error - ${e}`, remoteAddress, true)
 
     res.sendStatus(502)
   }
@@ -1329,9 +1329,9 @@ app.get('/api/player/:id/accountvalue', async (req, res) => {
 
 // get list of all registered events for a player
 app.get('/api/list/:id', async (req, res) => {
-  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const remoteAddress = req.socket.remoteAddress
   try {
-    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+    log(`${req.method} ${req.path}`, remoteAddress)
 
     const id = req.params.id
     const allKnownPlayerEvents = await getKnownPlayerEvents(id)
@@ -1339,12 +1339,12 @@ app.get('/api/list/:id', async (req, res) => {
     if (allKnownPlayerEvents) {
       res.status(200).json(allKnownPlayerEvents)
     } else {
-      log(`${req.method} ${req.originalUrl} - no record found.`, remoteAddress)
+      log(`${req.method} ${req.path} - no record found.`, remoteAddress)
 
       res.status(404).end()
     }
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
+    log(`${req.method} ${req.path} error - ${e}`, remoteAddress, true)
 
     res.sendStatus(502)
   }
@@ -1390,9 +1390,9 @@ app.get('/api/event/:event/lb-invalid', async(req, res) => {
 // balance data
 // common gateway for rank estimator
 app.get('/api/event/:event/balance', async (req, res) => {
-  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const remoteAddress = req.socket.remoteAddress
   try {
-    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+    log(`${req.method} ${req.path}`, remoteAddress)
 
     const eventId = req.params.event
 
@@ -1420,7 +1420,7 @@ app.get('/api/event/:event/balance', async (req, res) => {
 
     res.send(currentEventData)
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
+    log(`${req.method} ${req.path} error - ${e}`, remoteAddress, true)
 
     res.sendStatus(500).end()
   }
@@ -1428,9 +1428,9 @@ app.get('/api/event/:event/balance', async (req, res) => {
 
 // common gateway for rank estimator
 app.get('/api/event/:event/rank-estimator', async (req, res) => {
-  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const remoteAddress = req.socket.remoteAddress
   try {
-    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+    log(`${req.method} ${req.path}`, remoteAddress)
 
     const eventId = req.params.event
     const trophies = req.query.trophies
@@ -1485,7 +1485,7 @@ app.get('/api/event/:event/rank-estimator', async (req, res) => {
       res.json(rankString)
     }
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
+    log(`${req.method} ${req.path} error - ${e}`, remoteAddress, true)
 
     res.sendStatus(502).end()
   }
@@ -1493,9 +1493,9 @@ app.get('/api/event/:event/rank-estimator', async (req, res) => {
 
 // master player API
 app.get('/api/event/:event/:id', async (req, res) => {
-  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const remoteAddress = req.socket.remoteAddress
   try {
-    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+    log(`${req.method} ${req.path}`, remoteAddress)
 
     const id = req.params.id
     const eventId = req.params.event
@@ -1513,7 +1513,7 @@ app.get('/api/event/:event/:id', async (req, res) => {
     const playerEventInfo = await getPlayerEventInfo(id, eventId)
     if (!playerEventInfo) {
       // don't even bother continuing if we know the ID has no record
-      log(`${req.method} ${req.originalUrl} - no record found.`, remoteAddress)
+      log(`${req.method} ${req.path} - no record found.`, remoteAddress)
 
       res.status(404).end()
       return
@@ -1522,7 +1522,7 @@ app.get('/api/event/:event/:id', async (req, res) => {
     const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25)
     if (!playerLeaderboard) {
       // don't even bother continuing if we know the ID has no record
-      log(`${req.method} ${req.originalUrl} - no record found.`, remoteAddress)
+      log(`${req.method} ${req.path} - no record found.`, remoteAddress)
 
       res.status(404).end()
       return
@@ -1540,7 +1540,7 @@ app.get('/api/event/:event/:id', async (req, res) => {
     
     res.status(200).json(returnStruct)
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
+    log(`${req.method} ${req.path} error - ${e}`, remoteAddress, true)
 
     res.sendStatus(502)
   }
@@ -1548,9 +1548,9 @@ app.get('/api/event/:event/:id', async (req, res) => {
 
 // individual position for a player
 app.get('/api/event/:event/:id/position', async (req, res) => {
-  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const remoteAddress = req.socket.remoteAddress
   try {
-    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+    log(`${req.method} ${req.path}`, remoteAddress)
 
     const id = req.params.id
     const eventId = req.params.event
@@ -1558,7 +1558,7 @@ app.get('/api/event/:event/:id/position', async (req, res) => {
     const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25)
     if (!playerLeaderboard) {
       // don't even bother continuing if we know the ID has no record
-      log(`${req.method} ${req.originalUrl} - no record found.`, remoteAddress)
+      log(`${req.method} ${req.path} - no record found.`, remoteAddress)
 
       res.status(404).end()
       return
@@ -1575,7 +1575,7 @@ app.get('/api/event/:event/:id/position', async (req, res) => {
       res.status(200).send(playerLeaderboard["results"]["rootResults"]["offsetResults"]["archivedEntry"]["rootPosition"]["position"].toString())
     }
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
+    log(`${req.method} ${req.path} error - ${e}`, remoteAddress, true)
 
     res.sendStatus(502)
   }
@@ -1583,9 +1583,9 @@ app.get('/api/event/:event/:id/position', async (req, res) => {
 
 // brackets for a leaderboard (requires PlayFab)
 app.get('/api/event/:event/:id/brackets', async (req, res) => {
-  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const remoteAddress = req.socket.remoteAddress
   try {
-    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+    log(`${req.method} ${req.path}`, remoteAddress)
 
     const id = req.params.id
     const eventId = req.params.event
@@ -1594,7 +1594,7 @@ app.get('/api/event/:event/:id/brackets', async (req, res) => {
     const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25)
     if (!playerLeaderboard) {
       // don't even bother continuing if we know the ID has no record
-      log(`${req.method} ${req.originalUrl} - no record found.`, remoteAddress)
+      log(`${req.method} ${req.path} - no record found.`, remoteAddress)
 
       res.status(404).end()
       return
@@ -1605,7 +1605,7 @@ app.get('/api/event/:event/:id/brackets', async (req, res) => {
     if (playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]) {
       totalPlayers = playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"][0]["position"]["count"]
     } else {
-      log(`${req.method} ${req.originalUrl} - cannot query from archived leaderboard.`, remoteAddress)
+      log(`${req.method} ${req.path} - cannot query from archived leaderboard.`, remoteAddress)
 
       res.sendStatus(404) // can't currently retrieve brackets from archived leaderboards
       return
@@ -1621,7 +1621,7 @@ app.get('/api/event/:event/:id/brackets', async (req, res) => {
 
     res.status(200).json(returnStruct)
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
+    log(`${req.method} ${req.path} error - ${e}`, remoteAddress, true)
 
     res.sendStatus(502)
   }
@@ -1629,9 +1629,9 @@ app.get('/api/event/:event/:id/brackets', async (req, res) => {
 
 // top players for a leaderboard (requires PlayFab)
 app.get('/api/event/:event/:id/top/:count', async (req, res) => {
-  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const remoteAddress = req.socket.remoteAddress
   try {
-    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+    log(`${req.method} ${req.path}`, remoteAddress)
 
     const id = req.params.id
     const eventId = req.params.event
@@ -1639,12 +1639,12 @@ app.get('/api/event/:event/:id/top/:count', async (req, res) => {
     const topPlayers = parseInt(req.params.count)
 
     if (isNaN(topPlayers)) {
-      log(`${req.method} ${req.originalUrl} - invalid request`, remoteAddress)
+      log(`${req.method} ${req.path} - invalid request`, remoteAddress)
       res.status(400).end()
       return
     } else if (topPlayers < 1 || topPlayers > 1000) {
       // server can return more than 1000 players but this ability should not be given to the client
-      log(`${req.method} ${req.originalUrl} - invalid request`, remoteAddress)
+      log(`${req.method} ${req.path} - invalid request`, remoteAddress)
       res.status(400).end()
       return
     }
@@ -1652,7 +1652,7 @@ app.get('/api/event/:event/:id/top/:count', async (req, res) => {
     const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 1, topPlayers)
     if (!playerLeaderboard["results"]["rootResults"]["topResults"]) {
       // don't even bother continuing if we know the ID has no record
-      log(`${req.method} ${req.originalUrl} - no record found.`, remoteAddress)
+      log(`${req.method} ${req.path} - no record found.`, remoteAddress)
 
       res.status(404).end()
       return
@@ -1754,7 +1754,7 @@ app.get('/api/event/:event/:id/top/:count', async (req, res) => {
 
     res.status(200).json(returnStruct)
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
+    log(`${req.method} ${req.path} error - ${e}`, remoteAddress, true)
 
     res.sendStatus(502)
   }
@@ -1762,9 +1762,9 @@ app.get('/api/event/:event/:id/top/:count', async (req, res) => {
 
 // how many players have finished the event? (estimate)
 app.get('/api/event/:event/:id/finished', async(req, res) => {
-  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const remoteAddress = req.socket.remoteAddress
   try {
-    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+    log(`${req.method} ${req.path}`, remoteAddress)
 
     const id = req.params.id
     const eventId = req.params.event
@@ -1786,7 +1786,7 @@ app.get('/api/event/:event/:id/finished', async(req, res) => {
     let playerLeaderboard = await getPlayerLeaderboard(id, eventId, 1, 1)
     if (!playerLeaderboard["results"]["rootResults"]["topResults"]) {
       // don't even bother continuing if we know the ID has no record
-      log(`${req.method} ${req.originalUrl} - no record found.`, remoteAddress)
+      log(`${req.method} ${req.path} - no record found.`, remoteAddress)
 
       res.sendStatus(404)
       return
@@ -1829,7 +1829,7 @@ app.get('/api/event/:event/:id/finished', async(req, res) => {
     res.status(200).json(returnStruct)
     return
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
+    log(`${req.method} ${req.path} error - ${e}`, remoteAddress, true)
 
     // hacky fix
     if (e.response.status === 404) {
@@ -1865,38 +1865,38 @@ const getAvatarMapFromAssetServer = async() => {
 }
 
 app.get('/api/icons', async(req, res) => {
-  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const remoteAddress = req.socket.remoteAddress
   try {
-    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+    log(`${req.method} ${req.path}`, remoteAddress)
     const avatarData = await getAvatarMapFromAssetServer()
     res.status(200).json(avatarData)
     return
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
+    log(`${req.method} ${req.path} error - ${e}`, remoteAddress, true)
     res.status(200).json({})
     return
   }
 })
 
 app.get('/api/avatar-map', async(req, res) => {
-  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const remoteAddress = req.socket.remoteAddress
   try {
-    log(`${req.method} ${req.originalUrl}`, remoteAddress)
+    log(`${req.method} ${req.path}`, remoteAddress)
     const avatarData = await getAvatarMapFromAssetServer()
     res.status(200).json(avatarData)
     return
   } catch (e) {
-    log(`${req.method} ${req.originalUrl} error - ${e}`, remoteAddress, true)
+    log(`${req.method} ${req.path} error - ${e}`, remoteAddress, true)
     res.status(200).json({})
     return
   }
 })
 
 app.post('/api/admin', async(req, res) => {
-  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const remoteAddress = req.socket.remoteAddress
 
   if (req.body && crypto.createHash('sha256').update(req.body.password).digest('hex') === process.env.ADMIN_PWD) {
-    log(`${req.method} ${req.originalUrl} - successful admin login`, remoteAddress)
+    log(`${req.method} ${req.path} - successful admin login`, remoteAddress)
     const returnStruct = {
       "discordLeaderboard": null,
       "dbPlayerList": null,
@@ -1932,7 +1932,7 @@ app.post('/api/admin', async(req, res) => {
 
     res.json(returnStruct)
   } else {
-    log(`${req.method} ${req.originalUrl} - failed admin login`, remoteAddress)
+    log(`${req.method} ${req.path} - failed admin login`, remoteAddress)
     res.sendStatus(401)
   }
   
@@ -1940,15 +1940,15 @@ app.post('/api/admin', async(req, res) => {
 })
 
 app.post('/api/admin/data-file', async(req, res) => {
-  const remoteAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const remoteAddress = req.socket.remoteAddress
   const adminPassword = req.body ? req.body.adminPassword : null
   if (!adminPassword || crypto.createHash('sha256').update(adminPassword).digest('hex') !== process.env.ADMIN_PWD) {
-    log(`${req.method} ${req.originalUrl} - failed admin login`, remoteAddress)
+    log(`${req.method} ${req.path} - failed admin login`, remoteAddress)
     res.sendStatus(401)
     return
   }
 
-  log(`${req.method} ${req.originalUrl} - successful admin login`, remoteAddress)
+  log(`${req.method} ${req.path} - successful admin login`, remoteAddress)
 
   const updateUrl = assetUpdateUrl()
   if (!updateUrl) {
@@ -2000,7 +2000,7 @@ app.post('/api/admin/data-file', async(req, res) => {
     }
   } catch (e) {
     const causeText = e && e.cause && e.cause.message ? `; cause: ${e.cause.message}` : ''
-    log(`${req.method} ${req.originalUrl} error - updateUrl=${updateUrl} - ${e}${causeText}`, remoteAddress, true)
+    log(`${req.method} ${req.path} error - updateUrl=${updateUrl} - ${e}${causeText}`, remoteAddress, true)
     res.status(502).json({
       "ok": false,
       "parameters": {
