@@ -1,3 +1,15 @@
+const UPDATE_TIMEOUT_MESSAGE = 'Response timed out, but job is still running in the background. Please refresh the page in several minutes.'
+
+const isTimeoutStatus = (status) => {
+  return status === 408 || status === 504 || status === 524
+}
+
+const isTimeoutError = (error) => {
+  const name = error?.name || ''
+  const message = error?.message || ''
+  return name === 'AbortError' || name === 'TimeoutError' || /timed?\s*out/i.test(message)
+}
+
 const postFormAdmin = async() => {
   document.querySelector('#mainContent').classList.add('d-none')
   document.querySelector('#adminLoginStatus').classList.remove('d-none')
@@ -30,6 +42,8 @@ const postFormUpdateDataFile = async() => {
     document.querySelector('#updateDataFileStatus').classList.add('text-success')
     document.querySelector('#updateDataFileStatus').classList.remove('text-danger')
     document.querySelector('#updateDataFileStatus').innerText = `Successfully updated data files to version ${document.querySelector('#dataVersion').value}`
+  } else if (isTimeoutStatus(updateDataFiles["__httpStatus"])) {
+    document.querySelector('#updateDataFileStatus').innerText = UPDATE_TIMEOUT_MESSAGE
   } else {
     const message = updateDataFiles["status"] || updateDataFiles["statusMessage"] || updateDataFiles["detail"] || `Server error (${updateDataFiles["__httpStatus"]})`
     document.querySelector('#updateDataFileStatus').innerText = (typeof message === 'string') ? message : JSON.stringify(message)
@@ -105,6 +119,11 @@ const getUpdateDataFiles = async() => {
   })
   .catch((error) => {
     console.error(error)
+    if (isTimeoutError(error)) {
+      document.querySelector('#updateDataFileStatus').innerText = UPDATE_TIMEOUT_MESSAGE
+      return
+    }
+
     document.querySelector('#updateDataFileStatus').innerText = 'Please check your internet connection'
     return
   })

@@ -252,6 +252,13 @@ const getAllEventDetails = () => {
       "commonBalance": "minisanta",
       "eventType": "minisupreme"
     },
+    "minisports": {
+      "name": "Mini Motherland Games",
+      "short": "Mini MG",
+      "desc": "Calling all goaligarchs! Pack your shin guards and hydration packs for Siberica’s biggest sports showdown yet! Channel World Cup energy, survive extra-time chaos, and battle for glory like it’s the final in front of billions. One truncated tournament. Infinite VAR arguments.",
+      "commonBalance": "minisanta",
+      "eventType": "minisupreme"
+    },
     "minivacation": {
       "name": "Comrade's Mini Vacation!",
       "short": "Mini Vacation",
