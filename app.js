@@ -286,7 +286,7 @@ const parseKnownPlayerEvents = async(id, allEvents) => {
     newKnownEvents.sort((a, b) => b["startDate"] - a["startDate"])
     return newKnownEvents
   } catch(e) {
-    // Ratelimited; try again
+    throw e
   }
 }
 
@@ -297,8 +297,11 @@ const getPlayerEventInfo = async(id, eventId) => {
     
     return playerEventReq["data"]["data"]
   } catch (e) {
-    // console.error(e)
-    return Promise.reject(e)
+    if (e.response?.status === 404) {
+      return null
+    }
+
+    throw e
   }
 }
 
@@ -1006,17 +1009,13 @@ app.get('/api/discord/:event', async(req, res) => {
     const playerEventRecordsPromises = playerRecords.map(async (record) => {
       const id = record["id"]
 
-      const playerEventInfoPromise = getPlayerEventInfo(id, eventId)
-      const playerLeaderboardPromise = getPlayerLeaderboard(id, eventId, 25, 25, true)
+      const playerEventInfo = await getPlayerEventInfo(id, eventId)
+      if (!playerEventInfo) {
+        return null
+      }
 
-      const results = await Promise.allSettled([
-        playerEventInfoPromise,
-        playerLeaderboardPromise,
-      ])
-      
-      const [playerEventInfo, playerLeaderboard] = results.map((result) => result.value)
-
-      if (!playerEventInfo || !playerLeaderboard) {
+      const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25, true)
+      if (!playerLeaderboard) {
         return null
       }
 
@@ -1149,17 +1148,13 @@ app.get('/api/player/:id/all', async (req, res) => {
     const playerEventRecordsPromises = joinedEvents.map(async (record) => {
       const eventId = record["eventId"]
 
-      const playerEventInfoPromise = getPlayerEventInfo(id, eventId)
-      const playerLeaderboardPromise = getPlayerLeaderboard(id, eventId, 25, 25, true)
+      const playerEventInfo = await getPlayerEventInfo(id, eventId)
+      if (!playerEventInfo) {
+        return null
+      }
 
-      const results = await Promise.allSettled([
-        playerEventInfoPromise,
-        playerLeaderboardPromise,
-      ])
-      
-      const [playerEventInfo, playerLeaderboard] = results.map((result) => result.value)
-
-      if (!playerEventInfo || !playerLeaderboard) {
+      const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25, true)
+      if (!playerLeaderboard) {
         return null
       }
       

@@ -34,6 +34,12 @@ Please make a copy of `.env.example` and rename it to `.env`. This file is manda
 | `API_URL_LEADERBOARD` | Yes | HH leaderboard API base URL. |
 | `API_URL_PLAYERMETA` | Yes | HH player metadata API base URL. |
 | `API_GCLOUD_TOKEN` | Yes | Auth token used for HH API requests. |
+| `ADCOM_API_MAX_CONCURRENCY` | No | Maximum simultaneous HH API attempts (default `4`). |
+| `ADCOM_API_REQUESTS_PER_SECOND` | No | Maximum HH API request starts per second (default `8`). |
+| `ADCOM_API_TIMEOUT_MS` | No | Timeout for each HH API attempt in milliseconds (default `10000`). |
+| `ADCOM_API_MAX_RETRIES` | No | Retries for temporary HH API failures (default `2`). |
+| `ADCOM_API_FALLBACK_RETRY_MS` | No | Initial retry delay when `Retry-After` is absent (default `2000`). |
+| `ADCOM_API_RETRY_JITTER_MS` | No | Maximum random retry jitter in milliseconds (default `250`). |
 | `DISCORD_CLIENT_ID` | Yes | Discord OAuth client id. |
 | `DISCORD_SECRET` | Yes | Discord OAuth client secret. |
 | `GC_DEVICE_ID` | Yes | Device id used for PlayFab auth requests. |

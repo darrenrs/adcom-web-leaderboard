@@ -223,7 +223,7 @@ const populateFieldsTop = (data, iconList) => {
     let image = document.createElement('img')
     
     image.src = getAvatarImagePath(iconList, data["top"]["list"][i]["avatarId"])
-    image.style = 'width: 40px; max-height: 40px;'
+    image.style = 'width: 32px; max-height: 32px;'
     image.alt = '' // don't add a value to this or it'll look ugly
     imageCell.appendChild(image)
 

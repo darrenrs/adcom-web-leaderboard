@@ -200,7 +200,7 @@ const populateDiscordLeaderboardTable = (discordLb, discordId) => {
     if (discordLb["players"][i]["discordPfpId"] !== null) {
       image.src = `https://cdn.discordapp.com/avatars/${discordLb["players"][i]["discordId"]}/${discordLb["players"][i]["discordPfpId"]}.png?size=256`
     }
-    image.width = 40
+    image.width = 32
     image.alt = '' // don't add a value to this or it'll look ugly
     image.classList.add('rounded-circle')
     imageCell.appendChild(image)

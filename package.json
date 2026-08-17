@@ -4,7 +4,8 @@
   "description": "AdVenture Communist Event Leaderboard",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.js",
+    "test": "node --test"
   },
   "author": "Darren Skidmore",
   "license": "MIT",

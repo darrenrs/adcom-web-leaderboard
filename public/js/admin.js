@@ -160,7 +160,7 @@ const populateAdmin = async(data) => {
     if (data["discordLeaderboard"][i]["discordProfilePictureId"] !== null) {
       image.src = `https://cdn.discordapp.com/avatars/${data["discordLeaderboard"][i]["discordId"]}/${data["discordLeaderboard"][i]["discordProfilePictureId"]}.png?size=256`
     }
-    image.width = 40
+    image.width = 32
     image.alt = '' // don't add a value to this or it'll look ugly
     image.classList.add('rounded-circle')
     imageCell.appendChild(image)

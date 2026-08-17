@@ -91,23 +91,6 @@ const postFormEvent = async() => {
     document.querySelector('#eventLoadConnectionError').classList.remove('d-none')
     return
   }
-
-  // const eventBrackets = await getLeaderboardBrackets(playerId, selectedEventId)
-
-  // if (eventBrackets) {
-  //   // success
-  //   document.querySelector('#eventLoadConnectionError').classList.add('d-none')
-  //   document.querySelector('#globalPositions').classList.remove('d-none')
-  //   populateFieldsGlobal(eventBrackets, eventData)
-  // } else {
-  //   // general failure
-  //   document.querySelector('#eventLoadConnectionError').classList.remove('d-none')
-  //   document.querySelector('#globalPositions').classList.add('d-none')
-  //   document.querySelector('#leaderboardMarkerContainer').style = `margin-top: 0px !important;`
-  //   document.querySelector('#leaderboardMarker').innerText = 'N/A'
-  //   document.querySelector('#leaderboardMarker').setAttribute('inverse', 'N/A')
-  //   document.querySelector('#bracketScore').innerText = 'unavailable'
-  // }
 }
 
 const getPlayerState = async(playerId) => {
@@ -238,8 +221,10 @@ const populateFieldsGeneral = (data, iconList) => {
 
   if (data["status"] === 'archived') {
     document.querySelector('#eventArchivedWarning').classList.remove('d-none')
+    document.querySelector('#activeEventDetails').classList.add('d-none')
   } else {
     document.querySelector('#eventArchivedWarning').classList.add('d-none')
+    document.querySelector('#activeEventDetails').classList.remove('d-none')
   }
 
   document.querySelector('#playerName').innerText = getPlayerNameFromOrdinal(data["player"]["playerOrdinal"])["defaultName"]
@@ -289,7 +274,7 @@ const populateFieldsGeneral = (data, iconList) => {
       
       let image = document.createElement('img')
       image.src = getAvatarImagePath(iconList, data["division"]["top"][i]["avatarId"])
-      image.style = 'width: 40px; max-height: 40px;'
+      image.style = 'width: 32px; max-height: 32px;'
       image.alt = '' // don't add a value to this or it'll look ugly
       imageCell.appendChild(image)
 

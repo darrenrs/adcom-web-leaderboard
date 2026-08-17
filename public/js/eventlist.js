@@ -33,7 +33,7 @@ const populateScheduleTable = (eventSchedule) => {
 
     let image = document.createElement('img')
     image.src = getEventIconAssetPath(eventSchedule[i]["eventName"])
-    image.style = 'height: 40px; width: 40px; background-color: rgba(0, 0, 0, 0) !important'
+    image.style = 'height: 32px; width: 32px; background-color: rgba(0, 0, 0, 0) !important'
     image.alt = '' // don't add a value to this or it'll look ugly
     imageCell.appendChild(image)
 
