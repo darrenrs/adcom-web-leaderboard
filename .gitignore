@@ -3,6 +3,7 @@
 Thumbs.db
 nohup.out
 *.old
+*.bak
 
 # Node-specific
 *.log

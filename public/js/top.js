@@ -60,6 +60,8 @@ const postFormEventLeaderboard = async() => {
     return
   }
   
+  document.querySelector('#eventLoadConnectionError').classList.remove('d-none')
+  document.querySelector('#eventLoadConnectionError').innerText = 'Loading ...'
   const playerId = document.querySelector('#activePlayFabId').innerText
   const selectedEventId = document.querySelector('option:checked').value
   const topCount = document.querySelector('#eventNPlayers').value
@@ -252,9 +254,19 @@ const populateFieldsTop = (data, iconList) => {
       topPlayer.appendChild(rankCell)
     }
 
-    topPlayer.appendChild(amountSpentCell)
-    topPlayer.appendChild(divisionOrdinalIdCell)
-    topPlayer.appendChild(timeElapsedCell)
+    if (i === '10') {
+      let topTenPlayersOnlyNotice = document.createElement('td')
+      topTenPlayersOnlyNotice.innerText = 'Information only available for top 10 players.'
+      topTenPlayersOnlyNotice.colSpan = 3
+      topTenPlayersOnlyNotice.rowSpan = (data["top"]["list"].length - 10) + 1
+      console.log(topTenPlayersOnlyNotice)
+
+      topPlayer.appendChild(topTenPlayersOnlyNotice)
+    } else if (i < 10) {
+      topPlayer.appendChild(amountSpentCell)
+      topPlayer.appendChild(divisionOrdinalIdCell)
+      topPlayer.appendChild(timeElapsedCell)
+    }
     
     tbody.appendChild(topPlayer)
   }

@@ -78,7 +78,7 @@
                 <span id="currentTitleDataFileVersion">...</span>
               </p>
               <p>
-                Last update completed at (UTC):
+                Last update completed at (local time):
                 <span id="currentTitleDataFileJobCompleteAt">...</span>
               </p>
               <br />
@@ -144,6 +144,10 @@
               <strong>Database Player Event Records: </strong
               ><span id="dbPlayerEventRecordCount">...</span>
             </li>
+            <li>
+              <strong>Database Last Modified At: </strong
+              ><span id="dbLastModified">...</span>
+            </li>
           </ul>
         </div>
         <div class="row pt-3">
@@ -153,11 +157,11 @@
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>Name</th>
+                  <th colspan=2>Name</th>
                   <th>Discord Username</th>
                   <th>Discord ID</th>
                   <th>PlayFab ID</th>
-                  <th>Last Login (UTC)</th>
+                  <th>Last Login</th>
                 </tr>
               </thead>
               <tbody

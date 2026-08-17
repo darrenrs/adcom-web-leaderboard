@@ -7,6 +7,7 @@ const crypto = require('crypto')
 
 const db = require('./db')
 const balance = require('./balance')
+const GameApiClient = require('./adcom-api')
 
 const app = express({
   strict: true
@@ -17,6 +18,13 @@ const fullBasePlayerMeta = `${process.env.API_URL_PLAYERMETA}/project/${process.
 const ASSET_SERVER = process.env.ASSET_SERVER
 const ASSET_NAMESPACE = process.env.PLAYFAB_TITLE_ID
 const ASSET_PUBLIC_BASE = process.env.ASSET_PUBLIC_BASE
+const FULL_LEADERBOARD_TOP_COUNT = 9_999_999
+
+const gameApi = new GameApiClient({
+  baseLeaderboard: fullBaseLeaderboard,
+  basePlayermeta: fullBasePlayerMeta,
+  token: process.env.API_GCLOUD_TOKEN
+})
 
 const resolveAssetPublicBase = (rawBase, titleId) => {
   if (!rawBase) {
@@ -100,12 +108,7 @@ const log = (message, remoteAddress, error=false) => {
 // returns a list of every event since the inception of v3 leaderboard service up until either now or all scheduled
 const getAllEvents = async (future=false) => {
   try {
-    const eventListReq = await axios.get(`${fullBaseLeaderboard}/leaderboards`, config={
-      "headers": {
-        "_token": process.env.API_GCLOUD_TOKEN,
-        "User-agent": "Axios"
-      }
-    })
+    const eventListReq = await gameApi.listLeaderboards()
 
     const eventList = parseAllEvents(eventListReq, future)
     return eventList
@@ -183,12 +186,7 @@ const getPlayerState = async(id) => {
       return true
     }
 
-    await axios.get(`${fullBasePlayerMeta}/players/${id}`, config={
-      "headers": {
-        "_token": process.env.API_GCLOUD_TOKEN,
-        "User-agent": "Axios"
-      }
-    })
+    await gameApi.getPlayerMetadata(id)
 
     // add player to cache
     dbHandler.addPlayer(id)
@@ -219,12 +217,7 @@ const getPlayerEventState = async(id, eventId, isCurrent) => {
       }
     }
 
-    const playerEventRecord = await axios.get(`${fullBaseLeaderboard}/leaderboards/${eventId}/players/${id}`, config={
-      "headers": {
-        "_token": process.env.API_GCLOUD_TOKEN,
-        "User-agent": "Axios"
-      }
-    })
+    const playerEventRecord = await gameApi.getPlayerEventRegistration(id, eventId)
 
     if (playerEventRecord["data"]["data"]) {
       // player has participated in event
@@ -271,43 +264,36 @@ const getKnownPlayerEvents = async(id) => {
 }
 
 const parseKnownPlayerEvents = async(id, allEvents) => {
-  while (true) {
-    try {
-      const newKnownEventsPromises = allEvents.map(async (i) => {
-        const isCurrent = Boolean(i["eventId"] == allEvents[0]["eventId"])
-        const status = await getPlayerEventState(id, i["eventId"], isCurrent)
-        const eventStruct = {
-          "eventId": i["eventId"],
-          "eventName": i["eventName"],
-          "eventStatus": i["eventStatus"],
-          "startDate": i["startDate"],
-          "endDate": i["endDate"],
-          "status": status,
-          "isLteLive": i["isLteLive"]
-        }
+  try {
+    const newKnownEventsPromises = allEvents.map(async (i) => {
+      const isCurrent = Boolean(i["eventId"] == allEvents[0]["eventId"])
+      const status = await getPlayerEventState(id, i["eventId"], isCurrent)
+      const eventStruct = {
+        "eventId": i["eventId"],
+        "eventName": i["eventName"],
+        "eventStatus": i["eventStatus"],
+        "startDate": i["startDate"],
+        "endDate": i["endDate"],
+        "status": status,
+        "isLteLive": i["isLteLive"]
+      }
 
-        return eventStruct
-      })
+      return eventStruct
+    })
 
-      const newKnownEvents = await Promise.all(newKnownEventsPromises)
+    const newKnownEvents = await Promise.all(newKnownEventsPromises)
 
-      newKnownEvents.sort((a, b) => b["startDate"] - a["startDate"])
-      return newKnownEvents
-    } catch(e) {
-      // Ratelimited; try again
-    }
+    newKnownEvents.sort((a, b) => b["startDate"] - a["startDate"])
+    return newKnownEvents
+  } catch(e) {
+    // Ratelimited; try again
   }
 }
 
 // return information about individual player event registration
 const getPlayerEventInfo = async(id, eventId) => {
   try {
-    const playerEventReq = await axios.get(`${fullBaseLeaderboard}/leaderboards/${eventId}/players/${id}`, config={
-      "headers": {
-        "_token": process.env.API_GCLOUD_TOKEN,
-        "User-agent": "Axios"
-      }
-    })
+    const playerEventReq = await gameApi.getPlayerEventRegistration(id, eventId)
     
     return playerEventReq["data"]["data"]
   } catch (e) {
@@ -324,12 +310,7 @@ const getPlayerLeaderboard = async(id, eventId, adjacentCount, topCount, indirec
       dbHandler.updatePlayerDiscordTimestamp(id)
     }
 
-    const playerLeaderboardReq = await axios.get(`${fullBaseLeaderboard}/leaderboards/${eventId}/players/${id}/results?offset=${adjacentCount}&resolvePlayers=true&topCount=${topCount}`, config={
-      "headers": {
-        "_token": process.env.API_GCLOUD_TOKEN,
-        "User-agent": "Axios"
-      }
-    })
+    const playerLeaderboardReq = await gameApi.getPlayerLeaderboard(id, eventId, {adjacentCount: adjacentCount, topCount: topCount})
     
     return playerLeaderboardReq["data"]["resultMap"]
   } catch (e) {
@@ -338,54 +319,19 @@ const getPlayerLeaderboard = async(id, eventId, adjacentCount, topCount, indirec
   }
 }
 
-// returns the trophies at an exact position
-const getPosition = async(id, eventId, n) => {
-  try {
-    const positionReq = await axios.get(`${fullBaseLeaderboard}/leaderboards/${eventId}/players/${id}/score/position?position=${n}`, config={
-      "headers": {
-        "_token": process.env.API_GCLOUD_TOKEN,
-        "User-agent": "Axios"
-      }
-    })
-    return positionReq["data"]["resultMap"]["rootResult"]["score"]
-  } catch (e) {
-    // console.error(`Note: this may simply be an archived event\n${e}`)
-    return Promise.reject(e)
-  }
-}
-
-// returns the brackets for a leaderboard
-const getBrackets = async(id, eventId, brackets, totalPlayers) => {
-  try {
-    const trophies = {}
-
-    for (let i of brackets) {
-      let n = i - 1
-      if (i < 1) {
-        n = Math.floor(totalPlayers * i) - 1
-      }
-
-      // don't display bracket if it does not exist yet
-      // (i.e., insufficient number of players or cheater leaderboard)
-      if (n <= 99 && i < 1) {
-        continue
-      }
-
-      const position = await getPosition(id, eventId, n)
-
-      trophies[i.toString()] = Math.floor(position)
-    }
-
-    trophies["0.999999"] = 0  // hacky thing
-    return trophies
-  } catch (e) {
-    // console.error(e)
-    return Promise.reject(e)
-  }
-}
-
 // returns the data for an active event
 const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboard, id, returnGlobalForDivision=false) => {
+  const globalEntries = playerLeaderboard.results.rootResults.topResults.rankedEntry
+
+  const globalPositionByPlayerId = new Map(
+    globalEntries.map((entry) => [
+      entry.playerId,
+      entry.position.position
+    ])
+  )
+
+  const brackets = [1, 5, 25, 100, 0.01, 0.05, 0.10, 0.25, 0.50, 0.75]
+  
   let proximalPlayerHashMap = {}
   for (let i of playerLeaderboard["resolvedPlayers"]["objectArray"]) {
     // generate a list of players from the "resolvedPlayers" key, so we can obtain metadata such as ordinal ID (yields nickname) and icon
@@ -419,120 +365,79 @@ const rankedEntryData = async(currentEventData, playerEventInfo, playerLeaderboa
   returnStruct["player"]["avatarId"] = proximalPlayerHashMap[playerEventInfo["playerId"]]["avatarId"]
   returnStruct["player"]["lteRank"] = proximalPlayerHashMap[playerEventInfo["playerId"]]["lteRank"]
 
-  returnStruct["global"] = {}
-  returnStruct["global"]["count"] = playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"][0]["position"]["count"]
-  returnStruct["global"]["top"] = []
-  returnStruct["global"]["adjacent"] = []
-  for (let i of playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"]) {
-    returnStruct["global"]["top"].push({
-      // "playerId": i["playerId"],
-      "ordinal": proximalPlayerHashMap[i["playerId"]]["sequence"],
-      "avatarId": proximalPlayerHashMap[i["playerId"]]["avatarId"],
-      "lteRank": proximalPlayerHashMap[i["playerId"]]["lteRank"],
-      "position": i["position"]["position"],
-      "trophies": i["score"],
-    })
+  const globalAdjacentEntries =
+    playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]
+    ?? []
+
+  const currentPlayerAdjacentEntry =
+    globalAdjacentEntries.find(entry => entry["playerId"] === id)
+
+  const globalPosition =
+    globalPositionByPlayerId.get(id)
+    ?? currentPlayerAdjacentEntry?.["position"]?.["position"]
+
+  if (globalPosition === undefined) {
+    throw new Error(
+      `Global position missing for player ${id} in event ${currentEventData["eventId"]}`
+    )
   }
 
-  for (let i of playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]) {
-    returnStruct["global"]["adjacent"].push({
-      // "playerId": i["playerId"],
-      "ordinal": proximalPlayerHashMap[i["playerId"]]["sequence"],
-      "avatarId": proximalPlayerHashMap[i["playerId"]]["avatarId"],
-      "lteRank": proximalPlayerHashMap[i["playerId"]]["lteRank"],
-      "position": i["position"]["position"],
-      "trophies": i["score"],
-    })
-    if (i["playerId"] === id) {
-      returnStruct["player"]["globalPosition"] = i["position"]["position"]
+  returnStruct["player"]["globalPosition"] = globalPosition
+
+
+  const globalCount = globalEntries[0]["position"]["count"]
+  const hasCompleteGlobalLeaderboard = globalEntries.length >= globalCount
+
+  returnStruct["global"] = {}
+  returnStruct["global"]["count"] = playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"][0]["position"]["count"]
+  returnStruct["global"]["brackets"] = {}
+  
+  if (hasCompleteGlobalLeaderboard) {
+    for (let i of brackets) {
+      let n = i - 1
+      if (i < 1) {
+        n = Math.floor(returnStruct["global"]["count"] * i) - 1
+      }
+
+      // don't display bracket if it does not exist yet
+      // (i.e., insufficient number of players or cheater leaderboard)
+      if (n <= 99 && i < 1) {
+        continue
+      }
+
+      const scoreAtPosition = playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"][n]["score"]
+
+      returnStruct["global"]["brackets"][i.toString()] = Math.floor(scoreAtPosition)
     }
+
+    // same hacky fix from 2022
+    returnStruct["global"]["brackets"]["0.999999"] = 10
   }
 
   returnStruct["division"] = {}
-  returnStruct["division"]["count"] = playerLeaderboard["results"]["segmentResults"]["topResults"]["rankedEntry"][0]["position"]["count"]
+  returnStruct["division"]["count"] =
+    playerLeaderboard["results"]["segmentResults"]["topResults"]
+      ["rankedEntry"][0]["position"]["count"]
+
   returnStruct["division"]["top"] = []
   returnStruct["division"]["adjacent"] = []
-  for (let i of playerLeaderboard["results"]["segmentResults"]["topResults"]["rankedEntry"]) {
+
+  const divisionTopEntries =
+    playerLeaderboard["results"]["segmentResults"]["topResults"]["rankedEntry"]
+
+  for (const entry of divisionTopEntries) {
+    const player = proximalPlayerHashMap[entry["playerId"]]
+
     returnStruct["division"]["top"].push({
-      "playerId": i["playerId"],
-      "ordinal": proximalPlayerHashMap[i["playerId"]]["sequence"],
-      "avatarId": proximalPlayerHashMap[i["playerId"]]["avatarId"],
-      "lteRank": proximalPlayerHashMap[i["playerId"]]["lteRank"],
-      "position": i["position"]["position"],
-      "trophies": i["score"],
+      "playerId": entry["playerId"],
+      "ordinal": player["sequence"],
+      "avatarId": player["avatarId"],
+      "lteRank": player["lteRank"],
+      "position": entry["position"]["position"],
+      "globalPosition":
+        globalPositionByPlayerId.get(entry["playerId"]) ?? null,
+      "trophies": entry["score"]
     })
-  }
-
-  for (let i of playerLeaderboard["results"]["segmentResults"]["offsetResults"]["rankedEntry"]) {
-    returnStruct["division"]["adjacent"].push({
-      "playerId": i["playerId"],
-      "ordinal": proximalPlayerHashMap[i["playerId"]]["sequence"],
-      "avatarId": proximalPlayerHashMap[i["playerId"]]["avatarId"],
-      "lteRank": proximalPlayerHashMap[i["playerId"]]["lteRank"],
-      "position": i["position"]["position"],
-      "globalPosition": null,
-      "trophies": i["score"],
-    })
-  }
-
-  // get results for each division player
-  if (returnGlobalForDivision) {
-    const playerEventRecordsPromises = returnStruct["division"]["adjacent"].map(async (record) => {
-      const id = record["playerId"]
-      const eventId = returnStruct["event"]["eventGuid"]
-      const rvalue = {
-        "playFabId": id,
-        "position": null,
-        "dateJoined": null,
-        "dateUpdated": null,
-      }
-
-      const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25, true)
-      const playerEventInfo = await getPlayerEventInfo(id, eventId)
-
-      rvalue["dateJoined"] = playerEventInfo["created"]
-      rvalue["dateUpdated"] = playerEventInfo["updated"]
-
-      if (!playerLeaderboard) {
-        return rvalue
-      }
-      
-      // differentiate between archived and active leaderboard
-      if (playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]) {
-        for (let i of playerLeaderboard["results"]["rootResults"]["offsetResults"]["rankedEntry"]) {
-          if (i["playerId"] === id) {
-            rvalue["position"] = i["position"]["position"]
-            return rvalue
-          }
-        }
-      } else {
-        return rvalue
-      }
-    })
-
-    const playerEventRecords = (await Promise.allSettled(playerEventRecordsPromises)).filter(
-      (result) => result.status === 'fulfilled' && result.value !== null
-    ).map(result => result.value)
-
-    for (let i of playerEventRecords) {
-      for (let j of returnStruct["division"]["adjacent"]) {
-        if (i["playFabId"] === j["playerId"]) {
-          j["globalPosition"] = i["position"]
-          j["dateJoined"] = i["dateJoined"]
-          j["dateUpdated"] = i["dateUpdated"]
-          j["playerId"] = null
-        }
-      }
-      
-      for (let k of returnStruct["division"]["top"]) {
-        if (i["playFabId"] === k["playerId"]) {
-          k["globalPosition"] = i["position"]
-          k["dateJoined"] = i["dateJoined"]
-          k["dateUpdated"] = i["dateUpdated"]
-          k["playerId"] = null
-        }
-      }
-    }
   }
 
   return returnStruct
@@ -564,6 +469,7 @@ const archivedEntryData = async(currentEventData, playerEventInfo, playerLeaderb
   
   returnStruct["global"] = {}
   returnStruct["global"]["count"] = playerLeaderboardInfo["results"]["rootResults"]["offsetResults"]["archivedEntry"]["rootPosition"]["count"]
+  returnStruct["global"]["brackets"] = {}
   
   returnStruct["division"] = {}
   returnStruct["division"]["count"] = playerLeaderboardInfo["results"]["rootResults"]["offsetResults"]["archivedEntry"]["segmentPosition"]["count"]
@@ -571,33 +477,27 @@ const archivedEntryData = async(currentEventData, playerEventInfo, playerLeaderb
   return returnStruct
 }
 
-const dbPlayerList = async() => {
+const dbAdminInfo = async() => {
   const dbHandler = new db()
-  const data = await dbHandler.getAllPlayers()
-
-  dbHandler.close()
-  return data
-}
-
-const dbPlayerEventRecords = async() => {
-  const dbHandler = new db()
-  const data = await dbHandler.getAllPlayerEvents()
-
-  dbHandler.close()
-  return data
+  
+  try {
+    return {
+      playerList: await dbHandler.getAllPlayers(),
+      playerEventRecordCount:
+        await dbHandler.getPlayerEventCounts(),
+      playerDiscordRecords:
+        await dbHandler.getAllPlayerDiscordRecords(),
+      dbFileMtime:
+        await dbHandler.getDbFileMtime()
+    }
+  } finally {
+    dbHandler.close()
+  }
 }
 
 const dbPlayerDiscordRecords = async() => {
   const dbHandler = new db()
   const data = await dbHandler.getAllPlayerDiscordRecords()
-
-  dbHandler.close()
-  return data
-}
-
-const dbPlayerDiscordRecordsNoDateConstraint = async() => {
-  const dbHandler = new db()
-  const data = await dbHandler.getAllPlayerDiscordRecordsNoDateConstraint()
 
   dbHandler.close()
   return data
@@ -886,7 +786,13 @@ app.patch('/api/discord/account', async(req, res) => {
     discordPfpId = discordPfpId.toString().trim()
     
     // 1 in 4 billion chance of ID length being less than 8; almost certainly user input error
-    if (id.length > 16 || id.length < 8) {
+    if ((id.length > 16 || id.length < 8)) {
+      res.sendStatus(400)
+      return
+    }
+
+    // playfab ID must be hexadecimal
+    if (!/^[0-9A-F]+$/i.test(id)) {
       res.sendStatus(400)
       return
     }
@@ -1519,7 +1425,7 @@ app.get('/api/event/:event/:id', async (req, res) => {
       return
     }
 
-    const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, 25)
+    const playerLeaderboard = await getPlayerLeaderboard(id, eventId, 25, FULL_LEADERBOARD_TOP_COUNT)
     if (!playerLeaderboard) {
       // don't even bother continuing if we know the ID has no record
       log(`${req.method} ${req.path} - no record found.`, remoteAddress)
@@ -1607,12 +1513,11 @@ app.get('/api/event/:event/:id/brackets', async (req, res) => {
     } else {
       log(`${req.method} ${req.path} - cannot query from archived leaderboard.`, remoteAddress)
 
-      res.sendStatus(404) // can't currently retrieve brackets from archived leaderboards
+      res.sendStatus(404) // cannot retrieve brackets from archived leaderboards
       return
-      totalPlayers = playerLeaderboard["results"]["rootResults"]["offsetResults"]["archivedEntry"]["rootPosition"]["count"]
     }
 
-    const bracketData = await getBrackets(id, eventId, brackets, totalPlayers)
+    const bracketData = []//await getBrackets(id, eventId, brackets, totalPlayers)
 
     const returnStruct = {
       "totalPlayers": totalPlayers,
@@ -1711,7 +1616,9 @@ app.get('/api/event/:event/:id/top/:count', async (req, res) => {
       })
     }
 
-    const playerEventDivisionsPromises = playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"].map(async (record) => {
+    const topTenPlayers = playerLeaderboard["results"]["rootResults"]["topResults"]["rankedEntry"].slice(0, 10);
+
+    const playerEventDivisionsPromises = topTenPlayers.map(async (record) => {
       const id = record["playerId"]
       
       const returnStruct = {
@@ -1749,6 +1656,14 @@ app.get('/api/event/:event/:id/top/:count', async (req, res) => {
             returnStruct["top"]["list"][i]["playerId"] = null
           }
         }
+      }
+    }
+    
+    for (let index = 10; index < returnStruct["top"]["list"].length; index++) {
+      const player = returnStruct["top"]["list"][index]
+
+      if (player["playerId"] !== req.params.id) {
+        player["playerId"] = null
       }
     }
 
@@ -1829,10 +1744,10 @@ app.get('/api/event/:event/:id/finished', async(req, res) => {
     res.status(200).json(returnStruct)
     return
   } catch (e) {
-    log(`${req.method} ${req.path} error - ${e}`, remoteAddress, true)
+    log(`${req.method} ${req.path} error - ${e.stack || e}`, remoteAddress, true)
 
     // hacky fix
-    if (e.response.status === 404) {
+    if (e.response?.status === 404) {
       res.sendStatus(404)
     } else {
       res.sendStatus(502)
@@ -1904,10 +1819,12 @@ app.post('/api/admin', async(req, res) => {
       "currentTitleDataFileVersion": null,
       "currentTitleDataFileJobCompleteAt": null
     }
+    const dbAdminInfoStruct = await dbAdminInfo()
 
-    returnStruct["discordLeaderboard"] = await dbPlayerDiscordRecords()
-    returnStruct["dbPlayerList"] = await dbPlayerList()
-    returnStruct["dbPlayerEventRecordCount"] = (await dbPlayerEventRecords()).length
+    returnStruct["discordLeaderboard"] = dbAdminInfoStruct["playerDiscordRecords"]
+    returnStruct["dbPlayerList"] = dbAdminInfoStruct["playerList"]
+    returnStruct["dbPlayerEventRecordCount"] = dbAdminInfoStruct["playerEventRecordCount"]
+    returnStruct["dbLastModified"] = dbAdminInfoStruct["dbFileMtime"]
     returnStruct["currentTitleDataFileVersion"] = 'Unknown'
     returnStruct["currentTitleDataFileJobCompleteAt"] = 'Unknown'
 

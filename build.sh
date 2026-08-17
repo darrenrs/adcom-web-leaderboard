@@ -1,11 +1,18 @@
 #!/bin/bash
+set -euo pipefail
 
 # Automatically retrieve the latest commit hash
-export COMMIT_HASH=$(git rev-parse --short=8 HEAD)
+COMMIT_HASH="$(git rev-parse --short=7 HEAD)"
+export COMMIT_HASH
 
 # Ensure sqlite bind-mount file exists on host before container start.
-touch players.db
-touch afflicted-events.txt
+if [[ ! -e players.db ]]; then
+  touch players.db
+fi
+
+if [[ ! -e afflicted-events.txt ]]; then
+  touch afflicted-events.txt
+fi
 
 docker network inspect adcom-sites >/dev/null 2>&1 || docker network create adcom-sites
 

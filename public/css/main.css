@@ -1,3 +1,7 @@
+#mainContent {
+  padding-bottom: 10px;
+}
+
 input[type="text"] {
   font-family: var(--bs-font-monospace);
   font-size: 15px;

@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 module.exports = class SQLiteInterface {
   // create database and tables if it doesn't exist
   constructor() {
@@ -145,15 +147,19 @@ module.exports = class SQLiteInterface {
     })
   }
 
-  async getAllPlayerEvents() {
+  async getPlayerEventCounts() {
     return new Promise((resolve, reject) => {
-      this.db.all('SELECT * FROM "players-events"', (err, rows) => {
-        if (err) {
-          reject(err)
-        }
+      this.db.get(
+        'SELECT COUNT(*) AS count FROM "players-events"',
+        (err, row) => {
+          if (err) {
+            reject(err)
+            return
+          }
 
-        resolve(rows)
-      })
+          resolve(row.count)
+        }
+      )
     })
   }
 
@@ -179,6 +185,11 @@ module.exports = class SQLiteInterface {
         resolve(rows)
       })
     })
+  }
+
+  async getDbFileMtime() {
+    const stats = await fs.promises.stat(__dirname + '/players.db');
+    return stats.mtime;
   }
 
   // close database--DO NOT use a class instance after calling this method

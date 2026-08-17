@@ -135,8 +135,9 @@ const populateAdmin = async(data) => {
   document.querySelector('#discordLeaderboardCount').innerText = (data["discordLeaderboard"].length).toLocaleString()
   document.querySelector('#dbPlayerCount').innerText = (data["dbPlayerList"].length).toLocaleString()
   document.querySelector('#dbPlayerEventRecordCount').innerText = data["dbPlayerEventRecordCount"].toLocaleString()
+  document.querySelector('#dbLastModified').innerText = new Date(data["dbLastModified"]).toLocaleString()
   document.querySelector('#currentTitleDataFileVersion').innerText = data["currentTitleDataFileVersion"]
-  document.querySelector('#currentTitleDataFileJobCompleteAt').innerText = data["currentTitleDataFileJobCompleteAt"]
+  document.querySelector('#currentTitleDataFileJobCompleteAt').innerText = new Date(data["currentTitleDataFileJobCompleteAt"]).toLocaleString()
 
   const tbodyDiscord = document.querySelector('#discordLeaderboardRaw')
   const allExistingRowsDiscord = document.querySelectorAll('#discordLeaderboardRaw tr')
@@ -151,6 +152,18 @@ const populateAdmin = async(data) => {
 
     let idCell = document.createElement('td')
     idCell.innerText = parseInt(i)
+
+    let imageCell = document.createElement('td')
+    imageCell.style = 'padding-top: 0 !important; padding-bottom: 0 !important'
+
+    let image = document.createElement('img')
+    if (data["discordLeaderboard"][i]["discordProfilePictureId"] !== null) {
+      image.src = `https://cdn.discordapp.com/avatars/${data["discordLeaderboard"][i]["discordId"]}/${data["discordLeaderboard"][i]["discordProfilePictureId"]}.png?size=256`
+    }
+    image.width = 40
+    image.alt = '' // don't add a value to this or it'll look ugly
+    image.classList.add('rounded-circle')
+    imageCell.appendChild(image)
 
     let nameCell = document.createElement('td')
     nameCell.innerText = data["discordLeaderboard"][i]["displayName"]
@@ -167,9 +180,10 @@ const populateAdmin = async(data) => {
     playFabIdCell.classList.add('font-monospace')
 
     let lastLoginCell = document.createElement('td')
-    lastLoginCell.innerText = data["discordLeaderboard"][i]["lastCheckDate"]
+    lastLoginCell.innerText = new Date(data["discordLeaderboard"][i]["lastCheckDate"]).toLocaleString()
     
     discordLbRow.append(idCell)
+    discordLbRow.append(imageCell)
     discordLbRow.append(nameCell)
     discordLbRow.append(discordNameCell)
     discordLbRow.append(discordIdCell)

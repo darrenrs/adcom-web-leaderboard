@@ -56,6 +56,8 @@ const postFormEvent = async() => {
     return
   }
   
+  document.querySelector('#eventLoadConnectionError').classList.remove('d-none')
+  document.querySelector('#eventLoadConnectionError').innerText = 'Loading ...'
   const playerId = document.querySelector('#activePlayFabId').innerText
   const selectedEventId = document.querySelector('option:checked').value
   const eventData = await getPlayerEventRecord(playerId, selectedEventId)
@@ -83,28 +85,29 @@ const postFormEvent = async() => {
 
     const iconList = await getIconListFetch()
     populateFieldsGeneral(eventData, iconList)
+    populateFieldsGlobal(eventData)
   } else {
     // general failure
     document.querySelector('#eventLoadConnectionError').classList.remove('d-none')
     return
   }
 
-  const eventBrackets = await getLeaderboardBrackets(playerId, selectedEventId)
+  // const eventBrackets = await getLeaderboardBrackets(playerId, selectedEventId)
 
-  if (eventBrackets) {
-    // success
-    document.querySelector('#eventLoadConnectionError').classList.add('d-none')
-    document.querySelector('#globalPositions').classList.remove('d-none')
-    populateFieldsGlobal(eventBrackets, eventData)
-  } else {
-    // general failure
-    document.querySelector('#eventLoadConnectionError').classList.remove('d-none')
-    document.querySelector('#globalPositions').classList.add('d-none')
-    document.querySelector('#leaderboardMarkerContainer').style = `margin-top: 0px !important;`
-    document.querySelector('#leaderboardMarker').innerText = 'N/A'
-    document.querySelector('#leaderboardMarker').setAttribute('inverse', 'N/A')
-    document.querySelector('#bracketScore').innerText = 'unavailable'
-  }
+  // if (eventBrackets) {
+  //   // success
+  //   document.querySelector('#eventLoadConnectionError').classList.add('d-none')
+  //   document.querySelector('#globalPositions').classList.remove('d-none')
+  //   populateFieldsGlobal(eventBrackets, eventData)
+  // } else {
+  //   // general failure
+  //   document.querySelector('#eventLoadConnectionError').classList.remove('d-none')
+  //   document.querySelector('#globalPositions').classList.add('d-none')
+  //   document.querySelector('#leaderboardMarkerContainer').style = `margin-top: 0px !important;`
+  //   document.querySelector('#leaderboardMarker').innerText = 'N/A'
+  //   document.querySelector('#leaderboardMarker').setAttribute('inverse', 'N/A')
+  //   document.querySelector('#bracketScore').innerText = 'unavailable'
+  // }
 }
 
 const getPlayerState = async(playerId) => {
@@ -254,13 +257,6 @@ const populateFieldsGeneral = (data, iconList) => {
   let tbody = document.querySelector('#divisionPlayers')
   tbody.innerHTML = ''
   if (data["player"]["divisionId"]) {
-    if (data["division"]["top"] && data["division"]["top"].length > 0) {
-      const joinTimestamps = data["division"]["top"].map(x => x["dateJoined"]).sort()
-      document.querySelector('#divisionTime').innerHTML = getFastTimedeltaFormat((new Date(joinTimestamps[joinTimestamps.length-1]) - new Date(joinTimestamps[0]))/1000)
-    } else {
-      document.querySelector('#divisionTime').innerText = 'unavailable'
-    }
-
     for (let i in data["division"]["top"]) {
       let divisionPlayer = document.createElement('tr')
       if (data["division"]["top"][i]["ordinal"] === data["player"]["playerOrdinal"]) {
@@ -330,7 +326,11 @@ const populateFieldsGeneral = (data, iconList) => {
   }
 }
 
-const populateFieldsGlobal = (data, playerData) => {
+const populateFieldsGlobal = (playerData) => {
+  const data = {
+    brackets: playerData["global"]["brackets"],
+    totalPlayers: playerData["global"]["count"]
+  } // old bracket reference
   const bracketNames = [
     'Champion',
     'Top 5',

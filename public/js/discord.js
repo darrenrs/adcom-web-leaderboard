@@ -229,7 +229,7 @@ const populateDiscordLeaderboardTable = (discordLb, discordId) => {
     trophiesCell.innerText = discordLb["players"][i]["trophies"].toLocaleString()
 
     let lastUpdatedCell = document.createElement('td')
-    lastUpdatedCell.innerText = new Date(discordLb["players"][i]["lastUpdated"]).toLocaleString()
+    lastUpdatedCell.innerHTML = `${getTimedeltaFormat(new Date(discordLb["players"][i]["lastUpdated"]))} ago`
 
     let amountSpentCell = document.createElement('td')
     amountSpentCell.innerText = amountSpentDollars(discordLb["players"][i]["divisionId"])
